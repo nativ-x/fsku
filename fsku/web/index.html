@@ -1,0 +1,2546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>FSKU · Open GPU Compute Benchmark Index & Forward Curves</title>
+<meta name="description" content="FSKU: Institutional open-source GPU compute benchmark index, historical settlement series, and implied forward curve platform." />
+<style>
+  :root{
+    --bg:#131313;
+    --surface-lowest:#0e0e0e;
+    --surface-low:#181818;
+    --surface-container:#1f1f1f;
+    --surface-high:#2a2a2a;
+    --surface-highest:#353535;
+    --surface-bright:#393939;
+
+    --panel:#181818;
+    --panel2:#1f1f1f;
+    --line:rgba(71,71,71,0.35);
+    --line2:rgba(145,145,145,0.4);
+
+    --text:#e2e2e2;
+    --muted:#919191;
+    --dim:#5a5a5a;
+    --white:#ffffff;
+
+    --good:#38ef7d;
+    --warn:#f59e0b;
+    --bad:#ffb4ab;
+
+    --blue:#38bdf8;
+    --violet:#c084fc;
+    --cyan:#00d2ff;
+    --amber:#f59e0b;
+    --green:#38ef7d;
+    --pink:#f472b6;
+
+    --shadow:0 12px 48px rgba(0,0,0,0.55);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background-color:var(--bg);color:var(--text);font:13px/1.5 'Inter',ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:-.01em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+  button,input,select{font:inherit}
+  a{color:inherit}
+  .shell{max-width:1820px;width:97vw;margin:auto;padding:0 20px 64px}
+  
+  .topbar{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;min-height:60px;background:rgba(14,14,14,0.94);backdrop-filter:blur(20px);border-bottom:1px solid var(--line);margin:0 -20px;padding:0 20px}
+  .brand{display:flex;align-items:center;gap:12px;text-decoration:none;transition:transform .15s ease}
+  .brand:hover{transform:translateY(-0.5px)}
+  .brandmark-wrap{display:flex;align-items:center;justify-content:center;position:relative}
+  .brand-svg{display:block;transition:filter .2s ease}
+  .brand:hover .brand-svg{filter:drop-shadow(0 0 10px rgba(56,189,248,0.45))}
+  .brand-text{display:flex;flex-direction:column;gap:1px}
+  .brand-title{display:flex;align-items:center;gap:8px}
+  .brand-name{font-size:16px;font-weight:900;letter-spacing:-.04em;line-height:1;color:#fff;background:linear-gradient(135deg,#ffffff 60%,#c6c6c6 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .brand-badge{font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#38ef7d;background:rgba(56,239,125,0.08);border:1px solid rgba(56,239,125,0.25);padding:1.5px 5.5px;border-radius:3px;font-family:ui-monospace,monospace}
+  .brand-tag{font-weight:500;color:var(--muted);font-size:10.5px;letter-spacing:0}
+  
+  .top-actions{display:flex;align-items:center;gap:8px}
+  .status{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:11px;border:1px solid var(--line);padding:5px 10px;border-radius:999px;background:#181818}
+  .dot{width:7px;height:7px;border-radius:50%;background:#38ef7d;box-shadow:0 0 0 3.5px rgba(56,239,125,.15)}
+  .dot.syncing{background:#f59e0b;box-shadow:0 0 0 3.5px rgba(245,158,11,.25);animation:pulse 1s infinite}
+  @keyframes pulse{0%{opacity:1}50%{opacity:.35}100%{opacity:1}}
+  
+  .btn{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(71,71,71,0.4);background:#1b1b1b;color:var(--text);border-radius:3px;padding:6px 10px;cursor:pointer;transition:.15s;font-size:11.5px;font-weight:500;text-decoration:none;user-select:none}
+  .btn:hover{background:#2a2a2a;border-color:#919191;color:#fff}
+  .btn.primary{background:linear-gradient(145deg,#ffffff,#d4d4d4);color:#1a1c1c;border:none;font-weight:700}
+  .btn.primary:hover{background:#fff;opacity:.92}
+  .btn.sync-btn{background:#1b1b1b;border-color:rgba(71,71,71,0.5);color:#e2e2e2}
+  .btn.sync-btn:hover{background:#262626;border-color:#919191;color:#fff}
+  .btn.cmd-btn{background:#161616;border-color:rgba(71,71,71,0.4);color:#c6c6c6;padding:5px 9px}
+  .btn.cmd-btn kbd{background:#222222;border:1px solid rgba(71,71,71,0.5);border-radius:3px;padding:1px 5px;font-size:9.5px;color:#e2e2e2;font-family:ui-monospace,monospace}
+  .btn.dense-btn{padding:5px 8px;font-size:11px}
+  
+  .pipeline-banner{display:flex;align-items:center;justify-content:space-between;padding:7px 14px;background:#161616;border:1px solid var(--line);border-radius:4px;margin-top:14px;font-size:11px;color:var(--muted);overflow-x:auto}
+  .pipeline-steps{display:flex;align-items:center;gap:10px}
+  .step{display:flex;align-items:center;gap:6px;color:#e2e2e2;font-weight:600}
+  .step-arrow{color:var(--dim);font-size:10px}
+  .step-active{color:#fff;background:#262626;border:1px solid rgba(145,145,145,0.4);padding:2px 8px;border-radius:999px}
+  
+  .nav-tabs{display:flex;gap:4px;overflow-x:auto;padding:14px 0 8px;border-bottom:1px solid var(--line);margin-bottom:18px;scrollbar-width:none}
+  .nav-tabs::-webkit-scrollbar{display:none}
+  .tab-btn{border:1px solid transparent;background:transparent;color:var(--muted);padding:7px 12px;border-radius:3px;cursor:pointer;font-size:11.5px;font-weight:500;white-space:nowrap;transition:.15s}
+  .tab-btn:hover{color:#fff;background:#1b1b1b}
+  .tab-btn.active{color:#fff;background:#262626;border-color:rgba(145,145,145,0.4);box-shadow:0 2px 8px rgba(0,0,0,.4)}
+  
+  .view-pane{display:none}
+  .view-pane.active{display:block}
+
+  .hero{padding:18px 0 14px;max-width:1050px}
+  .eyebrow{font-size:10px;color:#919191;text-transform:uppercase;letter-spacing:.15em;margin-bottom:8px;display:flex;align-items:center;gap:8px;font-family:ui-monospace,monospace}
+  .badge{background:#1e1e1e;color:#c6c6c6;padding:2px 7px;border-radius:3px;font-size:8.5px;border:1px solid rgba(71,71,71,0.4);font-weight:600;font-family:ui-monospace,monospace}
+  .hero h1{font-size:clamp(28px,3.8vw,52px);line-height:.98;margin:0;letter-spacing:-.055em;font-weight:900;color:#ffffff;text-transform:uppercase}
+  .hero p{font-size:13.5px;color:var(--muted);max-width:760px;margin:10px 0 0;line-height:1.6}
+  
+  .notice{border:1px solid var(--line);background:#161616;padding:10px 14px;border-radius:4px;color:#c6c6c6;font-size:11px;margin-bottom:16px;line-height:1.55}
+  .notice b{color:#fff}
+  
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:18px}
+  .kpi{background:#181818;border:1px solid var(--line);border-radius:4px;padding:14px 15px;min-height:108px;box-shadow:var(--shadow)}
+  .kpi .klabel{font-size:9.5px;text-transform:uppercase;letter-spacing:.15em;color:var(--muted);font-weight:600;font-family:ui-monospace,monospace}
+  .kpi .value{font-size:25px;line-height:1.05;letter-spacing:-.04em;margin:10px 0 4px;font-variant-numeric:tabular-nums;font-weight:750;color:#ffffff}
+  .kpi .sub{font-size:10px;color:var(--muted)}
+  
+  .section{margin-top:14px}
+  .section-head{display:flex;justify-content:space-between;align-items:flex-end;margin:20px 0 10px}
+  .section-title{font-size:17px;font-weight:800;letter-spacing:-.03em;display:flex;align-items:center;gap:8px;color:#ffffff}
+  .section-sub{font-size:11px;color:var(--muted);margin-top:2px}
+  .tools{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .select,.search{border:1px solid rgba(71,71,71,0.4);background:#141414;color:var(--text);border-radius:3px;padding:6px 9px;outline:0;font-size:11.5px}
+  .search{width:200px}
+  .select:focus,.search:focus{border-color:#ffffff}
+  
+  .grid2{display:grid;grid-template-columns:1.2fr .8fr;gap:12px}
+  .grid-even{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .panel{background:#181818;border:1px solid var(--line);border-radius:4px;overflow:hidden;box-shadow:var(--shadow)}
+  .panel-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;padding:13px 15px 9px;border-bottom:1px solid rgba(71,71,71,0.2)}
+  .panel-head h3{margin:0;font-size:13px;letter-spacing:-.02em;font-weight:700;color:#ffffff}
+  .panel-head p{margin:2px 0 0;color:var(--muted);font-size:10px}
+  
+  .chart-wrap{height:310px;padding:2px 10px 12px;position:relative}
+  .chart-wrap svg{width:100%;height:100%;display:block;overflow:visible}
+  .axis{fill:#919191;font-size:9px;font-family:ui-monospace,monospace}
+  .gridline{stroke:rgba(71,71,71,0.25);stroke-width:1}
+  .bar{fill:#e2e2e2;transition:.2s}
+  .bar.secondary{fill:#5a5a5a}
+  .bar:hover{fill:#fff}
+  .chart-label{fill:#c6c6c6;font-size:9px;font-family:ui-monospace,monospace}
+  .chart-value{fill:#ffffff;font-size:9px;font-weight:650;font-family:ui-monospace,monospace}
+  
+  .callout{padding:16px}
+  .callout .big{font-size:36px;line-height:1;letter-spacing:-.05em;margin:6px 0;font-weight:800;color:#ffffff}
+  .callout .muted{color:var(--muted);font-size:11px;line-height:1.55}
+  .callout hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+  .callout-row{display:flex;justify-content:space-between;gap:14px;padding:5.5px 0;font-size:11px}
+  .callout-row span{color:var(--muted)}
+  .callout-row b{font-variant-numeric:tabular-nums;color:#ffffff}
+  
+  .table-panel{overflow-x:auto;position:relative}
+  .table{width:100%;border-collapse:collapse}
+  .table th{position:sticky;top:0;background:#141414;z-index:2;text-align:left;padding:7px 8px;color:#919191;font-size:8px;text-transform:uppercase;letter-spacing:.1em;font-family:ui-monospace,monospace;border-bottom:1px solid rgba(71,71,71,0.4);cursor:pointer;white-space:nowrap;user-select:none}
+  .table th:hover{color:#ffffff}
+  .table td{padding:7.5px 8px;border-bottom:1px solid rgba(71,71,71,0.2);font-size:11px;vertical-align:middle;white-space:nowrap}
+  .table tbody tr{transition:.1s}
+  .table tbody tr:hover{background:#1f1f1f}
+  .table .num{text-align:right;font-variant-numeric:tabular-nums;font-family:ui-monospace,monospace}
+  .provider{font-weight:700;color:#fff}
+  .gpu{color:#ffffff;font-weight:600}
+  .muted{color:var(--muted)}
+  .clickable-row{cursor:pointer}
+  
+  body.compact-mode .table td{padding:5px 8px;font-size:10px}
+  body.compact-mode .table th{padding:6px 8px;font-size:8px}
+  body.compact-mode .kpis{gap:6px;margin-bottom:12px}
+  body.compact-mode .kpi{padding:10px 12px;min-height:90px}
+  body.compact-mode .kpi .value{font-size:20px;margin:5px 0 2px}
+  
+  .chip{display:inline-flex;align-items:center;border:1px solid rgba(71,71,71,0.4);border-radius:3px;padding:2px 7px;font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:#c6c6c6;white-space:nowrap;font-weight:600;font-family:ui-monospace,monospace}
+  .chip.spot{color:#38ef7d;border-color:rgba(56,239,125,0.3);background:rgba(56,239,125,.08)}
+  .chip.capacity{color:#f59e0b;border-color:rgba(245,158,11,0.3);background:rgba(245,158,11,.08)}
+  .chip.api{color:#38bdf8;border-color:rgba(56,189,248,0.3);background:rgba(56,189,248,.08)}
+  .chip.conf-high{color:#38ef7d;border-color:rgba(56,239,125,0.35);background:rgba(56,239,125,.08)}
+  .chip.conf-mod{color:#f59e0b;border-color:rgba(245,158,11,0.35);background:rgba(245,158,11,.08)}
+  .chip.conf-low{color:#ffb4ab;border-color:rgba(255,180,171,0.35);background:rgba(255,180,171,.08)}
+  .chip.stat-active{color:#fff;border-color:rgba(145,145,145,0.5);background:#262626}
+  .chip.stat-indicative{color:#f59e0b;border-color:rgba(245,158,11,0.35);background:rgba(245,158,11,.08)}
+  .chip.stat-emerging{color:#c084fc;border-color:rgba(192,132,252,0.35);background:rgba(192,132,252,.08)}
+  
+  .heat-discount{background:rgba(56,239,125,.08);color:var(--good)}
+  .heat-par{color:var(--muted)}
+  .heat-prem-low{background:rgba(245,158,11,.08);color:var(--warn)}
+  .heat-prem-high{background:rgba(255,180,171,.12);color:var(--bad);font-weight:700}
+  
+  .source-link{text-decoration:none;color:#38bdf8;border-bottom:1px dotted rgba(56,189,248,0.4)}
+  .source-link:hover{color:#fff;border-bottom-color:#fff}
+  
+  .specs{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
+  .spec{border:1px solid var(--line);border-radius:4px;background:#181818;padding:14px;position:relative;overflow:hidden}
+  .spec:before{content:"";position:absolute;inset:0 0 auto 0;height:2px;background:linear-gradient(90deg,#fff,transparent);opacity:.6}
+  .spec .gen{font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.12em;font-family:ui-monospace,monospace}
+  .spec h4{font-size:15px;margin:4px 0 12px;letter-spacing:-.04em;color:#ffffff}
+  .metric{display:flex;justify-content:space-between;border-top:1px solid rgba(71,71,71,0.25);padding:6px 0;font-size:10px}
+  .metric span{color:var(--muted)}
+  .metric b{font-variant-numeric:tabular-nums;color:#ffffff;font-family:ui-monospace,monospace}
+  .eff{margin-top:8px}
+  .eff label{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:4px}
+  .track{height:4px;background:#262626;border-radius:999px;overflow:hidden}
+  .fill{height:100%;background:#ffffff;border-radius:999px}
+  
+  .sources{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+  .source-card{border:1px solid var(--line);background:#181818;border-radius:4px;padding:13px;text-decoration:none;transition:.15s}
+  .source-card:hover{transform:translateY(-1px);border-color:#919191;background:#222222}
+  .source-card .snum{font-size:8px;color:var(--dim);letter-spacing:.12em;font-family:ui-monospace,monospace}
+  .source-card h4{font-size:12px;margin:6px 0 4px;color:#ffffff}
+  .source-card p{font-size:10px;color:var(--muted);margin:0;line-height:1.5}
+  .source-card .domain{font-size:9px;color:#c6c6c6;margin-top:10px;font-family:ui-monospace,monospace}
+  
+  .scenario-bar{display:flex;gap:5px;padding:10px 14px 4px;overflow-x:auto;align-items:center}
+  .scenario-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;margin-right:2px;font-family:ui-monospace,monospace}
+  .scenario-btn{border:1px solid rgba(71,71,71,0.35);background:#141414;color:var(--muted);padding:4px 9px;border-radius:3px;font-size:10.5px;cursor:pointer;transition:.12s;white-space:nowrap;font-weight:500}
+  .scenario-btn:hover{color:#fff;background:#222222;border-color:#919191}
+  .scenario-btn.active{color:#ffffff;background:#2a2a2a;border-color:#ffffff;font-weight:600}
+  
+  .forward-controls{display:grid;grid-template-columns:repeat(5,minmax(110px,1fr));gap:8px;padding:8px 14px 12px}
+  .control{display:flex;flex-direction:column;gap:4px}
+  .control label{font-size:8.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.11em;font-weight:600;font-family:ui-monospace,monospace}
+  .control .select,.control input{width:100%;border:1px solid rgba(71,71,71,0.4);background:#141414;color:var(--text);border-radius:3px;padding:6px 8px;outline:0;font-size:11px}
+  .range-wrap{display:flex;align-items:center;gap:6px}
+  .range-wrap input[type=range]{flex:1;accent-color:#ffffff}
+  
+  .curve-wrap{height:330px;padding:2px 10px 12px;position:relative}
+  .curve-wrap svg{width:100%;height:100%;display:block;overflow:visible;cursor:crosshair}
+  .curve-line{fill:none;stroke:#38bdf8;stroke-width:2.2;vector-effect:non-scaling-stroke}
+  .curve-band{fill:rgba(56,189,248,0.06);stroke:none}
+  .curve-dot{fill:#fff;transition:.1s}
+  .curve-label{fill:#ffffff;font-size:9px;font-family:ui-monospace,monospace}
+  .crosshair-line{stroke:rgba(145,145,145,0.4);stroke-width:1;stroke-dasharray:3,3}
+  
+  .formula{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10.5px;color:#e2e2e2;background:#0e0e0e;border:1px solid var(--line);border-radius:4px;padding:8px 10px;margin-top:8px;line-height:1.55}
+  .forward-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 14px 14px}
+  .forward-kpi{border-top:1px solid var(--line);padding-top:8px}
+  .forward-kpi span{display:block;color:var(--muted);font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;font-family:ui-monospace,monospace}
+  .forward-kpi b{display:block;margin-top:2px;font-size:16px;letter-spacing:-.035em;font-variant-numeric:tabular-nums;font-weight:750;color:#ffffff;font-family:ui-monospace,monospace}
+  
+  .tenor-table{width:100%;border-collapse:collapse}
+  .tenor-table th,.tenor-table td{padding:6px 8px;border-top:1px solid rgba(71,71,71,0.25);font-size:10px}
+  .tenor-table th{color:var(--muted);text-transform:uppercase;letter-spacing:.09em;font-size:8px;text-align:left;font-family:ui-monospace,monospace}
+  .tenor-table td.num,.tenor-table th.num{text-align:right;font-variant-numeric:tabular-nums;font-family:ui-monospace,monospace}
+  .pill{display:inline-flex;align-items:center;border:1px solid rgba(71,71,71,0.4);border-radius:3px;padding:2px 6px;font-size:8px;color:#c6c6c6;text-transform:uppercase;letter-spacing:.08em;font-family:ui-monospace,monospace}
+  .positive{color:var(--good)}
+  .negative{color:var(--bad)}
+  
+  .chart-hud{position:absolute;pointer-events:none;z-index:20;background:rgba(22,22,22,0.96);border:1px solid rgba(145,145,145,0.4);border-radius:4px;padding:8px 12px;font-size:10.5px;box-shadow:0 8px 30px rgba(0,0,0,.8);backdrop-filter:blur(10px);display:none;min-width:140px}
+  .chart-hud .hud-title{font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:700;font-family:ui-monospace,monospace}
+  .chart-hud .hud-price{font-size:16px;font-weight:800;letter-spacing:-.03em;color:#fff;margin:2px 0;font-family:ui-monospace,monospace}
+  .chart-hud .hud-row{display:flex;justify-content:space-between;gap:8px;font-size:9.5px;color:var(--muted);padding:1.5px 0}
+  .chart-hud .hud-row b{color:#ffffff;font-variant-numeric:tabular-nums;font-family:ui-monospace,monospace}
+  
+  .cmd-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(12px);z-index:1000;display:none;align-items:flex-start;justify-content:center;padding-top:12vh}
+  .cmd-overlay.open{display:flex}
+  .cmd-box{width:560px;max-width:92vw;background:#181818;border:1px solid rgba(145,145,145,0.4);border-radius:6px;box-shadow:0 24px 80px rgba(0,0,0,.9);overflow:hidden;animation:cmdFade .12s ease-out}
+  @keyframes cmdFade{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+  .cmd-input-wrap{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid rgba(71,71,71,0.35);gap:10px}
+  .cmd-input{flex:1;background:transparent;border:0;outline:0;color:#fff;font-size:14px}
+  .cmd-input::placeholder{color:var(--dim)}
+  .cmd-list{max-height:360px;overflow-y:auto;padding:6px}
+  .cmd-group-title{font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);padding:8px 10px 4px;font-weight:700;font-family:ui-monospace,monospace}
+  .cmd-item{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:4px;cursor:pointer;color:#e2e2e2;font-size:11.5px;transition:.1s}
+  .cmd-item:hover,.cmd-item.active{background:#262626;color:#fff}
+  .cmd-item .cmd-tag{font-size:9px;color:var(--muted);border:1px solid rgba(71,71,71,0.4);padding:1px 6px;border-radius:3px;font-family:ui-monospace,monospace}
+  .cmd-footer{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:#141414;border-top:1px solid rgba(71,71,71,0.3);font-size:10px;color:var(--muted);font-family:ui-monospace,monospace}
+  
+  .method-doc{padding:20px;line-height:1.65;color:#c6c6c6;font-size:12px}
+  .method-doc h2{font-size:15px;color:#fff;margin:20px 0 6px;text-transform:uppercase;letter-spacing:-.01em;font-weight:800}
+  .method-doc h2:first-child{margin-top:0}
+  .method-doc p{margin:0 0 10px}
+  .method-doc ul{margin:0 0 12px;padding-left:18px}
+  .method-doc li{margin-bottom:5px}
+  .method-doc code{background:#0e0e0e;border:1px solid var(--line);border-radius:3px;padding:2px 5px;font-family:ui-monospace,monospace;color:#38bdf8;font-size:10.5px}
+  
+  .spark{height:22px;margin-top:8px}
+  .spark svg{width:100%;height:100%;overflow:visible}
+  .spark polyline{fill:none;stroke:#919191;stroke-width:1.5;vector-effect:non-scaling-stroke}
+  
+  .toast-container{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+  .toast{background:#181818;border:1px solid rgba(145,145,145,0.4);color:#fff;padding:10px 15px;border-radius:4px;box-shadow:0 8px 30px rgba(0,0,0,.75);font-size:11.5px;display:flex;align-items:center;gap:9px;animation:slideIn .2s ease-out}
+  @keyframes slideIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+  
+  .footer{display:flex;justify-content:space-between;gap:20px;color:#919191;font-size:9.5px;margin-top:28px;padding-top:14px;border-top:1px solid var(--line)}
+  .empty{padding:36px;text-align:center;color:var(--muted)}
+  
+  @media(max-width:1080px){.forward-controls{grid-template-columns:repeat(3,1fr)}.kpis{grid-template-columns:repeat(2,1fr)}.kpis .kpi:last-child{grid-column:1/-1}.grid2,.grid-even{grid-template-columns:1fr}.specs{grid-template-columns:repeat(2,1fr)}.sources{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:680px){.forward-controls{grid-template-columns:1fr 1fr}.forward-kpis{grid-template-columns:1fr 1fr}.shell{padding:0 12px 36px}.topbar{margin:0 -12px;padding:0 12px}.brand-tag,.status{display:none}.kpis{grid-template-columns:1fr}.kpis .kpi:last-child{grid-column:auto}.section-head{align-items:flex-start;flex-direction:column;gap:8px}.tools{width:100%}.search,.select{flex:1;min-width:120px}.specs,.sources{grid-template-columns:1fr}.footer{flex-direction:column}.chart-wrap,.curve-wrap{height:270px}}
+</style>
+</head>
+<body>
+<div class="shell">
+  
+  <header class="topbar">
+    <a href="#/overview" class="brand" onclick="switchView('overview');return false;">
+      <div class="brandmark-wrap">
+        <svg class="brand-svg" width="34" height="34" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="dieGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#262626"/>
+              <stop offset="100%" stop-color="#0e0e0e"/>
+            </linearGradient>
+            <linearGradient id="curveGrad" x1="6" y1="26" x2="26" y2="6" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="45%" stop-color="#38bdf8"/>
+              <stop offset="100%" stop-color="#38ef7d"/>
+            </linearGradient>
+            <linearGradient id="borderGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#ffffff" stop-opacity="0.4"/>
+              <stop offset="100%" stop-color="#474747" stop-opacity="0.3"/>
+            </linearGradient>
+            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="1.0" result="blur"/>
+              <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+            </filter>
+          </defs>
+          
+          <rect x="0.5" y="0.5" width="31" height="31" rx="4" fill="url(#dieGrad)" stroke="url(#borderGrad)"/>
+          
+          <line x1="5.5" y1="12" x2="9.5" y2="12" stroke="#474747" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="5.5" y1="20" x2="9.5" y2="20" stroke="#474747" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="22.5" y1="20" x2="26.5" y2="20" stroke="#474747" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="16" y1="26.5" x2="16" y2="22.5" stroke="#474747" stroke-width="1.2" stroke-linecap="round"/>
+          
+          <path d="M9.5 24.5V8.5C9.5 7.67 10.17 7 11 7H14.5C18.5 7 23.5 10 25.5 13.5" stroke="url(#curveGrad)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+          
+          <path d="M9.5 15.5H17.5" stroke="url(#curveGrad)" stroke-width="2.2" stroke-linecap="round"/>
+          
+          <circle cx="25.5" cy="13.5" r="2.2" fill="#38ef7d"/>
+          <circle cx="17.5" cy="15.5" r="1.6" fill="#38bdf8"/>
+          <circle cx="9.5" cy="8.5" r="1.6" fill="#ffffff"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="brand-title">
+          <span class="brand-name">FSKU</span>
+          <span class="brand-badge">BUILT BY NATIVX</span>
+        </div>
+        <span class="brand-tag">GPU Compute Benchmark & Forward Curves · nativx.net</span>
+      </div>
+    </a>
+    <div class="top-actions">
+      <button class="btn cmd-btn" id="cmdPaletteTrigger" title="Open Command Palette (Cmd+K / Ctrl+K)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <span>Command</span>
+        <kbd>⌘K</kbd>
+      </button>
+      <button class="btn dense-btn" id="densityToggleBtn" title="Toggle Pro Compact Table Density">
+        <span>☷ Compact</span>
+      </button>
+      <div class="status" id="statusPill">
+        <span class="dot" id="statusDot"></span>
+        <span id="statusText">Tape Synced</span>
+      </div>
+      <button class="btn sync-btn" id="resyncBtn" title="Resync live feeds across all cloud providers">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+        <span>Resync</span>
+      </button>
+      <select class="select" id="snapshotSelect" title="Point-in-time snapshot selector">
+        <option value="live">Live Tape (Current)</option>
+      </select>
+      <button class="btn" id="exportMenuBtn">Export CSV ▾</button>
+      <button class="btn primary" onclick="window.print()">Print</button>
+    </div>
+  </header>
+
+  <div class="pipeline-banner">
+    <div class="pipeline-steps">
+      <div class="step"><span class="step-active">1. Public Data In</span></div>
+      <div class="step-arrow">→</div>
+      <div class="step"><span>2. Normalized Pricing ($/GPU-hr)</span></div>
+      <div class="step-arrow">→</div>
+      <div class="step"><span>3. SKU Spot Index</span></div>
+      <div class="step-arrow">→</div>
+      <div class="step"><span>4. Historical Benchmark</span></div>
+      <div class="step-arrow">→</div>
+      <div class="step"><span>5. Forward Curve</span></div>
+    </div>
+    <div><b>Open-Source Index Engine</b> · Independent & Transparent</div>
+  </div>
+
+  <nav class="nav-tabs" id="navTabs">
+    <button class="tab-btn active" data-view="overview">Market Overview</button>
+    <button class="tab-btn" data-view="sku-detail">SKU Detail</button>
+    <button class="tab-btn" data-view="spot-index">Spot Index</button>
+    <button class="tab-btn" data-view="history">Historical Index</button>
+    <button class="tab-btn" data-view="forward">Forward Curve</button>
+    <button class="tab-btn" data-view="curve-compare">Curve Comparison</button>
+    <button class="tab-btn" data-view="providers">Provider Matrix</button>
+    <button class="tab-btn" data-view="sensitivity">Methodology Sensitivity</button>
+    <button class="tab-btn" data-view="ablation">Source Ablation</button>
+    <button class="tab-btn" data-view="tape">Market Tape</button>
+    <button class="tab-btn" data-view="provenance">Data Provenance</button>
+    <button class="tab-btn" data-view="methodology">Methodology Doc</button>
+  </nav>
+
+  <div class="view-pane active" id="view-overview">
+    <section class="hero">
+      <div class="eyebrow">
+        <span>Compute Market Index</span>
+        <span class="badge">Open Methodology</span>
+        <span class="badge">NoSQL Synced</span>
+      </div>
+      <h1>GPU Price Discovery,<br/>on One Settlement Basis.</h1>
+      <p>Provider-published cloud compute rates normalized into a standardized <b style="color:#fff">$/GPU-hour</b> index, paired with hardware fundamentals, historical benchmarks, and model-implied forward curves.</p>
+    </section>
+
+    <div class="notice">
+      <b>Methodology:</b> server-level prices are divided by published GPU count to derive unit-comparable rates ($/GPU-hr). <b>Forward curve:</b> term structure is model-implied using cash anchors, interspec matched-provider tech deflation ($d$), and configurable carry/scarcity ($c$).
+    </div>
+
+    <section class="kpis" id="macroKpis"></section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Tracked GPU SKU Benchmark Indices</div>
+          <div class="section-sub">Reference spot settlement indices derived from the normalized tape across major accelerator architectures</div>
+        </div>
+        <div class="tools">
+          <select class="select" id="overviewMethodSelect">
+            <option value="median">Methodology: Robust Median</option>
+            <option value="trimmed_10">Methodology: 10% Trimmed Mean</option>
+            <option value="trimmed_20">Methodology: 20% Trimmed Mean</option>
+            <option value="provider_balanced">Methodology: Provider-Balanced</option>
+            <option value="gpu_weighted">Methodology: GPU-Count Weighted</option>
+            <option value="simple_mean">Methodology: Simple Mean</option>
+          </select>
+          <button class="btn" onclick="copyTableToClipboard('#skuOverviewTable')">Copy CSV</button>
+        </div>
+      </div>
+      <div class="panel table-panel">
+        <table class="table" id="skuOverviewTable">
+          <thead>
+            <tr>
+              <th data-key="sku">GPU SKU ↕</th>
+              <th data-key="topology">Topology / Scale ↕</th>
+              <th data-key="form_factor">Form Factor ↕</th>
+              <th data-key="interconnect">Interconnect ↕</th>
+              <th data-key="vram" class="num">VRAM ↕</th>
+              <th data-key="index_price" class="num">Spot Index $/GPU-hr ↕</th>
+              <th data-key="min_price" class="num">Low Quote ↕</th>
+              <th data-key="max_price" class="num">High Quote ↕</th>
+              <th data-key="iqr_low" class="num">IQR Range (25-75%) ↕</th>
+              <th data-key="dispersion_ratio" class="num">Dispersion ↕</th>
+              <th data-key="observation_count" class="num">Obs Count ↕</th>
+              <th data-key="provider_count" class="num">Providers ↕</th>
+              <th data-key="confidence">Confidence ↕</th>
+              <th data-key="market_status">Status ↕</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="dispersionForwardSection">
+      <div class="section-head" style="flex-wrap:wrap;gap:10px;align-items:center">
+        <div>
+          <div class="section-title">Spot Rate Dispersion & Implied Forward Term Structure</div>
+          <div class="section-sub">Synchronized cross-provider spot rate dispersion paired with model-implied forward curves</div>
+        </div>
+        <div class="tools" style="align-items:center">
+          <label style="font-size:8.5px;color:var(--dim);text-transform:uppercase;font-weight:700">ACTIVE GPU:</label>
+          <div class="scenario-bar" style="padding:0">
+            <button class="scenario-btn active overview-gpu-pill" data-sku="H100 SXM" onclick="setOverviewActiveSku('H100 SXM')">H100</button>
+            <button class="scenario-btn overview-gpu-pill" data-sku="H200" onclick="setOverviewActiveSku('H200')">H200</button>
+            <button class="scenario-btn overview-gpu-pill" data-sku="B200" onclick="setOverviewActiveSku('B200')">B200</button>
+            <button class="scenario-btn overview-gpu-pill" data-sku="B300" onclick="setOverviewActiveSku('B300')">B300</button>
+            <button class="scenario-btn overview-gpu-pill" data-sku="A100 SXM" onclick="setOverviewActiveSku('A100 SXM')">A100</button>
+            <button class="scenario-btn overview-gpu-pill" data-sku="MI300X" onclick="setOverviewActiveSku('MI300X')">MI300X</button>
+            <button class="scenario-btn overview-gpu-pill" data-sku="GH200" onclick="setOverviewActiveSku('GH200')">GH200</button>
+            <button class="scenario-btn overview-gpu-pill" data-sku="L40S" onclick="setOverviewActiveSku('L40S')">L40S</button>
+            <button class="scenario-btn overview-gpu-pill" data-sku="RTX 4090" onclick="setOverviewActiveSku('RTX 4090')">RTX 4090</button>
+          </div>
+          <select class="select" id="overviewActiveSkuDropdown" style="padding:3.5px 8px;font-size:11px" title="Select specific GPU SKU">
+            <option value="H100 SXM">H100 SXM</option>
+            <option value="H100 PCIe">H100 PCIe</option>
+            <option value="H100 NVL">H100 NVL</option>
+            <option value="H200">H200</option>
+            <option value="B200">B200</option>
+            <option value="B300">B300</option>
+            <option value="A100 SXM">A100 SXM</option>
+            <option value="A100 PCIe">A100 PCIe</option>
+            <option value="MI300X">MI300X</option>
+            <option value="GH200">GH200</option>
+            <option value="L40S">L40S</option>
+            <option value="RTX 4090">RTX 4090</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid-even">
+        
+        <div class="panel">
+          <div class="panel-head" style="flex-wrap:wrap;gap:8px">
+            <div>
+              <h3 id="dispersionHeader">H100 SXM Spot Rate Dispersion</h3>
+              <p>Published provider observations normalized to 1 GPU-hour</p>
+            </div>
+            <div class="tools">
+              <select class="select" id="basisFilter" style="padding:3.5px 8px;font-size:11px">
+                <option value="all">All price bases</option>
+                <option value="On-demand">On-demand</option>
+                <option value="Spot">Spot</option>
+                <option value="Capacity block">Capacity block</option>
+                <option value="Retail API">Retail API</option>
+              </select>
+            </div>
+          </div>
+          <div class="chart-wrap" id="h100Chart" style="height:230px"></div>
+          <div class="callout" id="dispersionPanel" style="padding:12px 14px;border-top:1px solid var(--line)"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head" style="flex-wrap:wrap;gap:8px">
+            <div>
+              <h3 id="overviewFwdHeader">H100 SXM Implied Forward Curve</h3>
+              <p>Model-implied rental rate term structure across future tenors</p>
+            </div>
+            <div class="tools">
+              <div style="display:flex;gap:4px">
+                <button class="scenario-btn active overview-carry-pill" data-carry="5" onclick="setOverviewCarry(5)">Base (5% c)</button>
+                <button class="scenario-btn overview-carry-pill" data-carry="25" onclick="setOverviewCarry(25)">Squeeze (25% c)</button>
+                <button class="scenario-btn overview-carry-pill" data-carry="0" onclick="setOverviewCarry(0)">Deflation (0% c)</button>
+              </div>
+            </div>
+          </div>
+          
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 14px 6px;border-bottom:1px solid rgba(255,255,255,.05);font-size:10.5px">
+            <div style="display:flex;gap:6px;align-items:center">
+              <span style="font-size:8.5px;color:var(--dim);text-transform:uppercase;font-weight:700">Horizon:</span>
+              <select class="select" id="overviewHorizonSelect" style="padding:2px 6px;font-size:10px">
+                <option value="12">12M</option>
+                <option value="24">24M</option>
+                <option value="36" selected>36M</option>
+                <option value="60">60M</option>
+              </select>
+              <span style="font-size:8.5px;color:var(--dim);text-transform:uppercase;font-weight:700;margin-left:4px">Cash Anchor:</span>
+              <select class="select" id="overviewBasisSelect" style="padding:2px 6px;font-size:10px">
+                <option value="firm" selected>Firm Only</option>
+                <option value="all">All Quotes</option>
+                <option value="spot">Spot Only</option>
+              </select>
+            </div>
+            <div>
+              <span class="pill" id="overviewCurveState" style="font-size:8px">MODEL-IMPLIED</span>
+            </div>
+          </div>
+          <div class="curve-wrap" id="overviewForwardChart" style="height:210px"></div>
+          <div class="forward-kpis" id="overviewForwardKpis" style="padding:6px 14px 8px"></div>
+          <div style="padding:8px 14px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-size:10.5px">
+            <span class="muted">Live term structure derived from cash anchor + matched tech deflation</span>
+            <button class="btn primary" style="padding:3.5px 9px;font-size:10.5px" onclick="switchView('forward')">Explore Full Forward Curve ↗</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Hardware Fundamentals</div>
+          <div class="section-sub">Manufacturer-published memory, bandwidth, TDP, and tensor compute specifications</div>
+        </div>
+      </div>
+      <div class="specs" id="specCards"></div>
+    </section>
+  </div>
+
+  <div class="view-pane" id="view-sku-detail">
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-title" id="skuDetailTitle">GPU SKU Detail: H100 SXM</div>
+          <div class="section-sub">Deep dive into reference index, price dispersion, hardware architecture, and contributing observations</div>
+        </div>
+        <div class="tools">
+          <label style="font-size:9.5px;color:var(--dim)">SELECT SKU:</label>
+          <select class="select" id="skuDetailSelector">
+            <option value="H100 SXM">H100 SXM</option>
+            <option value="H100 PCIe">H100 PCIe</option>
+            <option value="H100 NVL">H100 NVL</option>
+            <option value="H200">H200</option>
+            <option value="B200">B200</option>
+            <option value="B300">B300</option>
+            <option value="A100 SXM">A100 SXM</option>
+            <option value="A100 80GB">A100 80GB</option>
+            <option value="A100 PCIe">A100 PCIe</option>
+            <option value="MI300X">MI300X</option>
+            <option value="GH200">GH200</option>
+            <option value="L40S">L40S</option>
+            <option value="RTX 4090">RTX 4090</option>
+          </select>
+          <button class="btn" onclick="copyTableToClipboard('#skuQuotesTable')">Copy Quotes</button>
+        </div>
+      </div>
+
+      <div class="kpis" id="skuDetailKpis"></div>
+
+      <div class="grid2" style="margin-top:16px">
+        <div class="panel callout" id="skuSpecPanel"></div>
+        <div class="panel callout" id="skuDispersionPanel"></div>
+      </div>
+
+      <div class="section-head" style="margin-top:20px">
+        <div>
+          <div class="section-title" id="skuForwardTitle">H100 SXM Implied Forward Term Structure</div>
+          <div class="section-sub">Model-implied rental pricing trajectory calculated from current cash anchor and matched tech deflation</div>
+        </div>
+        <div class="tools">
+          <button class="btn primary" style="font-size:10.5px" onclick="switchView('forward')">Open Full Forward Explorer ↗</button>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="panel">
+          <div class="curve-wrap" id="skuDetailForwardChart" style="height:250px"></div>
+          <div class="forward-kpis" id="skuDetailForwardKpis" style="padding:8px 14px 12px"></div>
+        </div>
+        <div class="panel callout" id="skuDetailForwardCallout"></div>
+      </div>
+
+      <div class="section-head" style="margin-top:24px">
+        <div>
+          <div class="section-title">Contributing Tape Observations</div>
+          <div class="section-sub">Real public provider quotes used in the index calculation for this SKU</div>
+        </div>
+      </div>
+      <div class="panel table-panel">
+        <table class="table" id="skuQuotesTable">
+          <thead>
+            <tr>
+              <th>Provider</th>
+              <th>Instance Name</th>
+              <th>Basis</th>
+              <th class="num">GPU Count</th>
+              <th class="num">Gross $/hr</th>
+              <th class="num">Normalized $/GPU-hr</th>
+              <th>Region</th>
+              <th>Source Provenance</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div class="view-pane" id="view-spot-index">
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Spot Index Construction & Weighting</div>
+          <div class="section-sub">Transparent aggregation of public provider quotes into standardized benchmark reference prices</div>
+        </div>
+        <div class="tools">
+          <select class="select" id="spotIndexSkuFilter"><option value="all">All SKUs</option></select>
+          <select class="select" id="spotIndexMethodFilter">
+            <option value="median">Robust Median</option>
+            <option value="trimmed_10">10% Trimmed Mean</option>
+            <option value="trimmed_20">20% Trimmed Mean</option>
+            <option value="provider_balanced">Provider-Balanced</option>
+            <option value="gpu_weighted">GPU-Count Weighted</option>
+            <option value="simple_mean">Simple Mean</option>
+          </select>
+          <button class="btn" onclick="copyTableToClipboard('#spotIndexBreakdownTable')">Copy Table</button>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="panel callout">
+          <div class="eyebrow">Active Benchmark Specification</div>
+          <div class="big" id="spotIndexPriceBig">$—</div>
+          <div class="muted" id="spotIndexMethodDesc">Reference $/GPU-hour settlement index.</div>
+          <hr/>
+          <div class="callout-row"><span>Active Aggregation Formula</span><b id="spotFormula">Median(P₁, P₂, ..., Pₙ)</b></div>
+          <div class="callout-row"><span>Total Underlying Quotes</span><b id="spotQuotesCount">—</b></div>
+          <div class="callout-row"><span>Contributing Providers</span><b id="spotProvidersCount">—</b></div>
+          <div class="callout-row"><span>Statistical Robustness</span><b id="spotConfidenceBadge">—</b></div>
+          <div class="callout-row"><span>Basis Spectrum</span><b>On-demand · Spot · CapBlock · Retail API</b></div>
+        </div>
+        <div class="panel callout">
+          <div class="eyebrow">Index Dispersion Metrics</div>
+          <div class="callout-row"><span>Lowest Observable Quote</span><b id="spotLowestQuote">—</b></div>
+          <div class="callout-row"><span>Highest Observable Quote</span><b id="spotHighestQuote">—</b></div>
+          <div class="callout-row"><span>Interquartile Lower Bound (Q25)</span><b id="spotQ25">—</b></div>
+          <div class="callout-row"><span>Interquartile Upper Bound (Q75)</span><b id="spotQ75">—</b></div>
+          <div class="callout-row"><span>Dispersion Ratio (High ÷ Low)</span><b id="spotDispRatio">—</b></div>
+          <div class="callout-row"><span>Outlier Trimming Buffer</span><b id="spotTrimBuffer">10% Top / Bottom</b></div>
+        </div>
+      </div>
+
+      <div class="section-head" style="margin-top:24px">
+        <div><div class="section-title">Spot Index Calculation Breakdown</div><div class="section-sub">Per-SKU index comparison under selected methodology</div></div>
+      </div>
+      <div class="panel table-panel">
+        <table class="table" id="spotIndexBreakdownTable">
+          <thead>
+            <tr>
+              <th>GPU SKU</th>
+              <th>Methodology</th>
+              <th class="num">Index Price</th>
+              <th class="num">Min</th>
+              <th class="num">Max</th>
+              <th class="num">Q25</th>
+              <th class="num">Q75</th>
+              <th class="num">Dispersion</th>
+              <th class="num">Observations</th>
+              <th>Confidence Level</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div class="view-pane" id="view-history">
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Historical Benchmark Series</div>
+          <div class="section-sub">Time-series evolution of GPU compute settlement prices reconstructed from immutable point-in-time snapshots</div>
+        </div>
+        <div class="tools">
+          <select class="select" id="historySkuSelect">
+            <option value="H100 SXM">H100 SXM</option>
+            <option value="H200">H200</option>
+            <option value="B200">B200</option>
+            <option value="A100 SXM">A100 SXM</option>
+            <option value="MI300X">MI300X</option>
+            <option value="L40S">L40S</option>
+            <option value="RTX 4090">RTX 4090</option>
+          </select>
+          <button class="btn" id="historyCsvBtn">Export History CSV</button>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="panel">
+          <div class="panel-head">
+            <div><h3 id="historyChartTitle">H100 SXM Historical Trajectory</h3><p>Benchmark settlement prices across quarterly snapshots</p></div>
+            <span class="pill">QUARTERLY CHECKPOINTS</span>
+          </div>
+          <div class="chart-wrap" id="historyChart"></div>
+        </div>
+        <div class="panel callout">
+          <div class="eyebrow">Time-Series Trends</div>
+          <div class="big" id="historyLatestPrice">—</div>
+          <div class="muted">Latest observed snapshot reference price.</div>
+          <hr/>
+          <div class="callout-row"><span>Benchmark Start (Q1 2026)</span><b id="historyStartPrice">—</b></div>
+          <div class="callout-row"><span>Cumulative Change</span><b id="historyChangePct">—</b></div>
+          <div class="callout-row"><span>Annualized Rate Deflation</span><b id="historyAnnualDeflation">—</b></div>
+          <div class="callout-row"><span>Total Checkpoint Count</span><b id="historySnapCount">—</b></div>
+        </div>
+      </div>
+
+      <div class="section-head" style="margin-top:24px">
+        <div>
+          <div class="section-title">Point-in-Time Snapshot Diff Comparator</div>
+          <div class="section-sub">Compare index changes, nominal deltas, and dispersion shifts between any two historical snapshots</div>
+        </div>
+        <div class="tools">
+          <label style="font-size:9.5px;color:var(--dim)">BASE (A):</label>
+          <select class="select" id="diffBaseSelect"></select>
+          <label style="font-size:9.5px;color:var(--dim)">TARGET (B):</label>
+          <select class="select" id="diffTargetSelect"></select>
+          <button class="btn" onclick="copyTableToClipboard('#snapshotDiffTable')">Copy Diff</button>
+        </div>
+      </div>
+      <div class="panel table-panel">
+        <table class="table" id="snapshotDiffTable">
+          <thead>
+            <tr>
+              <th>GPU SKU</th>
+              <th class="num">Base Snapshot Price ($)</th>
+              <th class="num">Target Snapshot Price ($)</th>
+              <th class="num">Nominal Delta ($)</th>
+              <th class="num">Percent Delta (%)</th>
+              <th>Trend Shift</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="section-head" style="margin-top:24px">
+        <div><div class="section-title">Historical Snapshots Ledger</div><div class="section-sub">Point-in-time immutable audit archives stored in FSKUDb</div></div>
+      </div>
+      <div class="panel table-panel">
+        <table class="table" id="historicalSnapshotsTable">
+          <thead>
+            <tr>
+              <th>Snapshot ID</th>
+              <th>Timestamp</th>
+              <th>Label</th>
+              <th class="num">Observations</th>
+              <th class="num">Median Rate</th>
+              <th class="num">H100 Spread</th>
+              <th>SHA-256 Checksum</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div class="view-pane" id="view-forward">
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Implied GPU Forward Term Structure</div>
+          <div class="section-sub">Model-implied term structure calculated dynamically from the current normalized tape—not executed futures</div>
+        </div>
+        <div class="tools">
+          <button class="btn" id="forwardCsvBtn2">Export Forward CSV</button>
+          <button class="btn" onclick="copyTableToClipboard('#forwardTenors')">Copy Tenors</button>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="panel">
+          <div class="panel-head">
+            <div><h3 id="forwardChartTitle">H100 Implied Term Structure</h3><p>Cash anchor + data-derived tech deflation + configurable carry / scarcity</p></div>
+            <span class="pill" id="curveState">MODEL-IMPLIED</span>
+          </div>
+
+          <div class="scenario-bar">
+            <span class="scenario-label">Scenarios:</span>
+            <button class="scenario-btn active" onclick="applyForwardScenario('base')">Base Case (18% d · 5% c)</button>
+            <button class="scenario-btn" onclick="applyForwardScenario('squeeze')">Supply Squeeze (10% d · 25% c)</button>
+            <button class="scenario-btn" onclick="applyForwardScenario('rapid')">Rapid Obsolescence (25% d · 0% c)</button>
+            <button class="scenario-btn" onclick="applyForwardScenario('steady')">Steady State (12% d · 3% c)</button>
+          </div>
+
+          <div class="forward-controls">
+            <div class="control"><label>GPU family</label><select class="select" id="forwardGpu"><option>H100</option><option>H200</option><option>B200</option><option>B300</option><option>A100</option><option>MI300X</option><option>GH200</option><option>L40S</option><option>RTX 4090</option></select></div>
+            <div class="control"><label>Cash anchor</label><select class="select" id="forwardBasis"><option value="firm">Firm / non-spot median</option><option value="all">All observations median</option><option value="spot">Spot median</option></select></div>
+            <div class="control"><label>Arch cadence</label><select class="select" id="cadence"><option value="18">18 months</option><option value="24" selected>24 months</option><option value="30">30 months</option><option value="36">36 months</option></select></div>
+            <div class="control">
+              <label>Carry + scarcity / yr (<span id="carryLabel">5%</span>)</label>
+              <div class="range-wrap">
+                <input id="carrySlider" type="range" min="-25" max="100" step="0.5" value="5"/>
+                <input id="carryRate" type="number" min="-25" max="100" step="0.5" value="5" style="width:58px"/>
+              </div>
+            </div>
+            <div class="control"><label>Curve horizon</label><select class="select" id="forwardHorizon"><option value="12">12 months</option><option value="24">24 months</option><option value="36" selected>36 months</option><option value="60">60 months</option></select></div>
+          </div>
+          <div class="curve-wrap" id="forwardChart"></div>
+          <div class="forward-kpis" id="forwardKpis"></div>
+        </div>
+        <div class="panel callout">
+          <div class="eyebrow">Forward Model</div>
+          <div class="big" id="forward12m">—</div>
+          <div class="muted">12-month implied $/GPU-hour.</div>
+          <div class="formula">F(T) = S₀ × [(1 + c) × (1 − d)]ᵀ</div>
+          <div class="model-note">
+            S₀ is the median current quote for the selected family. <b style="color:#fff">d</b> is inferred from matched-provider cross-generation rental price ratios. <b style="color:#fff">c</b> is the annual carry/scarcity parameter. Indicative model curve, not an executed transaction quote.
+          </div>
+          <hr/>
+          <div class="callout-row"><span>Cash index S₀</span><b id="forwardSpot">—</b></div>
+          <div class="callout-row"><span>Tech deflation (d)</span><b id="forwardDecay">—</b></div>
+          <div class="callout-row"><span>Carry / scarcity (c)</span><b id="forwardCarry">—</b></div>
+          <div class="callout-row"><span>Net annual curve roll</span><b id="forwardRoll">—</b></div>
+          <div class="callout-row"><span>Matched generation pairs</span><b id="forwardPairs">—</b></div>
+          <hr/>
+          <table class="tenor-table" id="forwardTenors">
+            <thead><tr><th>Tenor</th><th class="num">Implied</th><th class="num">vs cash</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="view-pane" id="view-curve-compare">
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Cross-SKU Forward Curve Comparison</div>
+          <div class="section-sub">Simultaneous multi-accelerator forward term structure curves and cross-generational relative value ratios</div>
+        </div>
+        <div class="tools">
+          <select class="select" id="compareBasisSelect"><option value="firm">Firm Quotes</option><option value="all">All Quotes</option><option value="spot">Spot Quotes</option></select>
+          <select class="select" id="compareHorizonSelect"><option value="24">24 Months</option><option value="36" selected>36 Months</option><option value="60">60 Months</option></select>
+          <button class="btn" onclick="copyTableToClipboard('#compareTenorMatrixTable')">Copy Matrix</button>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="panel">
+          <div class="panel-head">
+            <div><h3>Multi-SKU Forward Curves</h3><p>H100, H200, B200, B300, and A100 forward curves plotted simultaneously</p></div>
+            <div class="legend" id="compareLegend">
+              <span><i style="background:var(--blue)"></i>H100</span>
+              <span><i style="background:var(--cyan)"></i>H200</span>
+              <span><i style="background:var(--green)"></i>B200</span>
+              <span><i style="background:var(--violet)"></i>B300</span>
+              <span><i style="background:var(--amber)"></i>A100</span>
+            </div>
+          </div>
+          <div class="curve-wrap" id="multiCurveChart"></div>
+        </div>
+        <div class="panel callout">
+          <div class="eyebrow">Relative Value Metrics</div>
+          <div class="big" id="relValueBig">—</div>
+          <div class="muted">Blackwell / Hopper rental premium ratio across forward tenors.</div>
+          <hr/>
+          <div class="callout-row"><span>B200 / H100 Cash Ratio</span><b id="ratioB200H100Cash">—</b></div>
+          <div class="callout-row"><span>B200 / H100 12M Ratio</span><b id="ratioB200H100_12m">—</b></div>
+          <div class="callout-row"><span>H200 / H100 Cash Ratio</span><b id="ratioH200H100Cash">—</b></div>
+          <div class="callout-row"><span>H100 / A100 Cash Ratio</span><b id="ratioH100A100Cash">—</b></div>
+        </div>
+      </div>
+
+      <div class="section-head" style="margin-top:24px">
+        <div><div class="section-title">Cross-SKU Forward Tenors Alignment Matrix</div><div class="section-sub">Implied $/GPU-hour across future delivery dates</div></div>
+      </div>
+      <div class="panel table-panel">
+        <table class="table" id="compareTenorMatrixTable">
+          <thead>
+            <tr>
+              <th>Tenor</th>
+              <th class="num" style="color:var(--blue)">H100 SXM</th>
+              <th class="num" style="color:var(--cyan)">H200 SXM</th>
+              <th class="num" style="color:var(--green)">B200 SXM</th>
+              <th class="num" style="color:var(--violet)">B300 SXM</th>
+              <th class="num" style="color:var(--amber)">A100 SXM</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div class="view-pane" id="view-providers">
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Provider Pricing Matrix & Benchmark Spreads</div>
+          <div class="section-sub">Normalized compute pricing across hyperscalers, specialized clouds, and marketplaces with delta vs index</div>
+        </div>
+        <div class="tools">
+          <input id="providerSearch" class="search" placeholder="Search provider or GPU…"/>
+          <button class="btn" onclick="copyTableToClipboard('#providerMatrixTable')">Copy Table</button>
+        </div>
+      </div>
+      <div class="panel table-panel">
+        <table class="table" id="providerMatrixTable">
+          <thead>
+            <tr>
+              <th>Provider</th>
+              <th>GPU SKU</th>
+              <th>Instance Name</th>
+              <th>Basis</th>
+              <th class="num">GPU Count</th>
+              <th class="num">Gross Published $/hr</th>
+              <th class="num">Normalized $/GPU-hr</th>
+              <th class="num">SKU Index Price</th>
+              <th class="num">Spread vs Index</th>
+              <th>Region</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div class="view-pane" id="view-sensitivity">
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Index Methodology Sensitivity Analysis</div>
+          <div class="section-sub">Comparing how 6 distinct calculation methodologies impact the benchmark index for each GPU SKU</div>
+        </div>
+        <div class="tools">
+          <button class="btn" onclick="copyTableToClipboard('#sensitivityTable')">Copy Table</button>
+        </div>
+      </div>
+
+      <div class="notice">
+        <b>Sensitivity Insight:</b> When a market exhibits wide dispersion (e.g. hyperscaler retail APIs at $12+ vs specialized clouds at $2.50), simple mean is vulnerable to upward skew, while median and trimmed mean provide stable central anchors.
+      </div>
+
+      <div class="panel table-panel">
+        <table class="table" id="sensitivityTable">
+          <thead>
+            <tr>
+              <th>GPU SKU</th>
+              <th class="num">Robust Median (Base)</th>
+              <th class="num">10% Trimmed Mean</th>
+              <th class="num">20% Trimmed Mean</th>
+              <th class="num">Provider-Balanced</th>
+              <th class="num">GPU-Count Weighted</th>
+              <th class="num">Simple Mean</th>
+              <th class="num">Max Divergence (%)</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div class="view-pane" id="view-ablation">
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Source Ablation & Resilience Stress Test</div>
+          <div class="section-sub">Assessing index stability and provider concentration vulnerability by dropping individual data sources</div>
+        </div>
+        <div class="tools">
+          <select class="select" id="ablationSkuFilter"><option value="all">All SKUs</option></select>
+          <button class="btn" onclick="copyTableToClipboard('#ablationTable')">Copy Table</button>
+        </div>
+      </div>
+
+      <div class="panel table-panel">
+        <table class="table" id="ablationTable">
+          <thead>
+            <tr>
+              <th>Provider Excluded</th>
+              <th>Target GPU SKU</th>
+              <th class="num">Original Index</th>
+              <th class="num">Ablated Index</th>
+              <th class="num">Delta ($)</th>
+              <th class="num">Delta (%)</th>
+              <th class="num">Remaining Obs</th>
+              <th>Impact Level</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div class="view-pane" id="view-tape">
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Observable Market Tape</div>
+          <div class="section-sub">Sortable, filterable raw price observations stored in FSKUDb document collections</div>
+        </div>
+        <div class="tools">
+          <input id="tapeSearch" class="search" placeholder="Search provider / GPU / instance…"/>
+          <select id="tapeGpuFilter" class="select"><option value="all">All GPUs</option></select>
+          <select id="tapeBasisFilter" class="select">
+            <option value="all">All Bases</option>
+            <option value="On-demand">On-demand</option>
+            <option value="Spot">Spot</option>
+            <option value="Capacity block">Capacity block</option>
+            <option value="Retail API">Retail API</option>
+          </select>
+          <button class="btn" onclick="copyTableToClipboard('#tapeTable')">Copy Tape</button>
+        </div>
+      </div>
+      <div class="panel table-panel">
+        <table class="table" id="tapeTable">
+          <thead>
+            <tr>
+              <th data-key="provider">Provider ↕</th>
+              <th data-key="gpu">GPU / SKU ↕</th>
+              <th data-key="topology">Deployment Topology ↕</th>
+              <th data-key="form_factor">Form Factor ↕</th>
+              <th data-key="instance">Instance Name ↕</th>
+              <th data-key="basis">Basis ↕</th>
+              <th data-key="gpuCount" class="num">GPUs ↕</th>
+              <th data-key="total" class="num">Total $/hr ↕</th>
+              <th data-key="perGpu" class="num">$/GPU-hr ↕</th>
+              <th data-key="vram" class="num">VRAM ↕</th>
+              <th>Region</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div class="view-pane" id="view-provenance">
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Data Provenance & Source Ledger</div>
+          <div class="section-sub">Every non-derived datum links back to official provider API endpoints or manufacturer documentation</div>
+        </div>
+        <div class="tools">
+          <button class="btn" onclick="copyTableToClipboard('#provenanceTable')">Copy Provenance</button>
+        </div>
+      </div>
+      <div class="sources" id="sourcesGrid" style="margin-bottom:24px"></div>
+
+      <div class="section-head">
+        <div><div class="section-title">Observation Provenance Details</div><div class="section-sub">Full metadata, timestamps, and normalization rules applied to each observation</div></div>
+      </div>
+      <div class="panel table-panel">
+        <table class="table" id="provenanceTable">
+          <thead>
+            <tr>
+              <th>Observation ID</th>
+              <th>Provider</th>
+              <th>GPU SKU</th>
+              <th>Contract Basis</th>
+              <th>Geography / Region</th>
+              <th>Normalization Formula Applied</th>
+              <th>Timestamp Recorded</th>
+              <th>Primary Source Link</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div class="view-pane" id="view-methodology">
+    <section class="section">
+      <div class="panel method-doc">
+        <h2>1. Scope & Objective</h2>
+        <p>FSKU is an open-source compute market benchmark engine designed to provide transparent, reproducible, SKU-specific reference indices and forward term structures for enterprise GPU compute without relying on black-box proprietary methodologies.</p>
+
+        <h2>2. Unit Normalization</h2>
+        <p>Because cloud infrastructure providers sell compute across heterogeneous configurations (e.g. single-GPU instances, 8-GPU HGX chassis, multi-node clusters), server-level pricing is mathematically normalized to a single comparable unit:</p>
+        <div class="formula">Normalized Rate ($/GPU-hour) = Published Hourly Server Price ÷ Published GPU Count</div>
+        <p>No arbitrary adjustment factors are applied for CPU, system RAM, local NVMe storage, commitment terms, egress fees, or power utilization. "Normalized" explicitly denotes unit-comparable rate discovery.</p>
+
+        <h2>3. Index Aggregation Methodologies</h2>
+        <ul>
+          <li><b>Robust Median (Default):</b> Selected for benchmark robustness against extreme upper-tail retail price quotes.</li>
+          <li><b>10% / 20% Trimmed Mean:</b> Symmetrically removes the top and bottom <i>k</i> percent of observations to mitigate single-provider outlier leverage.</li>
+          <li><b>Provider-Balanced Mean:</b> Computes the median rate within each provider first, then averages across providers to prevent provider quote-count distortion.</li>
+          <li><b>GPU-Count Weighted Average:</b> Weights quotes by total physical GPUs deployed in the instance configuration.</li>
+        </ul>
+
+        <h2>4. Technological Deflation ($d$) Inference</h2>
+        <p>To eliminate provider pricing markup bias from hardware generational decay, rental price compression is inferred strictly across matched providers offering multiple architecture generations:</p>
+        <div class="formula">Annual Tech Deflation (d) = 1 − (P_older ÷ P_newer)^(12 ÷ Cadence_Months)</div>
+        <p>Matched generation pairs evaluated include A100 → H100, H100 → H200, H100 → B200, and B200 → B300.</p>
+
+        <h2>5. Implied Forward Term Structure</h2>
+        <p>Forward curves are model-implied using the cash anchor $S_0$, annual carry & scarcity assumption $c$, and inferred tech deflation $d$:</p>
+        <div class="formula">F(T) = S₀ × [(1 + c) × (1 − d)]ᵀ</div>
+        <p>where $T$ represents the delivery tenor in years ($T = m / 12$). Forward curves are indicative term structure models, not executed transaction commitments.</p>
+
+        <h2>6. Legal Governance, Public Data & Nominative Fair Use</h2>
+        <p><b>Open Public Data Sources:</b> FSKU aggregates rate observations strictly from publicly accessible web rate cards, open documentation tables, and unauthenticated public developer APIs (e.g. Azure Retail API, RunPod Public API, AWS Price List). No password-protected, paywalled, or authenticated user accounts are accessed.</p>
+        <p><b>Nominative Trademark Fair Use:</b> All product names, hardware SKUs, and provider marks (e.g. <i>NVIDIA, Hopper, Blackwell, H100, H200, B200, A100, AMD, AWS, Google Cloud, Microsoft Azure, CoreWeave, RunPod, Lambda Labs</i>) are the property of their respective trademark holders. They are used exclusively under the legal doctrine of <i>Nominative Fair Use</i> for factual, descriptive market reference to identify the underlying physical hardware and cloud hosts.</p>
+        <p><b>Non-Advisory & Independence Notice:</b> FSKU is an independent reference index and research engine developed and maintained under the Apache License 2.0. FSKU is not affiliated with, sponsored by, or endorsed by any referenced cloud service provider or semiconductor manufacturer. Benchmark indices and model-implied forward curves are published solely for informational, risk-management, and analytical modeling purposes, and do not constitute investment advice, trading recommendations, or executed bilateral trading commitments.</p>
+      </div>
+    </section>
+  </div>
+
+  <footer class="footer">
+    <div style="max-width:960px;line-height:1.6">
+      <div style="font-weight:600;color:var(--text);margin-bottom:4px">FSKU Platform · Open GPU Compute Index & Forward Curve Benchmark · Built by NATIVX (<a href="https://nativx.net" target="_blank" style="color:var(--blue);text-decoration:none">nativx.net</a>) · Apache License 2.0</div>
+      <div style="color:var(--muted);font-size:9px">
+        <b>Legal & Fair Use Disclaimer:</b> FSKU is an independent, open-source reference benchmark built and published by NATIVX. All third-party product names, hardware SKUs, and provider trademarks are the property of their respective owners and are referenced solely for factual descriptive identification from public data feeds under nominative fair use. FSKU is not affiliated with or endorsed by any referenced cloud provider or chip manufacturer. All indices and forward curves are derived analytical reference models and do not constitute financial advice or executed transactional quotes.
+      </div>
+    </div>
+    <div id="footerTimestamp" style="white-space:nowrap;color:var(--muted);font-size:9px">Snapshot: Loading…</div>
+  </footer>
+</div>
+
+<div class="chart-hud" id="chartHudTooltip"></div>
+
+<div class="cmd-overlay" id="cmdPaletteModal">
+  <div class="cmd-box">
+    <div class="cmd-input-wrap">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--dim)"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input class="cmd-input" id="cmdInput" placeholder="Type a SKU (e.g. B200, H100), methodology, view, or action…" autocomplete="off"/>
+    </div>
+    <div class="cmd-list" id="cmdResults"></div>
+    <div class="cmd-footer">
+      <span>Navigate <kbd style="background:#161d28;border:1px solid #2d384c;padding:1px 4px;border-radius:3px">↑</kbd> <kbd style="background:#161d28;border:1px solid #2d384c;padding:1px 4px;border-radius:3px">↓</kbd></span>
+      <span>Execute <kbd style="background:#161d28;border:1px solid #2d384c;padding:1px 4px;border-radius:3px">Enter</kbd></span>
+      <span>Close <kbd style="background:#161d28;border:1px solid #2d384c;padding:1px 4px;border-radius:3px">Esc</kbd></span>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+let marketRows = [];
+let specs = [];
+let SOURCES = {};
+let skuSummaries = [];
+let sensitivityData = [];
+let ablationData = [];
+let providerMatrix = [];
+let historyData = {};
+let allSnapshots = [];
+let sortKey = 'perGpu', sortDir = 1;
+let skuSortKey = 'index_price', skuSortDir = -1;
+let activeView = 'overview';
+let activeForwardScenario = 'base';
+
+const money = n => '$' + Number(n).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: Number(n) < 10 ? 2 : 2});
+const pct = (x, digits=1) => (x * 100).toFixed(digits) + '%';
+const h100ish = r => /^H100/i.test(r.gpu || '');
+
+function toast(message) {
+  const container = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<span>${message}</span>`;
+  container.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = '.3s'; setTimeout(() => el.remove(), 300); }, 3500);
+}
+
+function spark(vals) {
+  const w = 160, h = 22, min = Math.min(...vals), max = Math.max(...vals), span = max - min || 1;
+  const pts = vals.map((v, i) => `${i * (w / (vals.length - 1))},${h - 2 - (v - min) / span * (h - 4)}`).join(' ');
+  return `<div class="spark"><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${pts}"/></svg></div>`;
+}
+
+function switchView(viewId, updateHash = true) {
+  activeView = viewId;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.view === viewId));
+  document.querySelectorAll('.view-pane').forEach(p => p.classList.toggle('active', p.id === 'view-' + viewId));
+  if (updateHash && window.location.hash !== '#/' + viewId) {
+    window.location.hash = '#/' + viewId;
+  }
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+async function copyTableToClipboard(selector) {
+  const table = document.querySelector(selector);
+  if (!table) return;
+  let rows = [];
+  table.querySelectorAll('tr').forEach(tr => {
+    let cells = [];
+    tr.querySelectorAll('th, td').forEach(td => {
+      cells.push('"' + td.innerText.replace(/"/g, '""').trim() + '"');
+    });
+    if (cells.length) rows.push(cells.join(','));
+  });
+  const csvText = rows.join('\n');
+  try {
+    await navigator.clipboard.writeText(csvText);
+    toast('✓ Table data copied to clipboard as CSV');
+  } catch (err) {
+    toast('Copied table data');
+  }
+}
+
+function applyForwardScenario(scenario) {
+  activeForwardScenario = scenario;
+  document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+  event?.target?.classList.add('active');
+
+  const cadenceEl = document.getElementById('cadence');
+  const carryRateEl = document.getElementById('carryRate');
+  const carrySliderEl = document.getElementById('carrySlider');
+  const horizonEl = document.getElementById('forwardHorizon');
+
+  if (scenario === 'base') {
+    cadenceEl.value = "24";
+    carryRateEl.value = "5";
+    carrySliderEl.value = "5";
+    horizonEl.value = "36";
+  } else if (scenario === 'squeeze') {
+    cadenceEl.value = "24";
+    carryRateEl.value = "25";
+    carrySliderEl.value = "25";
+    horizonEl.value = "36";
+  } else if (scenario === 'rapid') {
+    cadenceEl.value = "18";
+    carryRateEl.value = "0";
+    carrySliderEl.value = "0";
+    horizonEl.value = "36";
+  } else if (scenario === 'steady') {
+    cadenceEl.value = "36";
+    carryRateEl.value = "3";
+    carrySliderEl.value = "3";
+    horizonEl.value = "60";
+  }
+  document.getElementById('carryLabel').textContent = carryRateEl.value + '%';
+  renderForwardCurve();
+}
+
+async function loadAllData() {
+  try {
+    const [obsRes, specsRes, srcRes, sumRes, sensRes, ablRes, provRes, histRes, snapRes] = await Promise.all([
+      fetch('/api/observations').then(r => r.json()),
+      fetch('/api/specs').then(r => r.json()),
+      fetch('/api/sources').then(r => r.json()),
+      fetch('/api/index/summary').then(r => r.json()),
+      fetch('/api/index/sensitivity').then(r => r.json()),
+      fetch('/api/index/ablation').then(r => r.json()),
+      fetch('/api/providers/matrix').then(r => r.json()),
+      fetch('/api/history').then(r => r.json()),
+      fetch('/api/snapshots').then(r => r.json()),
+    ]);
+
+    marketRows = obsRes.items || obsRes;
+    specs = specsRes;
+    SOURCES = {};
+    (srcRes || []).forEach(s => { SOURCES[s.id] = s; });
+    skuSummaries = sumRes;
+    sensitivityData = sensRes;
+    ablationData = ablRes;
+    providerMatrix = provRes;
+    historyData = histRes;
+    allSnapshots = snapRes || [];
+
+    populateSnapshotsDropdown(allSnapshots);
+    populateDiffDropdowns(allSnapshots);
+    renderAllViews();
+
+    handleHashNavigation();
+
+    document.getElementById('footerTimestamp').textContent = `FSKU Tape · ${marketRows.length} active quotes · ${specs.length} hardware architectures · Synced: ${new Date().toLocaleTimeString()}`;
+  } catch (err) {
+    console.error('Data load error:', err);
+  }
+}
+
+function handleHashNavigation() {
+  const hash = window.location.hash.replace('#/', '').trim();
+  if (!hash) return;
+  if (hash.startsWith('sku/')) {
+    const sku = decodeURIComponent(hash.replace('sku/', ''));
+    selectSkuAndGo(sku, false);
+  } else {
+    const validViews = ['overview', 'sku-detail', 'spot-index', 'history', 'forward', 'curve-compare', 'providers', 'sensitivity', 'ablation', 'tape', 'provenance', 'methodology'];
+    if (validViews.includes(hash)) {
+      switchView(hash, false);
+    }
+  }
+}
+
+function populateSnapshotsDropdown(snaps) {
+  const sel = document.getElementById('snapshotSelect');
+  sel.innerHTML = '<option value="live">Live Tape (Current)</option>';
+  (snaps || []).forEach(s => {
+    sel.insertAdjacentHTML('beforeend', `<option value="${s.id}">${s.label || s.id} (${s.timestamp.substring(0,10)})</option>`);
+  });
+}
+
+function populateDiffDropdowns(snaps) {
+  const baseSel = document.getElementById('diffBaseSelect');
+  const targetSel = document.getElementById('diffTargetSelect');
+  if (!baseSel || !targetSel) return;
+
+  baseSel.innerHTML = '';
+  targetSel.innerHTML = '';
+
+  snaps.forEach((s, idx) => {
+    const name = `${s.label || s.id} (${s.timestamp.substring(0,10)})`;
+    baseSel.insertAdjacentHTML('beforeend', `<option value="${s.id}" ${idx === 0 ? 'selected' : ''}>${name}</option>`);
+    targetSel.insertAdjacentHTML('beforeend', `<option value="${s.id}" ${idx === snaps.length - 1 ? 'selected' : ''}>${name}</option>`);
+  });
+
+  renderSnapshotDiff();
+}
+
+function renderAllViews() {
+  renderOverview();
+  renderSkuDetail();
+  renderSpotIndex();
+  renderHistoryView();
+  renderForwardCurve();
+  renderCurveComparison();
+  renderProviderMatrix();
+  renderSensitivityView();
+  renderAblationView();
+  renderTapeTable();
+  renderProvenanceView();
+  renderSpecsCards();
+}
+
+function renderOverview() {
+  const allPrices = marketRows.map(r => r.perGpu);
+  const h100 = marketRows.filter(h100ish);
+  const hMin = h100.length ? Math.min(...h100.map(r => r.perGpu)) : 1;
+  const hMax = h100.length ? Math.max(...h100.map(r => r.perGpu)) : 1;
+  const sorted = [...allPrices].sort((a,b)=>a-b);
+  const medianAll = sorted.length ? (sorted.length % 2 ? sorted[Math.floor(sorted.length/2)] : (sorted[sorted.length/2-1]+sorted[sorted.length/2])/2) : 0;
+  const hSpread = hMax / (hMin || 1);
+  const sourceCount = new Set(marketRows.map(r => r.source)).size;
+  const gpuCount = new Set(marketRows.map(r => r.gpu)).size;
+
+  const kpis = [
+    ['MARKET OBSERVATIONS', marketRows.length, 'NoSQL-synced quotes', [1, 2, 1.7, 2.8, 2.1, 3.1]],
+    ['PUBLIC SOURCES', sourceCount, 'Verified provider feeds', [1, 1.2, 1.4, 1.8, 2.1, 2.3]],
+    ['GPU SKUs TRACKED', gpuCount, 'Distinct accelerator SKUs', [1.2, 1.8, 1.6, 2.3, 2.5, 3]],
+    ['MEDIAN OBSERVED RATE', money(medianAll), '/ GPU-hour (all quotes)', [3, 2.4, 2.1, 1.8, 1.6, 1.5]],
+    ['H100 PRICE DISPERSION', hSpread.toFixed(1) + '×', 'High quote ÷ low quote', [1, 1.5, 2, 2.9, 3.4, 4.2]]
+  ];
+  document.getElementById('macroKpis').innerHTML = kpis.map(d => `<div class="kpi"><div class="klabel">${d[0]}</div><div class="value">${d[1]}</div><div class="sub">${d[2]}</div>${spark(d[3])}</div>`).join('');
+
+  let sortedSkus = [...skuSummaries];
+  sortedSkus.sort((a, b) => {
+    let A = a[skuSortKey], B = b[skuSortKey];
+    if (typeof A === 'string') {
+      A = A.toLowerCase();
+      B = B.toLowerCase();
+    }
+    if (A === undefined || A === null) return 1;
+    if (B === undefined || B === null) return -1;
+    return A < B ? -skuSortDir : (A > B ? skuSortDir : 0);
+  });
+
+  document.querySelectorAll('#skuOverviewTable th[data-key]').forEach(th => {
+    const k = th.dataset.key;
+    const label = th.getAttribute('data-label') || th.innerText.replace(/[↕▲▼]/g, '').trim();
+    th.setAttribute('data-label', label);
+    if (k === skuSortKey) {
+      th.innerHTML = `${label} ${skuSortDir === 1 ? '▲' : '▼'}`;
+      th.style.color = '#fff';
+    } else {
+      th.innerHTML = `${label} ↕`;
+      th.style.color = '';
+    }
+  });
+
+  const tbody = document.querySelector('#skuOverviewTable tbody');
+  tbody.innerHTML = sortedSkus.map(s => {
+    const confClass = s.confidence === 'HIGH' ? 'conf-high' : (s.confidence === 'MODERATE' ? 'conf-mod' : 'conf-low');
+    const statClass = s.market_status === 'ACTIVE' ? 'stat-active' : (s.market_status === 'INDICATIVE' ? 'stat-indicative' : 'stat-emerging');
+    return `<tr class="clickable-row" onclick="setOverviewActiveSku('${s.sku}');document.getElementById('dispersionForwardSection')?.scrollIntoView({behavior:'smooth'});">
+      <td><div class="gpu" style="font-weight:700">${s.sku}</div><div style="font-size:8.5px;color:var(--dim)">${s.family}</div></td>
+      <td><span class="chip" style="font-size:8.5px;border-color:rgba(56,189,248,0.25);color:var(--blue)">${s.topology || 'HGX 8x'}</span></td>
+      <td><span class="chip" style="font-size:8.5px">${s.form_factor || 'SXM'}</span></td>
+      <td><span style="font-size:9px;color:var(--dim)">${s.interconnect || 'NVLink'}</span></td>
+      <td class="num">${s.vram} GB</td>
+      <td class="num"><b style="color:var(--good);font-size:12.5px">${money(s.index_price)}</b></td>
+      <td class="num">${money(s.min_price)}</td>
+      <td class="num">${money(s.max_price)}</td>
+      <td class="num" style="color:var(--dim)">${money(s.iqr_low)} - ${money(s.iqr_high)}</td>
+      <td class="num"><b>${s.dispersion_ratio}×</b></td>
+      <td class="num">${s.observation_count}</td>
+      <td class="num">${s.provider_count}</td>
+      <td><span class="chip ${confClass}">${s.confidence}</span></td>
+      <td><span class="chip ${statClass}">${s.market_status}</span></td>
+      <td><button class="btn" style="padding:2.5px 7px;font-size:9.5px" onclick="selectSkuAndGo('${s.sku}');event.stopPropagation();">Inspect ↗</button></td>
+    </tr>`;
+  }).join('');
+
+  setOverviewActiveSku(overviewActiveSku);
+}
+
+let overviewActiveSku = 'H100 SXM';
+let overviewCarryRate = 5;
+
+function setOverviewActiveSku(sku) {
+  overviewActiveSku = sku;
+
+  document.querySelectorAll('.overview-gpu-pill').forEach(b => {
+    const pillSku = b.dataset.sku;
+    const cleanPill = pillSku.replace(/ SXM| PCIe| NVL/g, '');
+    const isMatch = (pillSku === sku) || (sku.startsWith(cleanPill));
+    b.classList.toggle('active', isMatch);
+  });
+
+  const dropdown = document.getElementById('overviewActiveSkuDropdown');
+  if (dropdown && dropdown.value !== sku) {
+    dropdown.value = sku;
+  }
+
+  renderDispersionChart();
+  renderOverviewForwardCurve();
+}
+
+function setOverviewCarry(c) {
+  overviewCarryRate = c;
+  document.querySelectorAll('.overview-carry-pill').forEach(b => {
+    b.classList.toggle('active', Number(b.dataset.carry) === c);
+  });
+  renderOverviewForwardCurve();
+}
+
+function renderDispersionChart() {
+  const targetSku = overviewActiveSku || 'H100 SXM';
+  const basis = document.getElementById('basisFilter')?.value || 'all';
+
+  const headerEl = document.getElementById('dispersionHeader');
+  if (headerEl) headerEl.textContent = `${targetSku} Spot Rate Dispersion`;
+
+  const exactRows = marketRows.filter(r => r.gpu.toLowerCase() === targetSku.toLowerCase());
+  const effectiveRows = exactRows.length ? exactRows : marketRows.filter(r => r.gpu.toLowerCase().includes(targetSku.toLowerCase().split(' ')[0]));
+
+  let rows = effectiveRows.filter(r => basis === 'all' || r.basis === basis).sort((a, b) => a.perGpu - b.perGpu);
+  const el = document.getElementById('h100Chart');
+  if (!el) return;
+
+  if (!rows.length) {
+    el.innerHTML = `<div class="empty" style="padding:24px;font-size:11px">No ${targetSku} observations for '${basis}' basis.</div>`;
+    document.getElementById('dispersionPanel').innerHTML = `<div class="muted">No observations found for ${targetSku} (${basis}).</div>`;
+    return;
+  }
+
+  const W = 760, H = 230, p = {l: 110, r: 35, t: 12, b: 24}, cw = W - p.l - p.r, ch = H - p.t - p.b;
+  const max = Math.ceil(Math.max(...rows.map(r => r.perGpu)) * 1.08) || 5;
+  const step = max <= 2 ? 0.25 : (max <= 6 ? 1 : (max <= 14 ? 2 : 5));
+
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${targetSku} hourly price comparison">`;
+  for (let x = 0; x <= max; x += step) {
+    let px = p.l + (x / max) * cw;
+    const label = x < 2 ? '$' + x.toFixed(2) : '$' + x.toFixed(0);
+    s += `<line class="gridline" x1="${px}" y1="${p.t}" x2="${px}" y2="${H - p.b}"/><text class="axis" x="${px}" y="${H - 6}" text-anchor="middle">${label}</text>`;
+  }
+  const bh = Math.min(22, (ch / rows.length) * 0.65), gap = ch / rows.length;
+  rows.forEach((r, i) => {
+    const y = p.t + i * gap + (gap - bh) / 2, w = (r.perGpu / max) * cw;
+    const secondary = r.basis === 'Spot';
+    s += `<text class="chart-label" x="${p.l - 8}" y="${y + bh * 0.68}" text-anchor="end">${r.provider}</text>`;
+    s += `<rect class="bar ${secondary ? 'secondary' : ''}" x="${p.l}" y="${y}" rx="3" width="${Math.max(2, w)}" height="${bh}"><title>${r.provider} · ${r.instance} · ${r.basis}: ${money(r.perGpu)}/GPU-hr</title></rect>`;
+    s += `<text class="chart-value" x="${Math.min(p.l + w + 6, W - 32)}" y="${y + bh * 0.68}">${money(r.perGpu)}</text>`;
+  });
+  s += '</svg>';
+  el.innerHTML = s;
+
+  const minP = Math.min(...rows.map(r => r.perGpu)), maxP = Math.max(...rows.map(r => r.perGpu));
+  const dispRatio = (maxP / (minP || 1)).toFixed(1);
+  const skuSummary = skuSummaries.find(s => s.sku === targetSku) || {index_price: minP};
+  const provCount = new Set(rows.map(r => r.provider)).size;
+
+  document.getElementById('dispersionPanel').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+      <div><span style="font-size:8.5px;color:var(--dim);text-transform:uppercase">Spot Benchmark</span><div style="font-size:14px;font-weight:750;color:var(--good)">${money(skuSummary.index_price)}</div></div>
+      <div><span style="font-size:8.5px;color:var(--dim);text-transform:uppercase">Lowest Quote</span><div style="font-size:14px;font-weight:750;color:#fff">${money(minP)}</div></div>
+      <div><span style="font-size:8.5px;color:var(--dim);text-transform:uppercase">Highest Quote</span><div style="font-size:14px;font-weight:750;color:#fff">${money(maxP)}</div></div>
+      <div><span style="font-size:8.5px;color:var(--dim);text-transform:uppercase">Dispersion</span><div style="font-size:14px;font-weight:750;color:var(--amber)">${dispRatio}×</div></div>
+    </div>
+    <div style="margin-top:8px;font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between">
+      <span>Active Quotes: <b>${rows.length}</b> across <b>${provCount}</b> providers</span>
+      <span>Basis: <b>${basis}</b></span>
+    </div>
+  `;
+}
+
+async function renderOverviewForwardCurve() {
+  const targetSku = overviewActiveSku || 'H100 SXM';
+  const horizon = document.getElementById('overviewHorizonSelect')?.value || '36';
+  const basis = document.getElementById('overviewBasisSelect')?.value || 'firm';
+  const carry = overviewCarryRate;
+
+  const headerEl = document.getElementById('overviewFwdHeader');
+  if (headerEl) headerEl.textContent = `${targetSku} Implied Forward Curve`;
+
+  const chart = document.getElementById('overviewForwardChart');
+  if (!chart) return;
+  try {
+    const url = `/api/forward-curve?family=${encodeURIComponent(targetSku)}&basis=${basis}&cadence=24&carry_rate=${carry}&horizon=${horizon}`;
+    const m = await fetch(url).then(r => r.json());
+    if (!m || !m.points || !m.points.length) {
+      chart.innerHTML = `<div class="empty" style="padding:24px;font-size:11px">No forward curve data available for ${targetSku}.</div>`;
+      return;
+    }
+
+    const W = 760, H = 210, p = {l: 50, r: 24, t: 18, b: 32}, cw = W - p.l - p.r, ch = H - p.t - p.b;
+    const ymax = Math.max(...m.points.map(x => x.high)) * 1.12, ymin = 0;
+    const x = mth => p.l + (mth / m.horizon) * cw, y = v => p.t + ch - (v - ymin) / (ymax - ymin) * ch;
+    const path = arr => arr.map((pt, i) => (i ? 'L' : 'M') + x(pt.m).toFixed(1) + ',' + y(pt.base).toFixed(1)).join(' ');
+    const upper = m.points.map(pt => `${x(pt.m).toFixed(1)},${y(pt.high).toFixed(1)}`);
+    const lower = [...m.points].reverse().map(pt => `${x(pt.m).toFixed(1)},${y(pt.low).toFixed(1)}`);
+
+    let s = `<svg viewBox="0 0 ${W} ${H}">`;
+    for (let i = 0; i <= 4; i++) {
+      const val = (ymax / 4) * i, py = y(val);
+      s += `<line class="gridline" x1="${p.l}" y1="${py}" x2="${W - p.r}" y2="${py}"/><text class="axis" x="${p.l - 8}" y="${py + 3}" text-anchor="end">${money(val)}</text>`;
+    }
+    const xStep = m.horizon <= 24 ? 3 : 6;
+    for (let mo = 0; mo <= m.horizon; mo += xStep) {
+      const px = x(mo);
+      s += `<line class="gridline" x1="${px}" y1="${p.t}" x2="${px}" y2="${H - p.b}" opacity=".4"/><text class="axis" x="${px}" y="${H - 10}" text-anchor="middle">${mo === 0 ? 'Cash' : mo + 'M'}</text>`;
+    }
+    s += `<polygon class="curve-band" points="${upper.concat(lower).join(' ')}"><title>Interquartile band</title></polygon>`;
+    s += `<path class="curve-line" d="${path(m.points)}" stroke="var(--cyan)"/>`;
+
+    const keyMonths = [0, 6, 12, 18, 24, 36, 48, 60].filter(mo => mo <= m.horizon);
+    keyMonths.forEach(mo => {
+      const pt = m.points[mo];
+      if (pt) {
+        s += `<circle class="curve-dot" cx="${x(mo)}" cy="${y(pt.base)}" r="4" data-mo="${mo}" data-base="${pt.base}" data-low="${pt.low}" data-high="${pt.high}" data-chg="${pt.chg_pct}"><title>${mo === 0 ? 'Cash' : mo + 'M'} · ${money(pt.base)}/GPU-hr</title></circle><text class="curve-label" x="${x(mo)}" y="${Math.max(12, y(pt.base) - 8)}" text-anchor="middle">${money(pt.base)}</text>`;
+      }
+    });
+    s += '</svg>';
+    chart.innerHTML = s;
+
+    attachChartHudListener(chart, (e, target) => {
+      if (target && target.classList.contains('curve-dot')) {
+        const mo = target.dataset.mo;
+        const base = Number(target.dataset.base);
+        const low = Number(target.dataset.low);
+        const high = Number(target.dataset.high);
+        const chg = Number(target.dataset.chg);
+        return {
+          title: `${targetSku} · ${mo === '0' ? 'CASH SPOT' : mo + 'M FORWARD'}`,
+          price: money(base) + ' / GPU-hr',
+          rows: [
+            ['vs Cash Anchor', (chg >= 0 ? '+' : '') + pct(chg)],
+            ['IQR Range', `${money(low)} - ${money(high)}`],
+            ['Annual Tech Deflation', pct(m.d)],
+            ['Annual Carry / Scarcity', pct(carry / 100)]
+          ]
+        };
+      }
+      return null;
+    });
+
+    const p12 = m.points[Math.min(12, m.horizon)].base;
+    const terminal = m.points[m.horizon].base;
+    const roll = m.annual_factor - 1;
+    const rollClass = roll >= 0 ? 'positive' : 'negative';
+
+    const kpisEl = document.getElementById('overviewForwardKpis');
+    if (kpisEl) {
+      kpisEl.innerHTML = `
+        <div class="forward-kpi"><span>Cash Spot S₀</span><b>${money(m.S0)}</b></div>
+        <div class="forward-kpi"><span>12M Implied</span><b>${money(p12)}</b></div>
+        <div class="forward-kpi"><span>${m.horizon}M Terminal</span><b>${money(terminal)}</b></div>
+        <div class="forward-kpi"><span>Net Annual Roll</span><b class="${rollClass}">${roll >= 0 ? '+' : ''}${pct(roll)}</b></div>
+      `;
+    }
+  } catch (err) {
+    console.error('Overview forward curve error:', err);
+  }
+}
+
+function renderSkuDetail() {
+  const sku = document.getElementById('skuDetailSelector').value;
+  document.getElementById('skuDetailTitle').textContent = `GPU SKU Detail: ${sku}`;
+  const rows = marketRows.filter(r => r.gpu === sku);
+  const summary = skuSummaries.find(s => s.sku === sku) || {index_price: 0, min_price: 0, max_price: 0, dispersion_ratio: 1, vram: 80, confidence: 'MODERATE', market_status: 'ACTIVE'};
+
+  const spec = specs.find(s => s.name.toUpperCase().includes(sku.replace(' SXM','').replace(' PCIe','').toUpperCase())) || {gen: 'NVIDIA', bw: 3.35, power: 700, compute: 'FP8 3.96 PFLOPS*', type: 'HBM3'};
+
+  const kpis = [
+    ['SPOT BENCHMARK INDEX', money(summary.index_price), '/ GPU-hour', [1, 1.5, 2, 2.5]],
+    ['LOWEST QUOTE', money(summary.min_price), 'Best entry rate', [1, 1.2, 1.1, 1.3]],
+    ['HIGHEST QUOTE', money(summary.max_price), 'Ceiling quote', [2, 2.5, 2.8, 3]],
+    ['DISPERSION RATIO', summary.dispersion_ratio + '×', 'Spread multiple', [1, 1.8, 2.2, 3]],
+    ['OBSERVATION COUNT', rows.length + ' Quotes', summary.confidence + ' confidence', [1, 2, 3, 4]]
+  ];
+  document.getElementById('skuDetailKpis').innerHTML = kpis.map(d => `<div class="kpi"><div class="klabel">${d[0]}</div><div class="value">${d[1]}</div><div class="sub">${d[2]}</div></div>`).join('');
+
+  document.getElementById('skuSpecPanel').innerHTML = `
+    <div class="eyebrow">Hardware Engineering Fundamentals</div>
+    <div class="big" style="font-size:30px">${sku}</div>
+    <div class="muted">${spec.gen} Architecture.</div>
+    <hr/>
+    <div class="callout-row"><span>VRAM Memory</span><b>${summary.vram} GB ${spec.type || 'HBM3'}</b></div>
+    <div class="callout-row"><span>Memory Bandwidth</span><b>${spec.bw || 3.35} TB/s</b></div>
+    <div class="callout-row"><span>Max Thermal TDP</span><b>${spec.power || 700} Watts</b></div>
+    <div class="callout-row"><span>Peak Tensor Compute</span><b>${spec.compute || 'FP8'}</b></div>
+  `;
+
+  const gbPerDollar = summary.min_price > 0 ? (summary.vram / summary.min_price).toFixed(1) : '—';
+  document.getElementById('skuDispersionPanel').innerHTML = `
+    <div class="eyebrow">Capacity Economics & Pricing Band</div>
+    <div class="big" style="font-size:30px">${gbPerDollar} GB / $</div>
+    <div class="muted">HBM capacity delivered per $1 of rental compute at the lowest observed rate.</div>
+    <hr/>
+    <div class="callout-row"><span>Interquartile Range (Q25 - Q75)</span><b>${money(summary.iqr_low || summary.min_price)} - ${money(summary.iqr_high || summary.max_price)}</b></div>
+    <div class="callout-row"><span>Market Confidence</span><b>${summary.confidence}</b></div>
+    <div class="callout-row"><span>Market Status</span><b>${summary.market_status}</b></div>
+  `;
+
+  const tbody = document.querySelector('#skuQuotesTable tbody');
+  tbody.innerHTML = rows.map(r => {
+    const srcObj = SOURCES[r.source] || {url: '#', domain: r.source || 'source'};
+    return `<tr>
+      <td><div class="provider">${r.provider}</div></td>
+      <td><div>${r.instance}</div></td>
+      <td><span class="chip ${r.basis==='Spot'?'spot':(r.basis==='Capacity block'?'capacity':'api')}">${r.basis}</span></td>
+      <td class="num">${r.gpuCount}</td>
+      <td class="num">${money(r.total)}</td>
+      <td class="num"><b>${money(r.perGpu)}</b></td>
+      <td>${r.region || 'Global'}</td>
+      <td><a class="source-link" href="${srcObj.url}" target="_blank" rel="noopener">${srcObj.domain} ↗</a></td>
+    </tr>`;
+  }).join('');
+
+  const fam = sku.split(' ')[0] || 'H100';
+  document.getElementById('skuForwardTitle').textContent = `${sku} Implied Forward Term Structure`;
+  renderSkuDetailForwardCurve(fam, sku);
+}
+
+async function renderSkuDetailForwardCurve(fam, sku) {
+  const chart = document.getElementById('skuDetailForwardChart');
+  const callout = document.getElementById('skuDetailForwardCallout');
+  if (!chart || !callout) return;
+  try {
+    const url = `/api/forward-curve?family=${fam}&basis=firm&cadence=24&carry_rate=5&horizon=36`;
+    const m = await fetch(url).then(r => r.json());
+    if (!m || !m.points) return;
+
+    const W = 760, H = 250, p = {l: 50, r: 24, t: 18, b: 32}, cw = W - p.l - p.r, ch = H - p.t - p.b;
+    const ymax = Math.max(...m.points.map(x => x.high)) * 1.12, ymin = 0;
+    const x = mth => p.l + (mth / m.horizon) * cw, y = v => p.t + ch - (v - ymin) / (ymax - ymin) * ch;
+    const path = arr => arr.map((pt, i) => (i ? 'L' : 'M') + x(pt.m).toFixed(1) + ',' + y(pt.base).toFixed(1)).join(' ');
+    const upper = m.points.map(pt => `${x(pt.m).toFixed(1)},${y(pt.high).toFixed(1)}`);
+    const lower = [...m.points].reverse().map(pt => `${x(pt.m).toFixed(1)},${y(pt.low).toFixed(1)}`);
+
+    let s = `<svg viewBox="0 0 ${W} ${H}">`;
+    for (let i = 0; i <= 4; i++) {
+      const val = (ymax / 4) * i, py = y(val);
+      s += `<line class="gridline" x1="${p.l}" y1="${py}" x2="${W - p.r}" y2="${py}"/><text class="axis" x="${p.l - 8}" y="${py + 3}" text-anchor="end">${money(val)}</text>`;
+    }
+    [0, 6, 12, 18, 24, 36].filter(mo => mo <= m.horizon).forEach(mo => {
+      const px = x(mo);
+      s += `<line class="gridline" x1="${px}" y1="${p.t}" x2="${px}" y2="${H - p.b}" opacity=".4"/><text class="axis" x="${px}" y="${H - 10}" text-anchor="middle">${mo === 0 ? 'Cash' : mo + 'M'}</text>`;
+    });
+    s += `<polygon class="curve-band" points="${upper.concat(lower).join(' ')}"><title>Interquartile band</title></polygon>`;
+    s += `<path class="curve-line" d="${path(m.points)}" stroke="var(--cyan)"/>`;
+
+    [0, 12, 24, 36].filter(mo => mo <= m.horizon).forEach(mo => {
+      const pt = m.points[mo];
+      if (pt) {
+        s += `<circle class="curve-dot" cx="${x(mo)}" cy="${y(pt.base)}" r="4" data-mo="${mo}" data-base="${pt.base}" data-low="${pt.low}" data-high="${pt.high}" data-chg="${pt.chg_pct}"><title>${mo === 0 ? 'Cash' : mo + 'M'} · ${money(pt.base)}/GPU-hr</title></circle><text class="curve-label" x="${x(mo)}" y="${Math.max(12, y(pt.base) - 8)}" text-anchor="middle">${money(pt.base)}</text>`;
+      }
+    });
+    s += '</svg>';
+    chart.innerHTML = s;
+
+    attachChartHudListener(chart, (e, target) => {
+      if (target && target.classList.contains('curve-dot')) {
+        const mo = target.dataset.mo;
+        const base = Number(target.dataset.base);
+        const low = Number(target.dataset.low);
+        const high = Number(target.dataset.high);
+        const chg = Number(target.dataset.chg);
+        return {
+          title: `${sku} · ${mo === '0' ? 'CASH SPOT' : mo + 'M FORWARD'}`,
+          price: money(base) + ' / GPU-hr',
+          rows: [
+            ['vs Cash Anchor', (chg >= 0 ? '+' : '') + pct(chg)],
+            ['IQR Range', `${money(low)} - ${money(high)}`],
+            ['Annual Tech Deflation', pct(m.d)]
+          ]
+        };
+      }
+      return null;
+    });
+
+    const p12 = m.points[Math.min(12, m.horizon)].base;
+    const p24 = m.points[Math.min(24, m.horizon)].base;
+    const p36 = m.points[Math.min(36, m.horizon)].base;
+    const roll = m.annual_factor - 1;
+    const rollClass = roll >= 0 ? 'positive' : 'negative';
+
+    const kpisEl = document.getElementById('skuDetailForwardKpis');
+    if (kpisEl) {
+      kpisEl.innerHTML = `
+        <div class="forward-kpi"><span>Cash Anchor S₀</span><b>${money(m.S0)}</b></div>
+        <div class="forward-kpi"><span>12M Implied</span><b>${money(p12)}</b></div>
+        <div class="forward-kpi"><span>36M Implied</span><b>${money(p36)}</b></div>
+        <div class="forward-kpi"><span>Net Annual Roll</span><b class="${rollClass}">${roll >= 0 ? '+' : ''}${pct(roll)}</b></div>
+      `;
+    }
+
+    callout.innerHTML = `
+      <div class="eyebrow">${sku} Forward Term Structure</div>
+      <div class="big">${money(p12)}</div>
+      <div class="muted">12-Month model-implied forward settlement price.</div>
+      <hr/>
+      <div class="callout-row"><span>Cash Spot Anchor (S₀)</span><b>${money(m.S0)}/GPU-hr</b></div>
+      <div class="callout-row"><span>12M Implied Rate</span><b>${money(p12)}/GPU-hr</b></div>
+      <div class="callout-row"><span>24M Implied Rate</span><b>${money(p24)}/GPU-hr</b></div>
+      <div class="callout-row"><span>36M Implied Rate</span><b>${money(p36)}/GPU-hr</b></div>
+      <div class="callout-row"><span>Inferred Tech Deflation (d)</span><b>${pct(m.d)} / yr</b></div>
+      <div class="callout-row"><span>Net Annual Curve Roll</span><b class="${rollClass}">${roll >= 0 ? '+' : ''}${pct(roll)}</b></div>
+    `;
+  } catch (err) {
+    console.error('SKU detail forward curve error:', err);
+  }
+}
+
+function renderSpotIndex() {
+  const skuSel = document.getElementById('spotIndexSkuFilter');
+  const curSku = skuSel.value;
+  skuSel.innerHTML = '<option value="all">All SKUs</option>' + skuSummaries.map(s => `<option value="${s.sku}" ${s.sku===curSku?'selected':''}>${s.sku}</option>`).join('');
+
+  const target = curSku === 'all' || !curSku ? skuSummaries[0] : (skuSummaries.find(s => s.sku === curSku) || skuSummaries[0]);
+  if (target) {
+    document.getElementById('spotIndexPriceBig').textContent = money(target.index_price);
+    document.getElementById('spotIndexMethodDesc').textContent = `${target.sku} reference $/GPU-hour settlement index (${target.methodology} basis).`;
+    document.getElementById('spotQuotesCount').textContent = target.observation_count + ' Public Quotes';
+    document.getElementById('spotProvidersCount').textContent = target.provider_count + ' Providers';
+    document.getElementById('spotConfidenceBadge').textContent = target.confidence;
+    document.getElementById('spotLowestQuote').textContent = money(target.min_price);
+    document.getElementById('spotHighestQuote').textContent = money(target.max_price);
+    document.getElementById('spotQ25').textContent = money(target.iqr_low);
+    document.getElementById('spotQ75').textContent = money(target.iqr_high);
+    document.getElementById('spotDispRatio').textContent = target.dispersion_ratio + '×';
+  }
+
+  const tbody = document.querySelector('#spotIndexBreakdownTable tbody');
+  tbody.innerHTML = skuSummaries.map(s => `<tr>
+    <td><div class="gpu">${s.sku}</div></td>
+    <td><span class="chip">${s.methodology}</span></td>
+    <td class="num"><b style="color:var(--good)">${money(s.index_price)}</b></td>
+    <td class="num">${money(s.min_price)}</td>
+    <td class="num">${money(s.max_price)}</td>
+    <td class="num">${money(s.iqr_low)}</td>
+    <td class="num">${money(s.iqr_high)}</td>
+    <td class="num"><b>${s.dispersion_ratio}×</b></td>
+    <td class="num">${s.observation_count}</td>
+    <td><span class="chip ${s.confidence==='HIGH'?'conf-high':(s.confidence==='MODERATE'?'conf-mod':'conf-low')}">${s.confidence}</span></td>
+  </tr>`).join('');
+}
+
+function renderHistoryView() {
+  const sku = document.getElementById('historySkuSelect').value;
+  document.getElementById('historyChartTitle').textContent = `${sku} Historical Trajectory`;
+  const series = (historyData.series && historyData.series[sku]) || [];
+
+  if (series.length) {
+    const latest = series[series.length - 1].price;
+    const first = series[0].price;
+    const chg = (latest - first) / first;
+    document.getElementById('historyLatestPrice').textContent = money(latest);
+    document.getElementById('historyStartPrice').textContent = money(first);
+    const chgEl = document.getElementById('historyChangePct');
+    chgEl.textContent = (chg >= 0 ? '+' : '') + pct(chg);
+    chgEl.className = chg >= 0 ? 'positive' : 'negative';
+    document.getElementById('historyAnnualDeflation').textContent = pct(Math.abs(chg)) + ' / yr';
+    document.getElementById('historySnapCount').textContent = series.length + ' Snapshots';
+
+    const chart = document.getElementById('historyChart');
+    const W = 760, H = 290, p = {l: 50, r: 25, t: 20, b: 35}, cw = W - p.l - p.r, ch = H - p.t - p.b;
+    const prices = series.map(d => d.price);
+    const max = Math.max(...prices) * 1.15, min = 0;
+    const x = i => p.l + (i / (series.length - 1 || 1)) * cw;
+    const y = v => p.t + ch - (v - min) / (max - min) * ch;
+    const pts = series.map((d, i) => `${x(i).toFixed(1)},${y(d.price).toFixed(1)}`).join(' ');
+
+    let s = `<svg viewBox="0 0 ${W} ${H}">`;
+    for (let i = 0; i <= 4; i++) {
+      const val = (max / 4) * i, py = y(val);
+      s += `<line class="gridline" x1="${p.l}" y1="${py}" x2="${W - p.r}" y2="${py}"/><text class="axis" x="${p.l - 8}" y="${py + 3}" text-anchor="end">${money(val)}</text>`;
+    }
+    series.forEach((d, i) => {
+      s += `<line class="gridline" x1="${x(i)}" y1="${p.t}" x2="${x(i)}" y2="${H - p.b}" opacity=".4"/><text class="axis" x="${x(i)}" y="${H - 10}" text-anchor="middle">${d.date.substring(5)}</text>`;
+    });
+    s += `<polyline fill="none" stroke="var(--cyan)" stroke-width="2.5" points="${pts}"/>`;
+    series.forEach((d, i) => {
+      s += `<circle cx="${x(i)}" cy="${y(d.price)}" r="4.5" fill="#fff" class="hoverable-dot" data-label="${d.label || d.date}" data-price="${d.price}" data-date="${d.date}"></circle><text class="chart-value" x="${x(i)}" y="${y(d.price) - 8}" text-anchor="middle">${money(d.price)}</text>`;
+    });
+    s += '</svg>';
+    chart.innerHTML = s;
+
+    attachChartHudListener(chart, (e, target) => {
+      if (target && target.classList.contains('hoverable-dot')) {
+        return {
+          title: target.dataset.date,
+          price: money(target.dataset.price),
+          rows: [
+            ['Snapshot', target.dataset.label],
+            ['SKU', sku]
+          ]
+        };
+      }
+      return null;
+    });
+  }
+
+  const tbody = document.querySelector('#historicalSnapshotsTable tbody');
+  tbody.innerHTML = allSnapshots.map(s => `<tr>
+    <td><div class="gpu">${s.id}</div></td>
+    <td style="color:var(--dim)">${s.timestamp.replace('T', ' ').substring(0,19)}</td>
+    <td><b>${s.label || ''}</b></td>
+    <td class="num">${s.observation_count || 0}</td>
+    <td class="num"><b style="color:var(--good)">${money(s.median_rate || 0)}</b></td>
+    <td class="num">${(s.h100_dispersion || 1).toFixed(1)}×</td>
+    <td><code style="font-size:9.5px;color:var(--dim)">${s.checksum || '—'}</code></td>
+  </tr>`).join('');
+
+  renderSnapshotDiff();
+}
+
+function renderSnapshotDiff() {
+  const baseId = document.getElementById('diffBaseSelect')?.value;
+  const targetId = document.getElementById('diffTargetSelect')?.value;
+  if (!baseId || !targetId) return;
+
+  const snapA = allSnapshots.find(s => s.id === baseId);
+  const snapB = allSnapshots.find(s => s.id === targetId);
+  if (!snapA || !snapB) return;
+
+  const idxA = snapA.sku_indices || {};
+  const idxB = snapB.sku_indices || {};
+  const allSkus = [...new Set([...Object.keys(idxA), ...Object.keys(idxB)])].sort();
+
+  const tbody = document.querySelector('#snapshotDiffTable tbody');
+  tbody.innerHTML = allSkus.map(sku => {
+    const pA = idxA[sku];
+    const pB = idxB[sku];
+    if (pA === undefined && pB === undefined) return '';
+    const pAStr = pA !== undefined ? money(pA) : '—';
+    const pBStr = pB !== undefined ? money(pB) : '—';
+    let deltaStr = '—', pctStr = '—', trend = '<span class="chip">PAR</span>';
+
+    if (pA !== undefined && pB !== undefined) {
+      const d = pB - pA;
+      const dPct = (d / pA) * 100;
+      const dClass = d < 0 ? 'positive' : (d > 0 ? 'negative' : '');
+      deltaStr = `<span class="${dClass}">${d >= 0 ? '+' : ''}${money(d)}</span>`;
+      pctStr = `<span class="${dClass}"><b>${dPct >= 0 ? '+' : ''}${dPct.toFixed(1)}%</b></span>`;
+      trend = d < 0 ? '<span class="chip conf-high">DEFLATING</span>' : (d > 0 ? '<span class="chip conf-mod">APPRECIATING</span>' : '<span class="chip">STABLE</span>');
+    }
+
+    return `<tr>
+      <td><div class="gpu">${sku}</div></td>
+      <td class="num">${pAStr}</td>
+      <td class="num"><b>${pBStr}</b></td>
+      <td class="num">${deltaStr}</td>
+      <td class="num">${pctStr}</td>
+      <td>${trend}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function renderForwardCurve() {
+  const family = document.getElementById('forwardGpu').value;
+  const basis = document.getElementById('forwardBasis').value;
+  const cadence = document.getElementById('cadence').value;
+  const carry = document.getElementById('carryRate').value;
+  const horizon = document.getElementById('forwardHorizon').value;
+
+  try {
+    const url = `/api/forward-curve?family=${family}&basis=${basis}&cadence=${cadence}&carry_rate=${carry}&horizon=${horizon}`;
+    const m = await fetch(url).then(r => r.json());
+    if (!m || !m.points) return;
+
+    document.getElementById('forwardChartTitle').textContent = `${m.family} Implied Term Structure`;
+    document.getElementById('curveState').textContent = m.fallback ? 'ALL-TAPE FALLBACK' : 'MODEL-IMPLIED';
+
+    const chart = document.getElementById('forwardChart');
+    const W = 820, H = 330, p = {l: 58, r: 24, t: 22, b: 42}, cw = W - p.l - p.r, ch = H - p.t - p.b;
+    const ymax = Math.max(...m.points.map(x => x.high)) * 1.12, ymin = 0;
+    const x = mth => p.l + (mth / m.horizon) * cw, y = v => p.t + ch - (v - ymin) / (ymax - ymin) * ch;
+    const path = arr => arr.map((pt, i) => (i ? 'L' : 'M') + x(pt.m).toFixed(1) + ',' + y(pt.base).toFixed(1)).join(' ');
+    const upper = m.points.map(pt => `${x(pt.m).toFixed(1)},${y(pt.high).toFixed(1)}`);
+    const lower = [...m.points].reverse().map(pt => `${x(pt.m).toFixed(1)},${y(pt.low).toFixed(1)}`);
+
+    let s = `<svg viewBox="0 0 ${W} ${H}" id="forwardSvg">`;
+    for (let i = 0; i <= 5; i++) {
+      const val = (ymax / 5) * i, py = y(val);
+      s += `<line class="gridline" x1="${p.l}" y1="${py}" x2="${W - p.r}" y2="${py}"/><text class="axis" x="${p.l - 9}" y="${py + 3}" text-anchor="end">${money(val)}</text>`;
+    }
+    const xStep = m.horizon <= 24 ? 3 : 6;
+    for (let mo = 0; mo <= m.horizon; mo += xStep) {
+      const px = x(mo);
+      s += `<line class="gridline" x1="${px}" y1="${p.t}" x2="${px}" y2="${H - p.b}" opacity=".5"/><text class="axis" x="${px}" y="${H - 15}" text-anchor="middle">${mo === 0 ? 'Cash' : mo + 'M'}</text>`;
+    }
+    s += `<polygon class="curve-band" points="${upper.concat(lower).join(' ')}"><title>Interquartile band</title></polygon>`;
+    s += `<path class="curve-line" d="${path(m.points)}"/>`;
+
+    const keyMonths = [0, 3, 6, 12, 18, 24, 36, 48, 60].filter(v => v <= m.horizon);
+    keyMonths.forEach(mo => {
+      const pt = m.points[mo];
+      if (pt) s += `<circle class="curve-dot" cx="${x(mo)}" cy="${y(pt.base)}" r="4" data-mo="${mo}" data-base="${pt.base}" data-low="${pt.low}" data-high="${pt.high}" data-chg="${pt.chg_pct}"><title>${mo === 0 ? 'Cash' : mo + 'M'} · ${money(pt.base)}/GPU-hr</title></circle><text class="curve-label" x="${x(mo)}" y="${Math.max(12, y(pt.base) - 9)}" text-anchor="middle">${money(pt.base)}</text>`;
+    });
+    s += '</svg>';
+    chart.innerHTML = s;
+
+    attachChartHudListener(chart, (e, target) => {
+      if (target && target.classList.contains('curve-dot')) {
+        const mo = target.dataset.mo;
+        const base = Number(target.dataset.base);
+        const low = Number(target.dataset.low);
+        const high = Number(target.dataset.high);
+        const chg = Number(target.dataset.chg);
+        return {
+          title: mo === '0' ? 'CASH SETTLEMENT (0M)' : `${mo}-MONTH FORWARD TENOR`,
+          price: money(base) + ' / GPU-hr',
+          rows: [
+            ['vs Cash Anchor', (chg >= 0 ? '+' : '') + pct(chg)],
+            ['IQR Low (Q25)', money(low)],
+            ['IQR High (Q75)', money(high)],
+            ['Annual Tech Deflation (d)', pct(m.d)],
+            ['Annual Carry (c)', pct(m.carry / 100)]
+          ]
+        };
+      }
+      return null;
+    });
+
+    const p12 = m.points[Math.min(12, m.horizon)].base;
+    document.getElementById('forward12m').textContent = money(p12);
+    document.getElementById('forwardSpot').textContent = money(m.S0) + '/GPU-hr';
+    document.getElementById('forwardDecay').textContent = pct(m.d) + ' / yr';
+    document.getElementById('forwardCarry').textContent = pct(m.carry / 100) + ' / yr';
+
+    const roll = m.annual_factor - 1, rollEl = document.getElementById('forwardRoll');
+    rollEl.textContent = (roll >= 0 ? '+' : '') + pct(roll);
+    rollEl.className = roll >= 0 ? 'positive' : 'negative';
+    document.getElementById('forwardPairs').textContent = m.tech.observations.length;
+
+    const termMonths = [0, 3, 6, 12, 18, 24, 36, 48, 60].filter(v => v <= m.horizon);
+    document.querySelector('#forwardTenors tbody').innerHTML = termMonths.map(mo => {
+      const pt = m.points[mo];
+      if (!pt) return '';
+      const chg = pt.chg_pct;
+      return `<tr><td>${mo === 0 ? 'Cash' : mo + 'M'}</td><td class="num"><b>${money(pt.base)}</b></td><td class="num ${chg >= 0 ? 'positive' : 'negative'}">${chg >= 0 ? '+' : ''}${pct(chg)}</td></tr>`;
+    }).join('');
+
+    const terminal = m.points[m.horizon].base;
+    document.getElementById('forwardKpis').innerHTML = `
+      <div class="forward-kpi"><span>Cash index</span><b>${money(m.S0)}</b></div>
+      <div class="forward-kpi"><span>12M implied</span><b>${money(p12)}</b></div>
+      <div class="forward-kpi"><span>${m.horizon}M implied</span><b>${money(terminal)}</b></div>
+      <div class="forward-kpi"><span>Net annual roll</span><b class="${roll >= 0 ? 'positive' : 'negative'}">${roll >= 0 ? '+' : ''}${pct(roll)}</b></div>
+    `;
+  } catch (err) {
+    console.error('Forward curve error:', err);
+  }
+}
+
+async function renderCurveComparison() {
+  const basis = document.getElementById('compareBasisSelect').value;
+  const horizon = document.getElementById('compareHorizonSelect').value;
+  try {
+    const res = await fetch(`/api/forward-curves/compare?basis=${basis}&horizon=${horizon}`).then(r=>r.json());
+    if (!res || !res.curves) return;
+
+    const colors = {
+      "H100": "var(--blue)",
+      "H200": "var(--cyan)",
+      "B200": "var(--green)",
+      "B300": "var(--violet)",
+      "A100": "var(--amber)"
+    };
+
+    const chart = document.getElementById('multiCurveChart');
+    const W = 820, H = 330, p = {l: 55, r: 25, t: 20, b: 35}, cw = W - p.l - p.r, ch = H - p.t - p.b;
+    
+    let allPoints = [];
+    Object.values(res.curves).forEach(c => { allPoints.push(...c.points.map(x=>x.base)); });
+    const ymax = Math.max(...allPoints) * 1.15, ymin = 0;
+    const x = mth => p.l + (mth / res.horizon) * cw, y = v => p.t + ch - (v - ymin) / (ymax - ymin) * ch;
+
+    let s = `<svg viewBox="0 0 ${W} ${H}">`;
+    for (let i = 0; i <= 5; i++) {
+      const val = (ymax / 5) * i, py = y(val);
+      s += `<line class="gridline" x1="${p.l}" y1="${py}" x2="${W - p.r}" y2="${py}"/><text class="axis" x="${p.l - 8}" y="${py + 3}" text-anchor="end">${money(val)}</text>`;
+    }
+    const xStep = res.horizon <= 24 ? 3 : 6;
+    for (let mo = 0; mo <= res.horizon; mo += xStep) {
+      const px = x(mo);
+      s += `<line class="gridline" x1="${px}" y1="${p.t}" x2="${px}" y2="${H - p.b}" opacity=".4"/><text class="axis" x="${px}" y="${H - 12}" text-anchor="middle">${mo === 0 ? 'Cash' : mo + 'M'}</text>`;
+    }
+
+    Object.entries(res.curves).forEach(([fam, crv]) => {
+      const col = colors[fam] || '#fff';
+      const pts = crv.points.map(pt => `${x(pt.m).toFixed(1)},${y(pt.base).toFixed(1)}`).join(' ');
+      s += `<polyline fill="none" stroke="${col}" stroke-width="2.3" points="${pts}"/>`;
+      [0, 12, 24, 36, 60].filter(m=>m<=res.horizon).forEach(m => {
+        const pt = crv.points[m];
+        if (pt) s += `<circle cx="${x(m)}" cy="${y(pt.base)}" r="3.5" fill="${col}" class="multi-curve-dot" data-fam="${fam}" data-mo="${m}" data-price="${pt.base}"><title>${fam} ${m}M: ${money(pt.base)}</title></circle>`;
+      });
+    });
+    s += '</svg>';
+    chart.innerHTML = s;
+
+    attachChartHudListener(chart, (e, target) => {
+      if (target && target.classList.contains('multi-curve-dot')) {
+        const fam = target.dataset.fam;
+        const mo = target.dataset.mo;
+        const pr = Number(target.dataset.price);
+        return {
+          title: `${fam} · ${mo === '0' ? 'CASH' : mo + 'M'} FORWARD`,
+          price: money(pr) + ' / GPU-hr',
+          rows: [
+            ['Delivery Horizon', `${mo} Months`],
+            ['Architecture', fam]
+          ]
+        };
+      }
+      return null;
+    });
+
+    if (res.curves.B200 && res.curves.H100) {
+      const b0 = res.curves.B200.points[0].base, h0 = res.curves.H100.points[0].base;
+      const b12 = res.curves.B200.points[Math.min(12, res.horizon)].base, h12 = res.curves.H100.points[Math.min(12, res.horizon)].base;
+      const ratio0 = (b0 / h0).toFixed(2);
+      document.getElementById('relValueBig').textContent = `${ratio0}×`;
+      document.getElementById('ratioB200H100Cash').textContent = `${ratio0}× (${money(b0)} vs ${money(h0)})`;
+      document.getElementById('ratioB200H100_12m').textContent = `${(b12 / h12).toFixed(2)}× (${money(b12)} vs ${money(h12)})`;
+    }
+    if (res.curves.H200 && res.curves.H100) {
+      const h2_0 = res.curves.H200.points[0].base, h1_0 = res.curves.H100.points[0].base;
+      document.getElementById('ratioH200H100Cash').textContent = `${(h2_0 / h1_0).toFixed(2)}× (${money(h2_0)} vs ${money(h1_0)})`;
+    }
+    if (res.curves.A100 && res.curves.H100) {
+      const a0 = res.curves.A100.points[0].base, h1_0 = res.curves.H100.points[0].base;
+      document.getElementById('ratioH100A100Cash').textContent = `${(h1_0 / a0).toFixed(2)}× (${money(h1_0)} vs ${money(a0)})`;
+    }
+
+    const tbody = document.querySelector('#compareTenorMatrixTable tbody');
+    tbody.innerHTML = res.tenors.map(t => {
+      const h1 = res.curves.H100?.points[t]?.base;
+      const h2 = res.curves.H200?.points[t]?.base;
+      const b2 = res.curves.B200?.points[t]?.base;
+      const b3 = res.curves.B300?.points[t]?.base;
+      const a1 = res.curves.A100?.points[t]?.base;
+      return `<tr>
+        <td><b>${t === 0 ? 'Cash (0M)' : t + ' Months'}</b></td>
+        <td class="num">${h1 ? money(h1) : '—'}</td>
+        <td class="num">${h2 ? money(h2) : '—'}</td>
+        <td class="num">${b2 ? money(b2) : '—'}</td>
+        <td class="num">${b3 ? money(b3) : '—'}</td>
+        <td class="num">${a1 ? money(a1) : '—'}</td>
+      </tr>`;
+    }).join('');
+  } catch (err) {
+    console.error('Curve comparison error:', err);
+  }
+}
+
+function renderProviderMatrix() {
+  const q = document.getElementById('providerSearch').value.toLowerCase().trim();
+  let rows = providerMatrix.filter(r => !q || `${r.provider} ${r.sku} ${r.instance} ${r.basis}`.toLowerCase().includes(q));
+  const tbody = document.querySelector('#providerMatrixTable tbody');
+  tbody.innerHTML = rows.map(r => {
+    const delta = r.delta_vs_index_pct;
+    const heatClass = delta < -5 ? 'heat-discount' : (delta > 25 ? 'heat-prem-high' : (delta > 5 ? 'heat-prem-low' : 'heat-par'));
+    return `<tr>
+      <td><div class="provider">${r.provider}</div></td>
+      <td><div class="gpu">${r.sku}</div></td>
+      <td><div class="muted">${r.instance}</div></td>
+      <td><span class="chip ${r.basis==='Spot'?'spot':(r.basis==='Capacity block'?'capacity':'api')}">${r.basis}</span></td>
+      <td class="num">${r.gpu_count}</td>
+      <td class="num">${money(r.total_rate)}</td>
+      <td class="num"><b>${money(r.per_gpu_rate)}</b></td>
+      <td class="num" style="color:var(--dim)">${money(r.index_price)}</td>
+      <td class="num ${heatClass}"><b>${delta >= 0 ? '+' : ''}${delta.toFixed(1)}%</b></td>
+      <td>${r.region}</td>
+      <td><a class="source-link" href="${r.source_url}" target="_blank" rel="noopener">Provider ↗</a></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderSensitivityView() {
+  const tbody = document.querySelector('#sensitivityTable tbody');
+  tbody.innerHTML = sensitivityData.map(s => `<tr>
+    <td><div class="gpu">${s.sku}</div></td>
+    <td class="num"><b style="color:var(--good)">${money(s.baseline_median)}</b></td>
+    <td class="num">${money(s.trimmed_mean_10)}</td>
+    <td class="num">${money(s.trimmed_mean_20)}</td>
+    <td class="num" style="color:var(--blue)">${money(s.provider_balanced)}</td>
+    <td class="num">${money(s.gpu_weighted_mean)}</td>
+    <td class="num">${money(s.simple_mean)}</td>
+    <td class="num"><b style="${s.max_divergence_pct>20?'color:var(--bad)':'color:var(--dim)'}">${s.max_divergence_pct.toFixed(1)}%</b></td>
+  </tr>`).join('');
+}
+
+function renderAblationView() {
+  const skuSel = document.getElementById('ablationSkuFilter');
+  const cur = skuSel.value;
+  const skus = [...new Set(ablationData.map(d=>d.sku))].sort();
+  skuSel.innerHTML = '<option value="all">All SKUs</option>' + skus.map(s=>`<option value="${s}" ${s===cur?'selected':''}>${s}</option>`).join('');
+
+  const rows = ablationData.filter(d => cur === 'all' || d.sku === cur);
+  const tbody = document.querySelector('#ablationTable tbody');
+  tbody.innerHTML = rows.map(r => {
+    const impClass = r.impact_level === 'NEGLIGIBLE' ? 'conf-low' : (r.impact_level === 'LOW' ? 'conf-high' : (r.impact_level === 'MODERATE' ? 'conf-mod' : 'conf-low'));
+    const dStyle = r.delta_pct >= 0 ? 'positive' : 'negative';
+    return `<tr>
+      <td><div class="provider">${r.provider_removed}</div></td>
+      <td><div class="gpu">${r.sku}</div></td>
+      <td class="num">${money(r.original_price)}</td>
+      <td class="num"><b>${money(r.ablated_price)}</b></td>
+      <td class="num">${r.delta_abs >= 0 ? '+' : ''}${money(r.delta_abs)}</td>
+      <td class="num <span class="${dStyle}"><b>${r.delta_pct >= 0 ? '+' : ''}${r.delta_pct.toFixed(1)}%</b></span></td>
+      <td class="num">${r.observations_remaining}</td>
+      <td><span class="chip ${impClass}">${r.impact_level}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderTapeTable() {
+  const q = document.getElementById('tapeSearch').value.toLowerCase().trim();
+  const gf = document.getElementById('tapeGpuFilter').value;
+  const bf = document.getElementById('tapeBasisFilter').value;
+
+  const gpuSel = document.getElementById('tapeGpuFilter');
+  const gpus = [...new Set(marketRows.map(r=>r.gpu))].sort();
+  if (gpuSel.options.length <= 1) {
+    gpuSel.innerHTML = '<option value="all">All GPUs</option>' + gpus.map(g=>`<option value="${g}">${g}</option>`).join('');
+  }
+
+  let rows = marketRows.filter(r => (gf==='all'||r.gpu===gf) && (bf==='all'||r.basis===bf) && (!q || `${r.provider} ${r.gpu} ${r.instance} ${r.basis} ${r.region}`.toLowerCase().includes(q)));
+  rows.sort((a,b) => {
+    let A=a[sortKey], B=b[sortKey];
+    if(typeof A==='string'){A=A.toLowerCase();B=B.toLowerCase();}
+    return A<B ? -sortDir : (A>B ? sortDir : 0);
+  });
+
+  const tbody = document.querySelector('#tapeTable tbody');
+  tbody.innerHTML = rows.map(r => {
+    const srcObj = SOURCES[r.source] || {url:'#', domain: r.source || 'source'};
+    return `<tr>
+      <td><div class="provider">${r.provider}</div></td>
+      <td><div class="gpu">${r.gpu}</div></td>
+      <td><span class="chip" style="font-size:8.5px;border-color:rgba(56,189,248,0.25);color:var(--blue)">${r.topology || 'HGX 8x'}</span></td>
+      <td><span class="chip" style="font-size:8.5px">${r.form_factor || 'SXM'}</span></td>
+      <td><div class="muted">${r.instance}</div></td>
+      <td><span class="chip ${r.basis==='Spot'?'spot':(r.basis==='Capacity block'?'capacity':'api')}">${r.basis}</span></td>
+      <td class="num">${r.gpuCount}</td>
+      <td class="num">${money(r.total)}</td>
+      <td class="num"><b style="color:var(--good)">${money(r.perGpu)}</b></td>
+      <td class="num">${r.vram} GB</td>
+      <td>${r.region || 'Global'}</td>
+      <td><a class="source-link" href="${srcObj.url}" target="_blank" rel="noopener">${srcObj.domain} ↗</a></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderProvenanceView() {
+  const tbody = document.querySelector('#provenanceTable tbody');
+  tbody.innerHTML = marketRows.map(r => {
+    const srcObj = SOURCES[r.source] || {url:'#', domain: r.source || 'source'};
+    const formula = r.gpuCount > 1 ? `$${r.total} ÷ ${r.gpuCount} GPUs = $${r.perGpu.toFixed(3)}/GPU-hr` : `1 GPU direct rate: $${r.perGpu.toFixed(2)}/hr`;
+    return `<tr>
+      <td><code style="font-size:9.5px;color:var(--dim)">${r.id}</code></td>
+      <td><div class="provider">${r.provider}</div></td>
+      <td><div class="gpu">${r.gpu}</div></td>
+      <td><span class="chip">${r.basis}</span></td>
+      <td>${r.region || 'Global'}</td>
+      <td><span style="font-family:monospace;font-size:10px;color:var(--cyan)">${formula}</span></td>
+      <td style="color:var(--dim)">${r.recorded_at ? r.recorded_at.substring(0,19).replace('T',' ') : '2026-08-18'}</td>
+      <td><a class="source-link" href="${srcObj.url}" target="_blank" rel="noopener">${srcObj.domain} ↗</a></td>
+    </tr>`;
+  }).join('');
+
+  const keys = Object.keys(SOURCES);
+  document.getElementById('sourcesGrid').innerHTML = keys.map((k, i) => {
+    const s = SOURCES[k];
+    return `<a class="source-card" href="${s.url}" target="_blank" rel="noopener">
+      <div class="snum">FEED SOURCE ${String(i+1).padStart(2,'0')}</div>
+      <h4>${s.name}</h4>
+      <p>${s.desc}</p>
+      <div class="domain">${s.domain} ↗</div>
+    </a>`;
+  }).join('');
+}
+
+function renderSpecsCards() {
+  if (!specs.length) return;
+  const maxBw = Math.max(...specs.map(x=>x.bw));
+  document.getElementById('specCards').innerHTML = specs.map(s => {
+    const srcObj = SOURCES[s.src] || {url: '#'};
+    return `<article class="spec">
+      <div class="gen">${s.gen}</div>
+      <h4>${s.name}</h4>
+      <div class="metric"><span>VRAM Memory</span><b>${s.vram} GB ${s.type}</b></div>
+      <div class="metric"><span>Bandwidth</span><b>${s.bw.toFixed(s.bw%1?2:0)} TB/s</b></div>
+      <div class="metric"><span>Max TDP</span><b>${s.power} Watts</b></div>
+      <div class="metric"><span>Peak Tensor</span><b>${s.compute}</b></div>
+      <div class="eff">
+        <label><span>Bandwidth index</span><b>${Math.round(s.bw/maxBw*100)}</b></label>
+        <div class="track"><div class="fill" style="width:${s.bw/maxBw*100}%"></div></div>
+      </div>
+      <div style="margin-top:10px"><a class="source-link" href="${srcObj.url}" target="_blank" rel="noopener">Manufacturer source ↗</a></div>
+    </article>`;
+  }).join('');
+}
+
+function attachChartHudListener(chartContainer, dataGetter) {
+  const hud = document.getElementById('chartHudTooltip');
+  chartContainer.addEventListener('mousemove', e => {
+    const data = dataGetter(e, e.target);
+    if (!data) {
+      hud.style.display = 'none';
+      return;
+    }
+    let html = `<div class="hud-title">${data.title}</div><div class="hud-price">${data.price}</div>`;
+    if (data.rows) {
+      html += data.rows.map(r => `<div class="hud-row"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('');
+    }
+    hud.innerHTML = html;
+    hud.style.display = 'block';
+
+    const rect = chartContainer.getBoundingClientRect();
+    const x = e.clientX - rect.left + 14;
+    const y = e.clientY - rect.top - 10;
+    hud.style.left = Math.min(x, rect.width - 170) + 'px';
+    hud.style.top = Math.max(10, y) + 'px';
+  });
+
+  chartContainer.addEventListener('mouseleave', () => {
+    hud.style.display = 'none';
+  });
+}
+
+const COMMAND_ACTIONS = [
+  { label: 'H100 SXM Detail', cat: 'SKU JUMP', action: () => selectSkuAndGo('H100 SXM') },
+  { label: 'H200 Detail', cat: 'SKU JUMP', action: () => selectSkuAndGo('H200') },
+  { label: 'B200 Detail', cat: 'SKU JUMP', action: () => selectSkuAndGo('B200') },
+  { label: 'B300 Detail', cat: 'SKU JUMP', action: () => selectSkuAndGo('B300') },
+  { label: 'A100 SXM Detail', cat: 'SKU JUMP', action: () => selectSkuAndGo('A100 SXM') },
+  { label: 'MI300X Detail', cat: 'SKU JUMP', action: () => selectSkuAndGo('MI300X') },
+  { label: 'Methodology: Robust Median', cat: 'METHODOLOGY', action: () => setGlobalMethod('median') },
+  { label: 'Methodology: 10% Trimmed Mean', cat: 'METHODOLOGY', action: () => setGlobalMethod('trimmed_10') },
+  { label: 'Methodology: 20% Trimmed Mean', cat: 'METHODOLOGY', action: () => setGlobalMethod('trimmed_20') },
+  { label: 'Methodology: Provider-Balanced', cat: 'METHODOLOGY', action: () => setGlobalMethod('provider_balanced') },
+  { label: 'Methodology: GPU-Count Weighted', cat: 'METHODOLOGY', action: () => setGlobalMethod('gpu_weighted') },
+  { label: 'Methodology: Simple Mean', cat: 'METHODOLOGY', action: () => setGlobalMethod('simple_mean') },
+  { label: 'Forward Scenario: Base Case', cat: 'FORWARD SCENARIOS', action: () => { switchView('forward'); applyForwardScenario('base'); } },
+  { label: 'Forward Scenario: Supply Squeeze', cat: 'FORWARD SCENARIOS', action: () => { switchView('forward'); applyForwardScenario('squeeze'); } },
+  { label: 'Forward Scenario: Rapid Obsolescence', cat: 'FORWARD SCENARIOS', action: () => { switchView('forward'); applyForwardScenario('rapid'); } },
+  { label: 'Resync Live Market Feeds', cat: 'ACTIONS', action: triggerResync },
+  { label: 'Export Observations CSV', cat: 'ACTIONS', action: () => window.location.href = '/api/export/csv' },
+  { label: 'Export Forward Curve CSV', cat: 'ACTIONS', action: () => window.location.href = '/api/export/forward-csv?family=H100' },
+  { label: 'Export Historical Benchmark CSV', cat: 'ACTIONS', action: () => window.location.href = '/api/export/history-csv' },
+  { label: 'View: Market Overview', cat: 'VIEWS', action: () => switchView('overview') },
+  { label: 'View: Spot Index', cat: 'VIEWS', action: () => switchView('spot-index') },
+  { label: 'View: Historical Index', cat: 'VIEWS', action: () => switchView('history') },
+  { label: 'View: Forward Curve', cat: 'VIEWS', action: () => switchView('forward') },
+  { label: 'View: Curve Comparison', cat: 'VIEWS', action: () => switchView('curve-compare') },
+  { label: 'View: Provider Matrix', cat: 'VIEWS', action: () => switchView('providers') },
+  { label: 'View: Methodology Sensitivity', cat: 'VIEWS', action: () => switchView('sensitivity') },
+  { label: 'View: Source Ablation', cat: 'VIEWS', action: () => switchView('ablation') },
+  { label: 'View: Observable Market Tape', cat: 'VIEWS', action: () => switchView('tape') },
+  { label: 'View: Data Provenance Ledger', cat: 'VIEWS', action: () => switchView('provenance') },
+  { label: 'View: Methodology Documentation', cat: 'VIEWS', action: () => switchView('methodology') }
+];
+
+let activeCmdIndex = 0;
+let filteredCommands = [];
+
+function openCommandPalette() {
+  document.getElementById('cmdPaletteModal').classList.add('open');
+  const input = document.getElementById('cmdInput');
+  input.value = '';
+  input.focus();
+  renderCommandList('');
+}
+
+function closeCommandPalette() {
+  document.getElementById('cmdPaletteModal').classList.remove('open');
+}
+
+function renderCommandList(query) {
+  const q = query.toLowerCase().trim();
+  filteredCommands = COMMAND_ACTIONS.filter(c => !q || `${c.label} ${c.cat}`.toLowerCase().includes(q));
+  activeCmdIndex = 0;
+
+  const container = document.getElementById('cmdResults');
+  if (!filteredCommands.length) {
+    container.innerHTML = '<div class="empty" style="padding:20px;font-size:11px">No matching commands or SKUs found.</div>';
+    return;
+  }
+
+  let html = '';
+  let currentCat = '';
+  filteredCommands.forEach((cmd, idx) => {
+    if (cmd.cat !== currentCat) {
+      currentCat = cmd.cat;
+      html += `<div class="cmd-group-title">${currentCat}</div>`;
+    }
+    html += `<div class="cmd-item ${idx === activeCmdIndex ? 'active' : ''}" data-index="${idx}">
+      <span>${cmd.label}</span>
+      <span class="cmd-tag">${cmd.cat}</span>
+    </div>`;
+  });
+  container.innerHTML = html;
+
+  container.querySelectorAll('.cmd-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = Number(el.dataset.index);
+      if (filteredCommands[idx]) {
+        filteredCommands[idx].action();
+        closeCommandPalette();
+      }
+    });
+  });
+}
+
+function updateActiveCmdSelection() {
+  const items = document.querySelectorAll('#cmdResults .cmd-item');
+  items.forEach((it, idx) => it.classList.toggle('active', idx === activeCmdIndex));
+  if (items[activeCmdIndex]) {
+    items[activeCmdIndex].scrollIntoView({block: 'nearest'});
+  }
+}
+
+async function setGlobalMethod(m) {
+  document.getElementById('overviewMethodSelect').value = m;
+  document.getElementById('spotIndexMethodFilter').value = m;
+  skuSummaries = await fetch(`/api/index/summary?method=${m}`).then(r => r.json());
+  renderOverview();
+  renderSpotIndex();
+  toast(`✓ Index calculation methodology switched to ${m.toUpperCase()}`);
+}
+
+async function triggerResync() {
+  const btn = document.getElementById('resyncBtn');
+  const dot = document.getElementById('statusDot');
+  const text = document.getElementById('statusText');
+
+  btn.disabled = true;
+  dot.className = 'dot syncing';
+  text.textContent = 'Resyncing feeds…';
+
+  try {
+    const res = await fetch('/api/sync', {method: 'POST'}).then(r => r.json());
+    toast(`✓ Sync finished in ${res.duration_ms}ms (${res.added_count} added, ${res.updated_count} updated).`);
+    await loadAllData();
+    dot.className = 'dot';
+    text.textContent = 'Tape Synced';
+  } catch (err) {
+    toast(`Sync error: ${err.message}`);
+    dot.className = 'dot';
+    text.textContent = 'Sync Failed';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function initEventHandlers() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchView(btn.dataset.view));
+  });
+
+  document.getElementById('resyncBtn').addEventListener('click', triggerResync);
+
+  document.getElementById('densityToggleBtn').addEventListener('click', () => {
+    document.body.classList.toggle('compact-mode');
+    const isCompact = document.body.classList.contains('compact-mode');
+    document.getElementById('densityToggleBtn').innerHTML = isCompact ? '<span>☶ Standard</span>' : '<span>☷ Compact</span>';
+    toast(isCompact ? 'Pro compact density enabled' : 'Standard density enabled');
+  });
+
+  document.getElementById('cmdPaletteTrigger').addEventListener('click', openCommandPalette);
+  document.getElementById('cmdPaletteModal').addEventListener('click', e => {
+    if (e.target.id === 'cmdPaletteModal') closeCommandPalette();
+  });
+  document.getElementById('cmdInput').addEventListener('input', e => renderCommandList(e.target.value));
+
+  window.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      const modal = document.getElementById('cmdPaletteModal');
+      if (modal.classList.contains('open')) closeCommandPalette();
+      else openCommandPalette();
+    } else if (e.key === 'Escape') {
+      closeCommandPalette();
+    } else if (document.getElementById('cmdPaletteModal').classList.contains('open')) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        activeCmdIndex = (activeCmdIndex + 1) % (filteredCommands.length || 1);
+        updateActiveCmdSelection();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        activeCmdIndex = (activeCmdIndex - 1 + filteredCommands.length) % (filteredCommands.length || 1);
+        updateActiveCmdSelection();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (filteredCommands[activeCmdIndex]) {
+          filteredCommands[activeCmdIndex].action();
+          closeCommandPalette();
+        }
+      }
+    }
+  });
+
+  window.addEventListener('hashchange', handleHashNavigation);
+
+  document.getElementById('basisFilter').addEventListener('change', renderDispersionChart);
+  document.getElementById('overviewActiveSkuDropdown')?.addEventListener('change', (e) => setOverviewActiveSku(e.target.value));
+  document.getElementById('overviewHorizonSelect')?.addEventListener('change', renderOverviewForwardCurve);
+  document.getElementById('overviewBasisSelect')?.addEventListener('change', renderOverviewForwardCurve);
+  document.getElementById('skuDetailSelector').addEventListener('change', () => {
+    const sku = document.getElementById('skuDetailSelector').value;
+    window.location.hash = '#/sku/' + encodeURIComponent(sku);
+    renderSkuDetail();
+  });
+  document.getElementById('historySkuSelect').addEventListener('change', renderHistoryView);
+  document.getElementById('spotIndexSkuFilter').addEventListener('change', renderSpotIndex);
+  document.getElementById('spotIndexMethodFilter').addEventListener('change', async (e) => {
+    setGlobalMethod(e.target.value);
+  });
+  document.getElementById('overviewMethodSelect').addEventListener('change', async (e) => {
+    setGlobalMethod(e.target.value);
+  });
+  document.getElementById('providerSearch').addEventListener('input', renderProviderMatrix);
+  document.getElementById('tapeSearch').addEventListener('input', renderTapeTable);
+  document.getElementById('tapeGpuFilter').addEventListener('change', renderTapeTable);
+  document.getElementById('tapeBasisFilter').addEventListener('change', renderTapeTable);
+  document.getElementById('ablationSkuFilter').addEventListener('change', renderAblationView);
+
+  document.getElementById('diffBaseSelect')?.addEventListener('change', renderSnapshotDiff);
+  document.getElementById('diffTargetSelect')?.addEventListener('change', renderSnapshotDiff);
+
+  const carrySlider = document.getElementById('carrySlider');
+  const carryRate = document.getElementById('carryRate');
+  carrySlider.addEventListener('input', () => {
+    carryRate.value = carrySlider.value;
+    document.getElementById('carryLabel').textContent = carrySlider.value + '%';
+    renderForwardCurve();
+  });
+  carryRate.addEventListener('input', () => {
+    carrySlider.value = carryRate.value;
+    document.getElementById('carryLabel').textContent = carryRate.value + '%';
+    renderForwardCurve();
+  });
+
+  ['forwardGpu','forwardBasis','cadence','forwardHorizon'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', renderForwardCurve);
+  });
+
+  ['compareBasisSelect', 'compareHorizonSelect'].forEach(id => {
+    document.getElementById(id).addEventListener('change', renderCurveComparison);
+  });
+
+  document.querySelectorAll('#skuOverviewTable th[data-key]').forEach(th => {
+    th.addEventListener('click', () => {
+      const k = th.dataset.key;
+      if (!k) return;
+      if (skuSortKey === k) {
+        skuSortDir *= -1;
+      } else {
+        skuSortKey = k;
+        skuSortDir = (typeof skuSummaries[0]?.[k] === 'number') ? -1 : 1;
+      }
+      renderOverview();
+    });
+  });
+
+  document.querySelectorAll('#tapeTable th').forEach(th => {
+    th.addEventListener('click', () => {
+      const k = th.dataset.key;
+      if (!k) return;
+      if (sortKey === k) sortDir *= -1;
+      else { sortKey = k; sortDir = 1; }
+      renderTapeTable();
+    });
+  });
+
+  document.getElementById('exportMenuBtn').addEventListener('click', () => {
+    window.location.href = '/api/export/csv';
+  });
+  document.getElementById('forwardCsvBtn2').addEventListener('click', () => {
+    const fam = document.getElementById('forwardGpu').value;
+    window.location.href = `/api/export/forward-csv?family=${fam}`;
+  });
+  document.getElementById('historyCsvBtn').addEventListener('click', () => {
+    window.location.href = '/api/export/history-csv';
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initEventHandlers();
+  loadAllData();
+});</script>
+</body>
+</html>

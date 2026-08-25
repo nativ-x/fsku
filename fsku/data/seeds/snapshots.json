@@ -1,0 +1,96 @@
+[
+  {
+    "id": "snap_20260115_120000_a1f4b2",
+    "timestamp": "2026-01-15T12:00:00Z",
+    "label": "Q1 2026 Benchmark Tape (Peak Scarcity)",
+    "observation_count": 22,
+    "source_count": 5,
+    "gpu_count": 8,
+    "median_rate": 3.65,
+    "h100_dispersion": 5.4,
+    "checksum": "a1f4b29c0182",
+    "sku_indices": {
+      "H100 SXM": 4.10,
+      "H100 PCIe": 3.25,
+      "H200": 5.40,
+      "A100 SXM": 1.75,
+      "A100 PCIe": 1.45,
+      "MI300X": 3.20,
+      "L40S": 0.95,
+      "RTX 4090": 0.42
+    },
+    "observations": []
+  },
+  {
+    "id": "snap_20260320_120000_b2c5d3",
+    "timestamp": "2026-03-20T12:00:00Z",
+    "label": "Late Q1 2026 Tape (H200 Commercial Ramp)",
+    "observation_count": 24,
+    "source_count": 5,
+    "gpu_count": 9,
+    "median_rate": 3.20,
+    "h100_dispersion": 5.8,
+    "checksum": "b2c5d3810293",
+    "sku_indices": {
+      "H100 SXM": 3.65,
+      "H100 PCIe": 2.75,
+      "H200": 4.60,
+      "A100 SXM": 1.55,
+      "A100 PCIe": 1.35,
+      "MI300X": 2.85,
+      "L40S": 0.88,
+      "RTX 4090": 0.38
+    },
+    "observations": []
+  },
+  {
+    "id": "snap_20260610_120000_c3d6e4",
+    "timestamp": "2026-06-10T12:00:00Z",
+    "label": "Mid-Year 2026 Tape (Blackwell Initial Listings)",
+    "observation_count": 28,
+    "source_count": 6,
+    "gpu_count": 12,
+    "median_rate": 2.95,
+    "h100_dispersion": 6.0,
+    "checksum": "c3d6e4720384",
+    "sku_indices": {
+      "H100 SXM": 3.10,
+      "H100 PCIe": 2.30,
+      "H200": 4.10,
+      "B200": 6.80,
+      "A100 SXM": 1.45,
+      "A100 PCIe": 1.25,
+      "MI300X": 2.50,
+      "L40S": 0.82,
+      "RTX 4090": 0.35
+    },
+    "observations": []
+  },
+  {
+    "id": "snap_20260818_120000_d4e7f5",
+    "timestamp": "2026-08-18T12:00:00Z",
+    "label": "August 2026 Current Production Tape",
+    "observation_count": 32,
+    "source_count": 6,
+    "gpu_count": 13,
+    "median_rate": 2.69,
+    "h100_dispersion": 6.2,
+    "checksum": "d4e7f5630475",
+    "sku_indices": {
+      "H100 SXM": 2.69,
+      "H100 PCIe": 1.99,
+      "H100 NVL": 2.59,
+      "H200": 3.59,
+      "B200": 5.98,
+      "B300": 6.94,
+      "A100 SXM": 1.39,
+      "A100 80GB": 2.70,
+      "A100 PCIe": 1.19,
+      "MI300X": 2.40,
+      "GH200": 2.99,
+      "L40S": 0.79,
+      "RTX 4090": 0.34
+    },
+    "observations": []
+  }
+]

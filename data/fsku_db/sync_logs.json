@@ -1,0 +1,107 @@
+[
+  {
+    "id": "ba6745dd",
+    "started_at": "2026-08-18T21:43:25.589112+00:00",
+    "completed_at": "2026-08-18T21:43:29.082178+00:00",
+    "status": "success",
+    "duration_ms": 3493,
+    "providers_polled": [
+      "Azure",
+      "RunPod",
+      "CoreWeave",
+      "AWS",
+      "Google Cloud",
+      "Lambda Labs"
+    ],
+    "added_count": 6,
+    "updated_count": 1,
+    "unchanged_count": 25,
+    "total_active": 32,
+    "snapshot_id": "snap_20260818_214329_02d467",
+    "errors": []
+  },
+  {
+    "id": "17903edb",
+    "started_at": "2026-08-19T16:49:29.456284+00:00",
+    "completed_at": "2026-08-19T16:49:32.395590+00:00",
+    "status": "success",
+    "duration_ms": 2939,
+    "providers_polled": [
+      "Azure",
+      "RunPod",
+      "CoreWeave",
+      "AWS",
+      "Google Cloud",
+      "Lambda Labs"
+    ],
+    "added_count": 0,
+    "updated_count": 0,
+    "unchanged_count": 32,
+    "total_active": 32,
+    "snapshot_id": null,
+    "errors": []
+  },
+  {
+    "id": "7f81d1c5",
+    "started_at": "2026-08-19T19:44:45.241089+00:00",
+    "completed_at": "2026-08-19T19:44:50.270260+00:00",
+    "status": "success",
+    "duration_ms": 5029,
+    "providers_polled": [
+      "Azure",
+      "RunPod",
+      "CoreWeave",
+      "AWS",
+      "Google Cloud",
+      "Lambda Labs"
+    ],
+    "added_count": 0,
+    "updated_count": 0,
+    "unchanged_count": 32,
+    "total_active": 32,
+    "snapshot_id": null,
+    "errors": []
+  },
+  {
+    "id": "60893f2e",
+    "started_at": "2026-08-24T17:37:33.055537+00:00",
+    "completed_at": "2026-08-24T17:37:34.240094+00:00",
+    "status": "success",
+    "duration_ms": 1184,
+    "providers_polled": [
+      "Azure",
+      "RunPod",
+      "CoreWeave",
+      "AWS",
+      "Google Cloud",
+      "Lambda Labs"
+    ],
+    "added_count": 29,
+    "updated_count": 0,
+    "unchanged_count": 3,
+    "total_active": 60,
+    "snapshot_id": "snap_20260824_173734_0d49a4",
+    "errors": []
+  },
+  {
+    "id": "503ac165",
+    "started_at": "2026-08-24T17:37:52.122732+00:00",
+    "completed_at": "2026-08-24T17:37:53.700606+00:00",
+    "status": "success",
+    "duration_ms": 1577,
+    "providers_polled": [
+      "Azure",
+      "RunPod",
+      "CoreWeave",
+      "AWS",
+      "Google Cloud",
+      "Lambda Labs"
+    ],
+    "added_count": 0,
+    "updated_count": 0,
+    "unchanged_count": 32,
+    "total_active": 32,
+    "snapshot_id": null,
+    "errors": []
+  }
+]

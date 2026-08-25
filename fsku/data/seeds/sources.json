@@ -1,0 +1,90 @@
+[
+  {
+    "id": "runpod",
+    "name": "RunPod GPU Models",
+    "domain": "runpod.io",
+    "url": "https://www.runpod.io/gpu-models",
+    "desc": "Published per-GPU cloud rates and model availability.",
+    "adapter": "runpod"
+  },
+  {
+    "id": "coreweave",
+    "name": "CoreWeave Cloud Pricing",
+    "domain": "coreweave.com",
+    "url": "https://www.coreweave.com/pricing",
+    "desc": "Published server, spot and inference pricing with GPU counts.",
+    "adapter": "coreweave"
+  },
+  {
+    "id": "aws",
+    "name": "AWS EC2 Capacity Blocks",
+    "domain": "aws.amazon.com",
+    "url": "https://aws.amazon.com/ec2/capacityblocks/pricing/",
+    "desc": "Published H100 capacity-block rates and GPU count.",
+    "adapter": "aws"
+  },
+  {
+    "id": "gcp",
+    "name": "Google Accelerator-optimized VM Pricing",
+    "domain": "cloud.google.com",
+    "url": "https://cloud.google.com/products/compute/pricing/accelerator-optimized",
+    "desc": "Published accelerator-optimized VM pricing by GPU and machine type.",
+    "adapter": "gcp"
+  },
+  {
+    "id": "azure",
+    "name": "Azure Retail Prices / VM Pricing",
+    "domain": "azure.microsoft.com",
+    "url": "https://azure.microsoft.com/en-us/pricing/details/virtual-machines/linux/",
+    "desc": "Public Azure VM pricing. ND96isr_H100_v5 snapshot sourced from Azure Retail Prices API.",
+    "adapter": "azure"
+  },
+  {
+    "id": "lambda",
+    "name": "Lambda Cloud GPU Pricing",
+    "domain": "lambdalabs.com",
+    "url": "https://lambdalabs.com/service/gpu-cloud",
+    "desc": "Published on-demand and reserved 1-GPU and 8-GPU cloud instance pricing.",
+    "adapter": "lambda"
+  },
+  {
+    "id": "h100",
+    "name": "NVIDIA H100",
+    "domain": "nvidia.com",
+    "url": "https://www.nvidia.com/en-us/data-center/h100/",
+    "desc": "Official H100 memory, bandwidth, interconnect and TDP specifications.",
+    "adapter": null
+  },
+  {
+    "id": "b200",
+    "name": "NVIDIA DGX B200",
+    "domain": "nvidia.com",
+    "url": "https://www.nvidia.com/en-us/data-center/dgx-b200/",
+    "desc": "Official 8-GPU B200 system memory, bandwidth, compute and power specifications.",
+    "adapter": null
+  },
+  {
+    "id": "h200",
+    "name": "NVIDIA H200",
+    "domain": "nvidia.com",
+    "url": "https://www.nvidia.com/en-us/data-center/h200/",
+    "desc": "Official H200 141GB HBM3e and 4.8 TB/s memory bandwidth specifications.",
+    "adapter": null
+  },
+  {
+    "id": "amd",
+    "name": "AMD Instinct MI300X",
+    "domain": "amd.com",
+    "url": "https://www.amd.com/en/products/accelerators/instinct/mi300/mi300x.html",
+    "desc": "Official MI300X memory, bandwidth, BF16 and board power specifications.",
+    "adapter": null
+  },
+  {
+    "id": "nvidiaComp",
+    "name": "NVIDIA HGX AI Factory Components",
+    "domain": "docs.nvidia.com",
+    "url": "https://docs.nvidia.com/enterprise-reference-architectures/hgx-ai-factory/latest/components.html",
+    "desc": "Current H200, B200 and B300 per-GPU memory and bandwidth comparison.",
+    "adapter": null
+  }
+]
