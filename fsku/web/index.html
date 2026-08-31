@@ -785,6 +785,7 @@
               <th class="num">Median Rate</th>
               <th class="num">H100 Spread</th>
               <th>SHA-256 Checksum</th>
+              <th style="text-align:right">Audit & Verification</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -1859,9 +1860,25 @@ function renderHistoryView() {
     <td class="num"><b style="color:var(--good)">${money(s.median_rate || 0)}</b></td>
     <td class="num">${(s.h100_dispersion || 1).toFixed(1)}×</td>
     <td><code style="font-size:9.5px;color:var(--dim)">${s.checksum || '—'}</code></td>
+    <td style="text-align:right">
+      <button class="btn dense-btn" onclick="verifySnapshotAudit('${s.id}')" style="font-size:9.5px;padding:3px 7px">Verify SHA-256</button>
+    </td>
   </tr>`).join('');
 
   renderSnapshotDiff();
+}
+
+async function verifySnapshotAudit(id) {
+  try {
+    const res = await fetch(`/api/snapshots/${id}/verify`).then(r => r.json());
+    if (res.verified) {
+      toast(`✓ Verified SHA-256: ${res.computed_checksum} (${res.observation_count} constituents match)`);
+    } else {
+      toast(`⚠ Snapshot ${id} verification failed`);
+    }
+  } catch (err) {
+    toast(`Verification error: ${err.message}`);
+  }
 }
 
 function renderSnapshotDiff() {

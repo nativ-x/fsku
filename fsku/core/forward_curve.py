@@ -118,17 +118,25 @@ class ForwardCurveEngine:
         observations: List[Dict[str, Any]],
         req: ForwardCurveRequest,
     ) -> Optional[ForwardCurveResult]:
-        """Derive the implied forward curve for a specific GPU family."""
-        family_upper = req.family.upper()
+        """Derive the implied forward curve for a specific GPU family or exact SKU."""
+        family_upper = req.family.upper().strip()
 
-        clean_target = family_upper.replace("SXM", "").replace("PCIE", "").replace("NVL", "").strip()
-        matching_rows = [
+        exact_matches = [
             r for r in observations
-            if family_upper in (r.get("gpu", "") or "").upper()
-            or family_upper == (PricingEngine.extract_gpu_family(r.get("gpu", "")) or "").upper()
-            or (clean_target and clean_target in (r.get("gpu", "") or "").upper())
-            or (clean_target and clean_target in (PricingEngine.extract_gpu_family(r.get("gpu", "")) or "").upper())
+            if family_upper == (r.get("gpu", "") or "").upper().strip()
         ]
+
+        if exact_matches:
+            matching_rows = exact_matches
+        else:
+            clean_target = family_upper.replace("SXM", "").replace("PCIE", "").replace("NVL", "").strip()
+            matching_rows = [
+                r for r in observations
+                if family_upper in (r.get("gpu", "") or "").upper()
+                or family_upper == (PricingEngine.extract_gpu_family(r.get("gpu", "")) or "").upper()
+                or (clean_target and clean_target in (r.get("gpu", "") or "").upper())
+                or (clean_target and clean_target in (PricingEngine.extract_gpu_family(r.get("gpu", "")) or "").upper())
+            ]
 
         if req.basis == "firm":
             filtered = [r for r in matching_rows if r.get("basis") != "Spot"]
@@ -139,7 +147,6 @@ class ForwardCurveEngine:
 
         fallback = False
         if not filtered:
-
             filtered = list(matching_rows)
             fallback = True
 
@@ -160,13 +167,23 @@ class ForwardCurveEngine:
 
         annual_factor = max(0.01, (1.0 + carry_dec) * (1.0 - d))
 
+        if q75 > q25 > 0:
+            sigma = max(0.08, min(1.20, math.log(q75 / q25) / 1.349))
+        else:
+            sigma = 0.20
+
         points: List[ForwardTenorPoint] = []
         for m in range(0, req.horizon + 1):
             years = m / 12.0
             factor = math.pow(annual_factor, years)
             base_p = S0 * factor
-            low_p = q25 * factor
-            high_p = q75 * factor
+            if m == 0:
+                low_p = q25
+                high_p = q75
+            else:
+                vol_spread = math.exp(sigma * math.sqrt(max(1.0 / 12.0, years)))
+                low_p = max(0.01, base_p / vol_spread)
+                high_p = base_p * vol_spread
             chg = (base_p / S0) - 1.0 if S0 > 0 else 0.0
 
             points.append(

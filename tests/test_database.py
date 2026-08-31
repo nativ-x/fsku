@@ -66,3 +66,9 @@ def test_db_snapshot_creation(temp_db):
     saved_snap = temp_db.snapshots.find_by_id(snap["id"])
     assert saved_snap is not None
     assert saved_snap["checksum"] == snap["checksum"]
+
+    # Verify SHA-256 integrity
+    v = temp_db.verify_snapshot(snap["id"])
+    assert v["verified"] is True
+    assert v["observation_count"] == 2
+    assert v["computed_checksum"] == snap["checksum"]

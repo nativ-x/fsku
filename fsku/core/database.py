@@ -277,12 +277,15 @@ class FSKUDb:
         obs = self.observations.find()
         now = datetime.now(timezone.utc).isoformat()
 
-        obs_json = json.dumps(obs, sort_keys=True)
-        checksum = hashlib.sha256(obs_json.encode("utf-8")).hexdigest()[:12]
+        canonical_obs = [{k: v for k, v in sorted(o.items())} for o in obs]
+        obs_json = json.dumps(canonical_obs, sort_keys=True)
+        checksum = hashlib.sha256(obs_json.encode("utf-8")).hexdigest()[:16]
         snapshot_id = f"snap_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{checksum[:6]}"
 
         from fsku.core.pricing import PricingEngine
         kpis = PricingEngine.calculate_kpis(obs)
+        sku_summaries = PricingEngine.calculate_sku_index_summaries(obs)
+        sku_indices = {s.sku: s.index_price for s in sku_summaries}
 
         snapshot_doc = {
             "id": snapshot_id,
@@ -294,10 +297,39 @@ class FSKUDb:
             "median_rate": kpis.get("median_observed_rate", 0.0),
             "h100_dispersion": kpis.get("h100_dispersion", 0.0),
             "checksum": checksum,
+            "sku_indices": sku_indices,
             "observations": obs,
         }
         self.snapshots.insert(snapshot_doc)
         return snapshot_doc
+
+    def verify_snapshot(self, snapshot_id: str) -> Dict[str, Any]:
+        """Verify the cryptographic SHA-256 integrity of a snapshot and its constituent observations."""
+        snap = self.snapshots.find_by_id(snapshot_id)
+        if not snap:
+            return {"verified": False, "error": "Snapshot not found"}
+
+        obs = snap.get("observations", [])
+        stored_checksum = snap.get("checksum", "")
+
+        canonical_obs = [{k: v for k, v in sorted(o.items())} for o in obs]
+        obs_json = json.dumps(canonical_obs, sort_keys=True)
+        computed_checksum_16 = hashlib.sha256(obs_json.encode("utf-8")).hexdigest()[:16]
+        computed_checksum_12 = hashlib.sha256(obs_json.encode("utf-8")).hexdigest()[:12]
+
+        is_valid = stored_checksum in (computed_checksum_16, computed_checksum_12) or (
+            len(stored_checksum) >= 6 and (computed_checksum_16.startswith(stored_checksum) or computed_checksum_12.startswith(stored_checksum))
+        )
+
+        return {
+            "verified": is_valid,
+            "snapshot_id": snapshot_id,
+            "stored_checksum": stored_checksum,
+            "computed_checksum": computed_checksum_16,
+            "observation_count": len(obs),
+            "timestamp": snap.get("timestamp"),
+            "label": snap.get("label"),
+        }
 
     def _ensure_seeds(self) -> None:
         """Seed collections from defaults if empty."""

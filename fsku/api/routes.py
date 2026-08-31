@@ -100,16 +100,7 @@ def get_historical_indices(db: FSKUDb = Depends(get_db)):
         ts = s.get("timestamp", "")
         timestamps.append(ts)
 
-        if "sku_indices" in s and s["sku_indices"]:
-            for sku, price in s["sku_indices"].items():
-                series_by_sku.setdefault(sku, []).append({
-                    "timestamp": ts,
-                    "date": ts[:10] if len(ts) >= 10 else ts,
-                    "price": price,
-                    "snapshot_id": s.get("id"),
-                    "label": s.get("label", ""),
-                })
-        elif "observations" in s and s["observations"]:
+        if "observations" in s and s["observations"]:
             by_sku = PricingEngine.calculate_sku_index_summaries(s["observations"])
             for summary in by_sku:
                 series_by_sku.setdefault(summary.sku, []).append({
@@ -118,6 +109,17 @@ def get_historical_indices(db: FSKUDb = Depends(get_db)):
                     "price": summary.index_price,
                     "snapshot_id": s.get("id"),
                     "label": s.get("label", ""),
+                    "checksum": s.get("checksum", ""),
+                })
+        elif "sku_indices" in s and s["sku_indices"]:
+            for sku, price in s["sku_indices"].items():
+                series_by_sku.setdefault(sku, []).append({
+                    "timestamp": ts,
+                    "date": ts[:10] if len(ts) >= 10 else ts,
+                    "price": price,
+                    "snapshot_id": s.get("id"),
+                    "label": s.get("label", ""),
+                    "checksum": s.get("checksum", ""),
                 })
 
     return {
@@ -297,6 +299,14 @@ def get_snapshot(snap_id: str, db: FSKUDb = Depends(get_db)):
     if not snap:
         raise HTTPException(status_code=404, detail="Snapshot not found")
     return snap
+
+@router.get("/snapshots/{snap_id}/verify")
+def verify_snapshot_integrity(snap_id: str, db: FSKUDb = Depends(get_db)):
+    """Verify cryptographic SHA-256 integrity and audit reproducibility of a snapshot."""
+    result = db.verify_snapshot(snap_id)
+    if not result.get("verified") and result.get("error") == "Snapshot not found":
+        raise HTTPException(status_code=404, detail="Snapshot not found")
+    return result
 
 @router.get("/export/csv")
 def export_observations_csv(db: FSKUDb = Depends(get_db)):

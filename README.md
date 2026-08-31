@@ -13,31 +13,36 @@
 
 ## Key Capabilities
 
-1. **Lightweight Embedded NoSQL Database (`FSKUDb`)**:
-   - Zero-dependency document store storing `observations`, `snapshots`, `specs`, `sources`, and `sync_logs`.
-   - Thread-safe, atomic transactional file writes (`.tmp` + atomic rename/fsync).
-   - Rich query filters (`$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`, `$in`, `$contains`, `$regex`), sorting, and pagination.
-   - Point-in-time immutable snapshot engine with SHA-256 integrity checksums.
+1. **Cryptographic Auditability & Snapshot Integrity (IOSCO Principle 15)**:
+   - Every point-in-time snapshot stores its **complete raw constituent observations array**.
+   - Checksums are computed deterministically as the **SHA-256 hash** of the canonical observation JSON payload.
+   - Built-in verification endpoint (`GET /api/snapshots/{id}/verify`) allows any user or risk committee to audit and re-derive published settlement values directly from raw constituents.
 
-2. **Continuous Multi-Provider Resync Engine**:
-   - Live adapters for Azure Retail Prices REST API, RunPod catalog, CoreWeave node rates, AWS Capacity Blocks, GCP Accelerator VMs, and Lambda Labs.
-   - Intelligent diff engine: detects added, updated, unchanged, and deprecated rates.
-   - Audit logging with execution duration, errors, and diff statistics.
-   - Resync via CLI (`fsku sync`), REST API (`POST /api/sync`), or the web dashboard.
+2. **Physical Deliverable Contract Unit Resolution**:
+   - Differentiates clustered **HGX 8x nodes** (900 GB/s NVLink 4, 3.2 Tbps InfiniBand/EFA) from **1x Standalone Pods**, **PCIe Gen5**, and **NVL** modules.
+   - Eliminates pooling bias between high-end distributed training clusters and single inference cards.
 
-3. **Quantitative Pricing & Forward Curve Term Structure**:
+3. **Quantitative Pricing & Term Structure Volatility Diffusion**:
    - **Normalized Settlement Rate**: $$\text{Normalized Rate} = \frac{\text{Server Hourly Rate}}{\text{Published GPU Count}}$$
-   - **Matched-Provider Technological Deflation ($d$)**: Computes rental-price compression across generational pairs ($A100 \rightarrow H100 \rightarrow H200 \rightarrow B200 \rightarrow B300$) solely within matched providers to avoid provider bias.
-   - **Model-Implied Forward Curve**:
+   - **Matched-Provider Technological Deflation ($d$)**: Computes rental-price compression across generational pairs ($A100 \rightarrow H100 \rightarrow H200 \rightarrow B200 \rightarrow B300$) strictly within matched providers to prevent provider mix distortion.
+   - **Model-Implied Forward Curve with $\sigma \sqrt{T}$ Volatility Diffusion**:
      $$F(T) = S_0 \times [(1 + c) \times (1 - d)]^T$$
-     where $S_0$ is the cash anchor median, $c$ is the annual carry & scarcity rate, $d$ is data-derived technological decay, and $T$ is the tenor horizon in years.
+     $$\text{Upper Band}(T) = F(T) \times \exp\left(+ \sigma \sqrt{T}\right), \quad \text{Lower Band}(T) = F(T) \times \exp\left(- \sigma \sqrt{T}\right)$$
+     where $S_0$ is the cash anchor median for the specific deliverable SKU, $c$ is the annual carry & scarcity rate, $d$ is data-derived technological decay, and $\sigma$ is spot price dispersion volatility expanding over longer tenors.
 
-4. **Modern Web Terminal Dashboard**:
-   - Dark-mode financial terminal UI.
-   - Live on-demand Resync button with instant feedback toast notifications.
+4. **Institutional Stress Testing & Diagnostic Instruments**:
+   - **Source Ablation Engine**: Assesses the price impact ($\Delta\%$) when individual providers are excluded from the index.
+   - **Methodology Sensitivity Matrix**: Compares 6 aggregation methodologies (Robust Median, 10% Trimmed Mean, 20% Trimmed Mean, Provider-Balanced, GPU-Weighted, Simple Mean) in real time.
+   - **Provenance Ledger**: Transparent unadjusted unit math and direct provider source URLs.
+
+5. **Continuous Multi-Provider Resync Engine**:
+   - Live adapters for Azure Retail Prices REST API, RunPod catalog, CoreWeave node rates, AWS Capacity Blocks, GCP Accelerator VMs, and Lambda Labs.
+   - Intelligent diff engine: detects added, updated, unchanged, and deprecated rates with full audit logs.
+
+6. **Modern Web Terminal Dashboard**:
+   - Dark-mode financial terminal UI with one-click snapshot verification and constituent audit inspection.
    - Interactive Forward Curve explorer with configurable horizon, cadence, carry, and cash anchor.
-   - Multi-column sortable and searchable market tape.
-   - One-click CSV and JSON exports for observations and forward curves.
+   - Multi-column sortable and searchable market tape with CSV and JSON exports.
 
 ---
 
@@ -96,6 +101,33 @@ The platform provides a cohesive financial terminal workflow structured around t
 | **10. Market Tape View** | Full transparent access to all normalized underlying observations with instant multi-column sorting, live search, and filters by SKU, provider, and contract basis. |
 | **11. Data Provenance View** | Traceability ledger showing direct provider URLs, observation timestamps, contract bases, geographical regions, gross instance prices, and normalization formulas applied. |
 | **12. Methodology Documentation** | Plain-English institutional specification explaining unit normalization, outlier filtering, equal vs volume weighting, technological deflation inference, and forward curve formulations. |
+
+---
+
+## Benchmark Integrity & Audit Reproducibility
+
+Financial compute benchmarks must satisfy the same auditability standards as established physical commodity indexes (such as **IOSCO Principle 15** and the **EU/UK Benchmarks Regulation**). FSKU is engineered around five fundamental reproducibility principles:
+
+1. **Constituent Audit Trail & Immutability**:
+   - Every point-in-time snapshot contains the complete raw observation array (`observations: [...]`).
+   - Checksums are computed as the SHA-256 hash of the canonical JSON representation of those raw constituents.
+   - Any market participant can verify any historical snapshot via `GET /api/snapshots/{id}/verify` or the Web UI, confirming that published settlement values reconcile to the cent from their constituent inputs.
+
+2. **Physical Deliverable Contract Unit Resolution**:
+   - Pooling heterogeneous hardware into generic buckets introduces fatal basis risk.
+   - FSKU strictly differentiates **Form Factor** (SXM5, SXM6, PCIe Gen5, NVL, OAM), **Interconnect** (900 GB/s NVLink 4, 1.8 TB/s NVLink 5, PCIe Bus, Infinity Fabric), and **Node Topology** (HGX 8x Clustered with 3.2 Tbps InfiniBand/RoCE vs 1x Standalone Virtualized Pods).
+
+3. **Lognormal Volatility Diffusion Fan Chart ($\sigma \sqrt{T}$)**:
+   - In forward term structure modeling, uncertainty expands over longer delivery horizons.
+   - FSKU models forward uncertainty using a lognormal diffusion structure:
+     $$\text{Upper Band}(T) = F(T) \cdot \exp\left(+ \sigma \sqrt{T}\right), \quad \text{Lower Band}(T) = F(T) \cdot \exp\left(- \sigma \sqrt{T}\right)$$
+     where $\sigma = \frac{\ln(Q_{75}/Q_{25})}{1.349}$ is derived from observed cross-provider spot price dispersion.
+
+4. **Matched-Provider Technological Deflation ($d$)**:
+   - Technological price deflation ($A100 \rightarrow H100 \rightarrow H200 \rightarrow B200 \rightarrow B300$) is computed strictly across paired observations *within the same provider* to prevent provider mix shifts from distorting generational price compression ratios.
+
+5. **Source Ablation Stress Testing & Methodology Sensitivity**:
+   - FSKU provides real-time ablation diagnostic engines that systematically remove each provider from the dataset, measuring the resulting price delta ($\Delta\%$) to ensure no single data contributor can manipulate or disproportionately bias the benchmark.
 
 ---
 

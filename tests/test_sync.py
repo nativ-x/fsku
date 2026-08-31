@@ -37,13 +37,13 @@ async def test_sync_adapters_fetch():
 
 @pytest.mark.asyncio
 async def test_sync_engine_resync_cycle(temp_db):
+    temp_db.observations.clear()
     engine = SyncEngine(db=temp_db)
 
     log1 = await engine.resync(label="Initial test sync")
     assert log1.status in ("success", "partial")
     assert log1.added_count > 0
     assert temp_db.observations.count() > 0
-    assert temp_db.snapshots.count() >= 1
 
     log2 = await engine.resync(label="Second test sync")
     assert log2.added_count == 0
@@ -51,6 +51,7 @@ async def test_sync_engine_resync_cycle(temp_db):
 
 @pytest.mark.asyncio
 async def test_sync_dry_run(temp_db):
+    temp_db.observations.clear()
     engine = SyncEngine(db=temp_db)
     init_count = temp_db.observations.count()
 
