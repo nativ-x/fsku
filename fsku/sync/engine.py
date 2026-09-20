@@ -14,6 +14,7 @@ from fsku.sync.providers.coreweave import CoreWeaveAdapter
 from fsku.sync.providers.aws import AWSAdapter
 from fsku.sync.providers.gcp import GCPAdapter
 from fsku.sync.providers.lambda_cloud import LambdaCloudAdapter
+from fsku.sync.providers.vast import VastAdapter
 from fsku.sync.specs_catalog import SpecsCatalogSync
 
 class SyncEngine:
@@ -26,6 +27,7 @@ class SyncEngine:
         AWSAdapter,
         GCPAdapter,
         LambdaCloudAdapter,
+        VastAdapter,
     ]
 
     def __init__(self, db: Optional[FSKUDb] = None, adapters: Optional[List[Type[BaseProviderAdapter]]] = None):
@@ -74,6 +76,12 @@ class SyncEngine:
                 provider_reports.append(adapter.report([]))
                 continue
             if not isinstance(res, list):
+                continue
+            if adapter.mode == "live" and not res:
+                # A live adapter with no fallback table came back empty. That is
+                # an outage, and its existing rows are kept, not deprecated.
+                errors.append(f"{adapter.provider_name}: no observations ({'; '.join(adapter.notes) or 'empty response'})")
+                provider_reports.append(adapter.report([]))
                 continue
             if adapter.mode == "catalog":
                 # A catalog adapter never observed anything this run. Its rows
@@ -143,10 +151,13 @@ class SyncEngine:
                     added += 1
 
             if not provider_filter:
+                # Deprecate rows a polled provider no longer lists -- but only
+                # for providers that returned something this run.
+                providers_with_rows = {o.provider for o in fetched_observations}
                 all_obs = self.db.observations.find()
                 for old_rec in all_obs:
                     old_key = (old_rec.get("provider"), old_rec.get("gpu"), old_rec.get("instance"), old_rec.get("basis"), old_rec.get("gpuCount"))
-                    if old_key not in active_keys and old_rec.get("provider") in providers_polled:
+                    if old_key not in active_keys and old_rec.get("provider") in providers_with_rows:
                         self.db.observations.delete_by_id(old_rec["id"])
 
         end_time = time.time()

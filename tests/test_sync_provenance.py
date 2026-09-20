@@ -13,8 +13,10 @@ from fsku.sync.providers.coreweave import CoreWeaveAdapter
 from fsku.sync.providers.aws import AWSAdapter
 from fsku.sync.providers.gcp import GCPAdapter
 from fsku.sync.providers.lambda_cloud import LambdaCloudAdapter
+from fsku.sync.providers.vast import VastAdapter
 
-CATALOG_ADAPTERS = [RunPodAdapter, CoreWeaveAdapter, AWSAdapter, GCPAdapter, LambdaCloudAdapter]
+CATALOG_ADAPTERS = [CoreWeaveAdapter, AWSAdapter, GCPAdapter, LambdaCloudAdapter]
+LIVE_ADAPTERS = [AzureAdapter, RunPodAdapter, VastAdapter]
 
 
 @pytest.fixture
@@ -30,8 +32,10 @@ def test_every_adapter_declares_its_mode():
     for cls in CATALOG_ADAPTERS:
         assert cls.mode == "catalog", cls.__name__
         assert cls.catalog_as_of, f"{cls.__name__} must say when its constants were captured"
-    assert AzureAdapter.mode == "live"
-    assert AzureAdapter.catalog_as_of, "live adapters with fallbacks must date them"
+    for cls in LIVE_ADAPTERS:
+        assert cls.mode == "live", cls.__name__
+    assert AzureAdapter.catalog_as_of and RunPodAdapter.catalog_as_of, "live adapters with fallbacks must date them"
+    assert VastAdapter.catalog_as_of is None, "Vast has no fallback table and must not pretend to"
 
 
 def test_user_agent_points_at_this_repo():

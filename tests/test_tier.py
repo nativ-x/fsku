@@ -30,9 +30,12 @@ def temp_db():
 
 
 def test_every_adapter_declares_a_tier():
-    for cls in (AzureAdapter, RunPodAdapter, CoreWeaveAdapter, AWSAdapter, GCPAdapter, LambdaCloudAdapter):
+    from fsku.sync.providers.vast import VastAdapter
+    for cls in (AzureAdapter, CoreWeaveAdapter, AWSAdapter, GCPAdapter, LambdaCloudAdapter, VastAdapter):
         assert cls.tier in VALID, cls.__name__
-    assert RunPodAdapter.tier == "Community", "RUNPOD_CATALOG holds communityPrice, not securePrice"
+    # RunPod quotes two tiers and sets tier per row instead of per adapter.
+    assert RunPodAdapter.tier is None
+    assert {v["fallback"] for v in RunPodAdapter.SKU_MAP.values()}, "fallbacks are Community Cloud constants"
 
 
 def test_shipped_tape_is_fully_labelled():
@@ -45,13 +48,13 @@ def test_shipped_tape_is_fully_labelled():
 
 @pytest.mark.asyncio
 async def test_sync_stamps_tier_on_every_row(temp_db):
-    engine = SyncEngine(db=temp_db, adapters=[RunPodAdapter, CoreWeaveAdapter, AWSAdapter, GCPAdapter, LambdaCloudAdapter])
+    engine = SyncEngine(db=temp_db, adapters=[CoreWeaveAdapter, AWSAdapter, GCPAdapter, LambdaCloudAdapter])
     await engine.resync(create_snapshot=False)
     rows = temp_db.observations.find()
     assert rows
     for r in rows:
         assert r["tier"] in VALID, r["id"]
-    assert all(r["tier"] == "Community" for r in rows if r["provider"] == "RunPod")
+    assert all(r["tier"] == "Specialized cloud" for r in rows if r["provider"] in ("CoreWeave", "Lambda Labs"))
     assert all(r["tier"] == "Hyperscaler" for r in rows if r["provider"] in ("AWS", "Google Cloud"))
 
 
@@ -78,7 +81,7 @@ def test_sku_summary_reports_tiers_present():
     summaries = {s.sku: s for s in PricingEngine.calculate_sku_index_summaries(db.observations.find())}
     hgx = summaries["H100 SXM (HGX 8x)"]
     assert set(hgx.tiers) >= {"Hyperscaler", "Specialized cloud"}, "the HGX 8x index mixes tiers and must say so"
-    assert summaries["H100 PCIe"].tiers == ["Community"]
+    assert {"Community", "Secure"} <= set(summaries["H100 PCIe"].tiers), "RunPod publishes both tiers for the PCIe card"
 
 
 def test_api_filters_by_tier():

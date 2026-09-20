@@ -85,6 +85,24 @@ class BaseProviderAdapter(ABC):
             self.notes.append(f"GET {url} -> {type(exc).__name__}: {exc}")
         return None
 
+    async def _safe_post_json(self, url: str, body: Dict[str, Any]) -> Optional[Any]:
+        """Execute an async POST with a JSON body and parse JSON, counting the attempt.
+
+        Same contract as :meth:`_safe_get_json`: ``None`` on any failure, and the
+        caller must :meth:`note_fallback` if it substitutes a constant.
+        """
+        self.requests_attempted += 1
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout, follow_redirects=True) as client:
+                res = await client.post(url, json=body, headers=self.get_headers())
+                if res.status_code == 200:
+                    self.requests_succeeded += 1
+                    return res.json()
+                self.notes.append(f"POST {url} -> HTTP {res.status_code}")
+        except Exception as exc:
+            self.notes.append(f"POST {url} -> {type(exc).__name__}: {exc}")
+        return None
+
     def report(self, observations: List[Observation]) -> ProviderSyncReport:
         """Summarize what this adapter did during one sync run."""
         live = sum(1 for o in observations if o.provenance == "live")
