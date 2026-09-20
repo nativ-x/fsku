@@ -15,7 +15,10 @@ from fsku.sync.providers.gcp import GCPAdapter
 from fsku.sync.providers.lambda_cloud import LambdaCloudAdapter
 from fsku.sync.providers.vast import VastAdapter
 
-CATALOG_ADAPTERS = [CoreWeaveAdapter, AWSAdapter, GCPAdapter, LambdaCloudAdapter]
+from fsku.sync.providers.nebius import NebiusAdapter
+from fsku.sync.providers.together import TogetherAdapter
+
+CATALOG_ADAPTERS = [CoreWeaveAdapter, AWSAdapter, GCPAdapter, LambdaCloudAdapter, NebiusAdapter, TogetherAdapter]
 LIVE_ADAPTERS = [AzureAdapter, RunPodAdapter, VastAdapter]
 
 
@@ -55,9 +58,10 @@ async def test_catalog_rows_are_tagged_and_dated_not_restamped(temp_db):
     assert log.catalog_count == log.added_count > 0
     assert log.status == "success"  # catalog is declared, not a failure
 
+    as_of = {c.provider_name: c.catalog_as_of for c in CATALOG_ADAPTERS}
     for row in temp_db.observations.find():
         assert row["provenance"] == "catalog", row["id"]
-        assert row["recorded_at"] == "2026-08-25", "catalog rows must carry the capture date, not the sync time"
+        assert row["recorded_at"] == as_of[row["provider"]], "catalog rows must carry their adapter's capture date, not the sync time"
 
     assert len(log.provider_reports) == len(CATALOG_ADAPTERS)
     for r in log.provider_reports:

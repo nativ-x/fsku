@@ -48,10 +48,14 @@ def test_empty_segment_is_null_not_zero():
 
 
 def test_shipped_tape_headline_is_a_neocloud_number():
+    # Structural, not a magic range: the tape's level moves with the market
+    # and with every table refresh; what must hold is the segmentation.
     fx = FixEngine.compute(FSKUDb().observations.find(), "H100")
-    assert 2.0 < fx.headline < 3.5, fx.headline
-    assert fx.segments["hyperscaler"].value > 10
-    assert "Hyperscaler" not in fx.segments["neocloud"].tiers
+    neo, hyp = fx.segments["neocloud"], fx.segments["hyperscaler"]
+    assert fx.headline == neo.value and neo.n >= 3
+    assert hyp.value is not None and hyp.value > fx.headline * 2, "hyperscaler list must sit far above the neocloud headline"
+    assert "Hyperscaler" not in neo.tiers and set(hyp.tiers) == {"Hyperscaler"}
+    assert neo.low <= fx.headline <= neo.high
 
 
 def test_api_fix_endpoint():

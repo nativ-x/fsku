@@ -7,7 +7,7 @@
 [![NoSQL Document Store](https://img.shields.io/badge/Database-Embedded%20NoSQL-orange.svg)]()
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-**FSKU** is an open-source compute SKU normalization, market settlement intelligence, and implied forward curve platform **built by [NATIVX](https://nativx.net)**. It ingests public rates across cloud providers (RunPod, Vast.ai, CoreWeave, AWS, Google Cloud, Azure, Lambda Labs), normalizes them into standardized `$/GPU-hour` settlement units, stores time-series data in an embedded lightweight NoSQL database, and models implied cross-generation forward term structures.
+**FSKU** is an open-source compute SKU normalization, market settlement intelligence, and implied forward curve platform **built by [NATIVX](https://nativx.net)**. It ingests public rates across cloud providers (RunPod, Vast.ai, CoreWeave, Nebius, Together AI, AWS, Google Cloud, Azure, Lambda), normalizes them into standardized `$/GPU-hour` settlement units, stores time-series data in an embedded lightweight NoSQL database, and models implied cross-generation forward term structures.
 
 ---
 
@@ -46,7 +46,7 @@
 
 7. **Multi-Provider Resync Engine, with honest provenance**:
    - **Three live adapters**: **Azure** Retail Prices REST API; **RunPod** public GraphQL, publishing Secure Cloud and Community Cloud as separate tiered rows; **Vast.ai** public offer search, publishing the per-SKU median of live rentable asks with the offer depth in metadata (the unauthenticated endpoint returns a capped slice, so depth can be thin — the count is on every row). Azure and RunPod carry constants used only when the API returns nothing usable; such rows are tagged `fallback`, dated when the constant was captured, and counted in the report. Vast.ai has no fallback: an outage publishes nothing and keeps yesterday's rows rather than re-dating them.
-   - **Four catalog adapters**: CoreWeave, AWS Capacity Blocks, GCP Accelerator VMs, Lambda Labs (its API requires a key) read hardcoded rate tables captured from the providers' public pricing pages and never touch the network. Their rows are tagged `catalog` and carry the capture date as `recorded_at` — a sync run does not re-stamp them with today's date.
+   - **Six catalog adapters**: CoreWeave, AWS Capacity Blocks, GCP Accelerator VMs, Lambda (its API requires a key), Nebius, Together AI read hardcoded rate tables captured from the providers' public pricing pages and never touch the network. Their rows are tagged `catalog` and carry the capture date as `recorded_at` — a sync run does not re-stamp them with today's date.
    - Every observation carries `provenance` (`live` / `fallback` / `catalog` / `seed`). The sync log reports `providers_live`, `providers_catalog`, per-row counts, and a per-adapter table with request counts and every substitution. `status` is `success` only when no constant was substituted.
    - Diff engine: detects added, updated, unchanged, and deprecated rates with full audit logs.
 
