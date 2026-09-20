@@ -12,6 +12,10 @@ class GCPAdapter(BaseProviderAdapter):
     provider_id = "gcp"
     provider_name = "Google Cloud"
     source_url = "https://cloud.google.com/products/compute/pricing/accelerator-optimized"
+    # Hardcoded rate table; this adapter never touches the network. Rows are
+    # tagged provenance="catalog" and dated catalog_as_of by the sync engine.
+    mode = "catalog"
+    catalog_as_of = "2026-08-25"
 
     GCP_CATALOG = [
         {

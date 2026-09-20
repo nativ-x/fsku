@@ -13,6 +13,13 @@ class RunPodAdapter(BaseProviderAdapter):
     provider_name = "RunPod"
     source_url = "https://www.runpod.io/gpu-models"
     api_url = "https://api.runpod.io/graphql"
+    # api_url is declared but NOT called in this release: fetch_observations
+    # reads RUNPOD_CATALOG. The constants equal RunPod's public communityPrice
+    # to the cent as of catalog_as_of (verified again 2026-09-19).
+    # Hardcoded rate table; this adapter never touches the network. Rows are
+    # tagged provenance="catalog" and dated catalog_as_of by the sync engine.
+    mode = "catalog"
+    catalog_as_of = "2026-08-25"
 
     RUNPOD_CATALOG = [
         {"gpu": "H100 SXM (1x)", "vram": 80, "rate": 2.69, "form_factor": "SXM5", "interconnect": "NVLink / Sliced", "topology": "1x Standalone Pod"},

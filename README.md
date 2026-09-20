@@ -35,9 +35,11 @@
    - **Methodology Sensitivity Matrix**: Compares 6 aggregation methodologies (Robust Median, 10% Trimmed Mean, 20% Trimmed Mean, Provider-Balanced, GPU-Weighted, Simple Mean) in real time.
    - **Provenance Ledger**: Transparent unadjusted unit math and direct provider source URLs.
 
-5. **Continuous Multi-Provider Resync Engine**:
-   - Live adapters for Azure Retail Prices REST API, RunPod catalog, CoreWeave node rates, AWS Capacity Blocks, GCP Accelerator VMs, and Lambda Labs.
-   - Intelligent diff engine: detects added, updated, unchanged, and deprecated rates with full audit logs.
+5. **Multi-Provider Resync Engine, with honest provenance**:
+   - **One live adapter in this release**: Azure Retail Prices REST API. Each Azure SKU also carries a constant used only when the API returns nothing usable; such rows are tagged `fallback`, dated when the constant was captured, and counted in the report.
+   - **Five catalog adapters**: RunPod, CoreWeave, AWS Capacity Blocks, GCP Accelerator VMs, Lambda Labs read hardcoded rate tables captured from the providers' public pricing pages and never touch the network. Their rows are tagged `catalog` and carry the capture date as `recorded_at` — a sync run does not re-stamp them with today's date.
+   - Every observation carries `provenance` (`live` / `fallback` / `catalog` / `seed`). The sync log reports `providers_live`, `providers_catalog`, per-row counts, and a per-adapter table with request counts and every substitution. `status` is `success` only when no constant was substituted.
+   - Diff engine: detects added, updated, unchanged, and deprecated rates with full audit logs.
 
 6. **Modern Web Terminal Dashboard**:
    - Dark-mode financial terminal UI with one-click snapshot verification and constituent audit inspection.

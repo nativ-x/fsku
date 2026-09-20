@@ -12,6 +12,10 @@ class LambdaCloudAdapter(BaseProviderAdapter):
     provider_id = "lambda"
     provider_name = "Lambda Labs"
     source_url = "https://lambdalabs.com/service/gpu-cloud"
+    # Hardcoded rate table; this adapter never touches the network. Rows are
+    # tagged provenance="catalog" and dated catalog_as_of by the sync engine.
+    mode = "catalog"
+    catalog_as_of = "2026-08-25"
 
     LAMBDA_CATALOG = [
         {"gpu": "H100 SXM (1x)", "instance": "1x H100 SXM5", "basis": "On-demand", "gpu_count": 1, "total": 2.49, "vram": 80, "form_factor": "SXM5", "interconnect": "NVLink / Sliced", "topology": "1x Standalone Pod"},

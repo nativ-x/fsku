@@ -2409,7 +2409,8 @@ async function triggerResync() {
 
   try {
     const res = await fetch('/api/sync', {method: 'POST'}).then(r => r.json());
-    toast(`✓ Sync finished in ${res.duration_ms}ms (${res.added_count} added, ${res.updated_count} updated).`);
+    const mark = res.status === 'success' ? '✓' : '△';
+    toast(`${mark} Sync ${res.status} in ${res.duration_ms}ms — ${res.live_count ?? 0} live, ${res.fallback_count ?? 0} fallback, ${res.catalog_count ?? 0} catalog (${res.added_count} added, ${res.updated_count} updated).`);
     await loadAllData();
     dot.className = 'dot';
     text.textContent = 'Tape Synced';

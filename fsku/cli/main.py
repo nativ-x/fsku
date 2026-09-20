@@ -251,15 +251,35 @@ def sync_cmd(
     summary = (
         f"[bold]Status:[/bold] [{status_color}]{log.status.upper()}[/{status_color}]\n"
         f"[bold]Duration:[/bold] {log.duration_ms} ms\n"
-        f"[bold]Providers Polled:[/bold] {', '.join(log.providers_polled)}\n"
+        f"[bold]Live (API polled):[/bold] {', '.join(log.providers_live) or 'none'}\n"
+        f"[bold]Catalog (hardcoded, no network):[/bold] {', '.join(log.providers_catalog) or 'none'}\n"
+        f"[bold]Rows by source:[/bold] live {log.live_count}  |  fallback {log.fallback_count}  |  catalog {log.catalog_count}\n"
         f"[bold]Added:[/bold] {log.added_count}  |  [bold]Updated:[/bold] {log.updated_count}  |  [bold]Unchanged:[/bold] {log.unchanged_count}\n"
         f"[bold]Total Active Rows in DB:[/bold] {log.total_active}\n"
         f"[bold]Snapshot ID:[/bold] {log.snapshot_id or 'None'}"
     )
+    if log.fallback_count:
+        summary += f"\n[yellow]{log.fallback_count} row(s) carry a substituted constant -- see the table.[/yellow]"
     if log.errors:
         summary += f"\n[bold red]Errors:[/bold red] {'; '.join(log.errors)}"
 
     console.print(Panel(summary, title="FSKU Resync Report", border_style=status_color))
+
+    detail = Table(title="Per-provider", show_header=True, header_style="bold cyan")
+    detail.add_column("Provider", style="bold white")
+    detail.add_column("Mode")
+    detail.add_column("Requests", justify="right")
+    detail.add_column("Live", justify="right", style="green")
+    detail.add_column("Fallback", justify="right", style="yellow")
+    detail.add_column("Catalog", justify="right", style="dim")
+    detail.add_column("As of")
+    detail.add_column("Notes", style="dim")
+    for r in log.provider_reports:
+        mode = "[green]live[/green]" if r.mode == "live" else "[dim]catalog[/dim]"
+        reqs = f"{r.requests_succeeded}/{r.requests_attempted}" if r.mode == "live" else "-"
+        notes = "; ".join(r.fallbacks + r.notes)
+        detail.add_row(r.provider, mode, reqs, str(r.live), str(r.fallback), str(r.catalog), r.as_of or "-", notes)
+    console.print(detail)
 
 @app.command("forward")
 def forward_cmd(

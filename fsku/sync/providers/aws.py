@@ -12,6 +12,10 @@ class AWSAdapter(BaseProviderAdapter):
     provider_id = "aws"
     provider_name = "AWS"
     source_url = "https://aws.amazon.com/ec2/capacityblocks/pricing/"
+    # Hardcoded rate table; this adapter never touches the network. Rows are
+    # tagged provenance="catalog" and dated catalog_as_of by the sync engine.
+    mode = "catalog"
+    catalog_as_of = "2026-08-25"
 
     AWS_CATALOG = [
         {

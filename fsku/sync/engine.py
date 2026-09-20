@@ -57,19 +57,49 @@ class SyncEngine:
 
         adapters = [cls() for cls in target_classes]
         providers_polled = [a.provider_name for a in adapters]
+        providers_live = [a.provider_name for a in adapters if a.mode == "live"]
+        providers_catalog = [a.provider_name for a in adapters if a.mode == "catalog"]
 
         tasks = [adapter.fetch_observations() for adapter in adapters]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         fetched_observations: List[Observation] = []
         errors: List[str] = []
+        provider_reports = []
 
         for i, res in enumerate(results):
             adapter = adapters[i]
             if isinstance(res, Exception):
                 errors.append(f"{adapter.provider_name}: {str(res)}")
-            elif isinstance(res, list):
-                fetched_observations.extend(res)
+                provider_reports.append(adapter.report([]))
+                continue
+            if not isinstance(res, list):
+                continue
+            if adapter.mode == "catalog":
+                # A catalog adapter never observed anything this run. Its rows
+                # carry the date the constants were captured, not today's date,
+                # so a stale table cannot masquerade as a fresh observation.
+                if not adapter.catalog_as_of:
+                    raise RuntimeError(
+                        f"{adapter.provider_name}: catalog adapters must declare catalog_as_of"
+                    )
+                for obs in res:
+                    obs.provenance = "catalog"
+                    obs.recorded_at = adapter.catalog_as_of
+            else:
+                for obs in res:
+                    if obs.provenance == "seed":
+                        # A live adapter that forgot to tag a row. Do not guess
+                        # "live" -- an untagged row is an unverified row.
+                        raise RuntimeError(
+                            f"{adapter.provider_name}: live adapters must tag every row live or fallback"
+                        )
+            provider_reports.append(adapter.report(res))
+            fetched_observations.extend(res)
+
+        live_count = sum(1 for o in fetched_observations if o.provenance == "live")
+        fallback_count = sum(1 for o in fetched_observations if o.provenance == "fallback")
+        catalog_count = sum(1 for o in fetched_observations if o.provenance == "catalog")
 
         added = 0
         updated = 0
@@ -122,7 +152,15 @@ class SyncEngine:
             snap = self.db.create_snapshot(label=s_label)
             snapshot_id = snap["id"]
 
-        status = "success" if not errors else ("partial" if fetched_observations else "failed")
+        # success only if nothing was substituted and nothing raised. Catalog
+        # rows are not failures -- the adapter declared it never polls -- but a
+        # live adapter that fell back to a constant is a partial refresh.
+        if not fetched_observations:
+            status = "failed"
+        elif errors or fallback_count > 0:
+            status = "partial"
+        else:
+            status = "success"
 
         log = SyncLog(
             started_at=start_iso,
@@ -130,12 +168,18 @@ class SyncEngine:
             status=status,
             duration_ms=duration_ms,
             providers_polled=providers_polled,
+            providers_live=providers_live,
+            providers_catalog=providers_catalog,
             added_count=added if not dry_run else len(fetched_observations),
             updated_count=updated,
             unchanged_count=unchanged,
+            live_count=live_count,
+            fallback_count=fallback_count,
+            catalog_count=catalog_count,
             total_active=self.db.observations.count(),
             snapshot_id=snapshot_id,
             errors=errors,
+            provider_reports=provider_reports,
         )
 
         if not dry_run:

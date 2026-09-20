@@ -44,9 +44,16 @@ class Observation(BaseModel):
     form_factor: Optional[str] = Field(default="SXM", description="Hardware form factor e.g. SXM5, SXM4, PCIe, NVL, OAM")
     interconnect: Optional[str] = Field(default="NVLink", description="Interconnect architecture e.g. NVLink 4 (900 GB/s), PCIe Gen5 (64 GB/s)")
     topology: Optional[str] = Field(default="HGX 8x Clustered", description="Node chassis deployment scale e.g. HGX 8x Clustered, 1x Standalone, Dual-GPU NVL")
-    recorded_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    recorded_at: str = Field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat(),
+        description="When this price was captured. For live rows, the sync run; for catalog and fallback rows, the date the constant was taken from the provider's public page (adapter.catalog_as_of) -- never the sync run.",
+    )
     snapshot_id: Optional[str] = None
     metadata: Dict[str, Any] = Field(default_factory=dict)
+    provenance: Literal["live", "fallback", "catalog", "seed"] = Field(
+        default="seed",
+        description="How the row was sourced: live = fetched from the provider API this run; fallback = the API call failed and a hardcoded constant was substituted; catalog = the adapter has no API and reads a hardcoded table; seed = shipped with the repository, not produced by a sync run.",
+    )
 
     @classmethod
     def compute_normalized(cls, total: float, gpu_count: int) -> float:
@@ -112,20 +119,46 @@ class MarketKpis(BaseModel):
     highest_h100: Dict[str, Any]
     median_h100: float
 
+class ProviderSyncReport(BaseModel):
+    """What one adapter actually did during a sync run."""
+    provider: str
+    mode: Literal["live", "catalog"]
+    requests_attempted: int = 0
+    requests_succeeded: int = 0
+    observations: int = 0
+    live: int = Field(default=0, description="Rows whose price came back from the provider API this run")
+    fallback: int = Field(default=0, description="Rows where the API gave nothing usable and a constant was substituted")
+    catalog: int = Field(default=0, description="Rows read from a hardcoded table; this adapter never called the network")
+    as_of: Optional[str] = Field(default=None, description="Date the adapter's constants were captured (catalog and fallback rows)")
+    fallbacks: List[str] = Field(default_factory=list, description="One entry per substituted constant, with the reason")
+    notes: List[str] = Field(default_factory=list, description="Non-200 responses and exceptions, verbatim")
+
 class SyncLog(BaseModel):
-    """Audit log entry for a resync run."""
+    """Audit log entry for a resync run.
+
+    ``status`` is ``success`` only when every request every live adapter made
+    succeeded and no constant was substituted. A run in which a live adapter
+    fell back to a hardcoded rate is ``partial`` even if every adapter returned
+    rows -- the tape was refreshed, but not entirely from the market.
+    """
     id: str = Field(default_factory=lambda: str(uuid.uuid4())[:8])
     started_at: str
     completed_at: str
     status: Literal["success", "partial", "failed"]
     duration_ms: int
-    providers_polled: List[str]
+    providers_polled: List[str] = Field(description="Adapters executed this run, live or catalog. See providers_live / providers_catalog for which is which.")
+    providers_live: List[str] = Field(default_factory=list, description="Adapters that made HTTP requests to a provider API")
+    providers_catalog: List[str] = Field(default_factory=list, description="Adapters that read a hardcoded table and never touched the network")
     added_count: int = 0
     updated_count: int = 0
     unchanged_count: int = 0
+    live_count: int = Field(default=0, description="Rows sourced from a provider API this run")
+    fallback_count: int = Field(default=0, description="Rows where a live adapter substituted a constant")
+    catalog_count: int = Field(default=0, description="Rows read from hardcoded tables")
     total_active: int = 0
     snapshot_id: Optional[str] = None
     errors: List[str] = Field(default_factory=list)
+    provider_reports: List[ProviderSyncReport] = Field(default_factory=list)
 
 class MarketSnapshot(BaseModel):
     """Point-in-time immutable market snapshot."""
