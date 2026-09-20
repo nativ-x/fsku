@@ -1,0 +1,37 @@
+# Publishes the FSKU Fix once a day. Syncs every adapter, snapshots the tape,
+# verifies the checksum, appends one row per family to data/fsku_db/fix_history.json
+# and commits the result. No secrets: every source is a public endpoint.
+#
+# 20:00 UTC is 4 pm EDT (Ornn's settlement hour); it drifts to 3 pm EST in
+# winter. Kept fixed in UTC so the series has one cadence.
+name: Daily Fix
+on:
+  schedule:
+    - cron: "0 20 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: daily-fix
+  cancel-in-progress: false
+jobs:
+  settle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: Settle
+        run: python fsku_cli.py settle
+      - name: Show history
+        run: python fsku_cli.py fix-history --family H100 --limit 10
+      - name: Commit the settled tape
+        run: |
+          git config user.name "fsku-daily-fix"
+          git config user.email "research@nativx.net"
+          git add data/fsku_db/
+          git diff --cached --quiet && echo "nothing to commit" && exit 0
+          git commit -m "Daily Fix $(date -u +%F)"
+          git push
