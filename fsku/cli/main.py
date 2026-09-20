@@ -50,9 +50,19 @@ def stats_cmd(
     table.add_row("Public Sources Represented", str(kpis["source_count"]))
     table.add_row("Distinct GPU Families", str(kpis["gpu_families_count"]))
     table.add_row("Median Tape Rate", f"${kpis['median_observed_rate']:.2f} / GPU-hour")
-    table.add_row("H100 Price Dispersion", f"{kpis['h100_dispersion']:.1f}x (High / Low)")
-    table.add_row("Lowest H100 Observation", f"{kpis['lowest_h100'].get('provider', '')} @ ${kpis['lowest_h100'].get('rate', 0):.2f}/GPU-hr")
-    table.add_row("Highest H100 Observation", f"{kpis['highest_h100'].get('provider', '')} @ ${kpis['highest_h100'].get('rate', 0):.2f}/GPU-hr")
+    ref = kpis.get("reference") or {}
+    if ref:
+        tier_note = "single tier" if ref.get("like_for_like") else f"widest within one tier: {ref.get('same_tier')}"
+        table.add_row(f"{ref['sku']} Dispersion, like-for-like", f"{ref['same_tier_dispersion']:.1f}x ({tier_note}; {ref['count']} obs)")
+        if not ref.get("like_for_like"):
+            table.add_row(f"{ref['sku']} Dispersion, all tiers", f"{ref['dispersion']:.1f}x ({' · '.join(ref['tiers'])})")
+        lo, hi = ref["low"], ref["high"]
+        table.add_row(f"  lowest {ref['sku']}", f"{lo['provider']} @ ${lo['rate']:.2f}/GPU-hr [{lo.get('tier')}, {lo.get('basis')}]")
+        table.add_row(f"  highest {ref['sku']}", f"{hi['provider']} @ ${hi['rate']:.2f}/GPU-hr [{hi.get('tier')}, {hi.get('basis')}]")
+    lo_f, hi_f = kpis["lowest_h100"], kpis["highest_h100"]
+    table.add_row("H100 Family Range (cross-SKU, cross-tier)", f"{kpis['h100_family_range']:.1f}x -- not like-for-like")
+    table.add_row("  lowest H100-named row", f"{lo_f.get('provider', '')} {lo_f.get('sku', '')} @ ${lo_f.get('rate', 0):.2f}/GPU-hr [{lo_f.get('tier')}]")
+    table.add_row("  highest H100-named row", f"{hi_f.get('provider', '')} {hi_f.get('sku', '')} @ ${hi_f.get('rate', 0):.2f}/GPU-hr [{hi_f.get('tier')}]")
     table.add_row("Historical Snapshots Stored", str(db.snapshots.count()))
     table.add_row("Resync Audit Logs", str(db.sync_logs.count()))
 

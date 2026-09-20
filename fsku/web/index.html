@@ -1413,12 +1413,34 @@ function renderOverview() {
   const sourceCount = new Set(marketRows.map(r => r.source)).size;
   const gpuCount = new Set(marketRows.map(r => r.gpu)).size;
 
+  // Like-for-like dispersion: ONE deliverable SKU, and the widest spread
+  // inside ONE tier of it. The family range (every H100-named row, PCIe to
+  // HGX 8x, community to hyperscaler) is shown as the sub-label, named for
+  // what it is. Mirrors PricingEngine.calculate_reference_dispersion.
+  const bySku = {};
+  h100.forEach(r => { if (r.perGpu > 0) (bySku[r.gpu] = bySku[r.gpu] || []).push(r); });
+  const refSku = Object.keys(bySku).sort((a, b) => (bySku[b].length - bySku[a].length) || ((/8x|HGX/.test(b) ? 1 : 0) - (/8x|HGX/.test(a) ? 1 : 0)) || a.localeCompare(b))[0];
+  const refRows = refSku ? bySku[refSku] : [];
+  const byTier = {};
+  refRows.forEach(r => { const t = r.tier || 'unlabelled'; (byTier[t] = byTier[t] || []).push(r.perGpu); });
+  const tierRatio = t => Math.max(...byTier[t]) / Math.min(...byTier[t]);
+  const tiers = Object.keys(byTier);
+  const sameTier = tiers.length ? Math.max(...tiers.map(tierRatio)) : 1;
+  const widestTier = tiers.length ? tiers.sort((a, b) => tierRatio(b) - tierRatio(a))[0] : null;
+  const refAllTiers = refRows.length ? Math.max(...refRows.map(r => r.perGpu)) / Math.min(...refRows.map(r => r.perGpu)) : 1;
+  const dispLabel = refSku ? `${refSku.toUpperCase()} DISPERSION` : 'H100 DISPERSION';
+  const dispSub = refSku
+    ? (tiers.length > 1
+        ? `like-for-like within ${widestTier} · ${refAllTiers.toFixed(1)}× across ${tiers.length} tiers · family range ${hSpread.toFixed(1)}×`
+        : `like-for-like, ${widestTier} · family range ${hSpread.toFixed(1)}× (cross-SKU, cross-tier)`)
+    : 'no H100 rows';
+
   const kpis = [
     ['MARKET OBSERVATIONS', marketRows.length, 'NoSQL-synced quotes', [1, 2, 1.7, 2.8, 2.1, 3.1]],
     ['PUBLIC SOURCES', sourceCount, 'Verified provider feeds', [1, 1.2, 1.4, 1.8, 2.1, 2.3]],
     ['GPU SKUs TRACKED', gpuCount, 'Distinct accelerator SKUs', [1.2, 1.8, 1.6, 2.3, 2.5, 3]],
     ['MEDIAN OBSERVED RATE', money(medianAll), '/ GPU-hour (all quotes)', [3, 2.4, 2.1, 1.8, 1.6, 1.5]],
-    ['H100 PRICE DISPERSION', hSpread.toFixed(1) + '×', 'High quote ÷ low quote', [1, 1.5, 2, 2.9, 3.4, 4.2]]
+    [dispLabel, sameTier.toFixed(1) + '×', dispSub, [1, 1.5, 2, 2.9, 3.4, 4.2]]
   ];
   document.getElementById('macroKpis').innerHTML = kpis.map(d => `<div class="kpi"><div class="klabel">${d[0]}</div><div class="value">${d[1]}</div><div class="sub">${d[2]}</div>${spark(d[3])}</div>`).join('');
 
