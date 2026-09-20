@@ -68,6 +68,46 @@ def stats_cmd(
 
     console.print(table)
 
+@app.command("fix")
+def fix_cmd(
+    family: str = typer.Option("H100", "--family", "-f", help="GPU family: H100, H200, B200, B300, A100, MI300X"),
+    show_constituents: bool = typer.Option(False, "--constituents", "-c", help="List every row behind each reading"),
+    db_path: Optional[str] = typer.Option(None, "--db-dir", help="Path to database storage directory"),
+):
+    """The FSKU Fix: headline neocloud reading and hyperscaler-list reading for a GPU family."""
+    from fsku.core.fix import FixEngine
+    db = get_db(db_path)
+    fx = FixEngine.compute(db.observations.find(), family=family)
+    neo, hyp = fx.segments["neocloud"], fx.segments["hyperscaler"]
+
+    head = f"[bold white]{fx.family} Fix[/bold white]  [bold green]${fx.headline:.2f}[/bold green] / GPU-hr" if fx.headline is not None else f"[bold white]{fx.family} Fix[/bold white]  [red]no neocloud constituents[/red]"
+    body = (
+        f"{head}\n"
+        f"[dim]neocloud, {neo.n} rows from {', '.join(neo.providers) or 'none'} · newest constituent {fx.as_of[:10] or '-'}[/dim]\n"
+        f"[bold]Hyperscaler list:[/bold] {('$%.2f' % hyp.value) if hyp.value is not None else '-'}  ({hyp.n} rows: {', '.join(hyp.providers) or 'none'}) -- published beside, never blended\n"
+        f"[dim]{fx.method}[/dim]"
+    )
+    if fx.excluded:
+        body += "\n[dim]excluded: " + ", ".join(f"{k} {v}" for k, v in fx.excluded.items()) + "[/dim]"
+    console.print(Panel(body, title="FSKU Fix", border_style="green" if fx.headline is not None else "red"))
+
+    t = Table(show_header=True, header_style="bold cyan")
+    for c in ("Segment", "Value", "n", "Low", "High", "Trimmed 10%", "Mean", "Tiers"):
+        t.add_column(c, justify="right" if c in ("Value", "n", "Low", "High", "Trimmed 10%", "Mean") else "left")
+    for rd in (neo, hyp):
+        f = lambda v: f"${v:.2f}" if v is not None else "-"
+        t.add_row(rd.segment, f(rd.value), str(rd.n), f(rd.low), f(rd.high), f(rd.trimmed_mean_10), f(rd.simple_mean), " · ".join(rd.tiers))
+    console.print(t)
+
+    if show_constituents:
+        c = Table(title="Constituents", show_header=True, header_style="bold magenta")
+        for col in ("Segment", "Provider", "SKU", "Basis", "Tier", "$/GPU-hr", "Sourcing", "Captured"):
+            c.add_column(col, justify="right" if col == "$/GPU-hr" else "left")
+        for rd in (neo, hyp):
+            for k in rd.constituents:
+                c.add_row(rd.segment, k.provider, k.sku, k.basis, k.tier or "?", f"${k.per_gpu:.2f}", k.provenance, k.recorded_at[:10])
+        console.print(c)
+
 @app.command("index")
 def index_cmd(
     method: str = typer.Option("median", "--method", "-m", help="Methodology: median, trimmed_10, trimmed_20, provider_balanced, simple_mean, gpu_weighted"),
