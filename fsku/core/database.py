@@ -299,6 +299,10 @@ class FSKUDb:
             "reference_sku": (kpis.get("reference") or {}).get("sku"),
             "reference_dispersion": (kpis.get("reference") or {}).get("dispersion"),
             "reference_same_tier_dispersion": (kpis.get("reference") or {}).get("same_tier_dispersion"),
+            # seed = shipped with the repository; live = taken by a sync or by
+            # hand; settle = taken by the daily settlement. Not part of the
+            # checksum, which covers the constituent observations only.
+            "provenance": "live",
             "checksum": checksum,
             "sku_indices": sku_indices,
             "observations": obs,

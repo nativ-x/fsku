@@ -1313,6 +1313,7 @@ function applyForwardScenario(scenario) {
 
 async function loadAllData() {
   try { window.__fix = await fetch('/api/fix?family=H100').then(r => r.json()); } catch (e) { window.__fix = null; }
+  try { window.__fixHistory = (await fetch('/api/fix/history?family=H100&limit=90').then(r => r.json())).rows || []; } catch (e) { window.__fixHistory = []; }
   try {
     const [obsRes, specsRes, srcRes, sumRes, sensRes, ablRes, provRes, histRes, snapRes] = await Promise.all([
       fetch('/api/observations').then(r => r.json()),
@@ -1367,7 +1368,8 @@ function populateSnapshotsDropdown(snaps) {
   const sel = document.getElementById('snapshotSelect');
   sel.innerHTML = '<option value="live">Live Tape (Current)</option>';
   (snaps || []).forEach(s => {
-    sel.insertAdjacentHTML('beforeend', `<option value="${s.id}">${s.label || s.id} (${s.timestamp.substring(0,10)})</option>`);
+    const tag = s.provenance === 'seed' ? ' · seed' : (s.provenance === 'settle' ? ' · settled' : '');
+    sel.insertAdjacentHTML('beforeend', `<option value="${s.id}">${s.label || s.id} (${s.timestamp.substring(0,10)}${tag})</option>`);
   });
 }
 
@@ -1437,8 +1439,13 @@ function renderOverview() {
     : 'no H100 rows';
 
   const fx = window.__fix;
+  // The sparkline is the settled history when there is one; the other tiles
+  // still carry decorative placeholder shapes, which this one must not.
+  const hist = (window.__fixHistory || []).map(r => r.neocloud).filter(v => v != null);
+  const fixSpark = hist.length >= 2 ? hist : [1, 1, 1, 1, 1, 1];
+  const settledNote = hist.length ? ` · ${hist.length} settled day${hist.length > 1 ? 's' : ''}` : ' · not yet settled';
   const fixTile = fx && fx.headline != null
-    ? [`${fx.family} FIX · NEOCLOUD`, money(fx.headline), `${fx.segments.neocloud.n} rows · hyperscaler list ${fx.segments.hyperscaler.value != null ? money(fx.segments.hyperscaler.value) : '—'} (${fx.segments.hyperscaler.n}) · as of ${(fx.as_of || '').slice(0, 10)}`, [1, 1, 1, 1, 1, 1]]
+    ? [`${fx.family} FIX · NEOCLOUD`, money(fx.headline), `${fx.segments.neocloud.n} rows · hyperscaler list ${fx.segments.hyperscaler.value != null ? money(fx.segments.hyperscaler.value) : '—'} (${fx.segments.hyperscaler.n}) · as of ${(fx.as_of || '').slice(0, 10)}${settledNote}`, fixSpark]
     : ['H100 FIX · NEOCLOUD', '—', 'no neocloud constituents on the tape', [1, 1, 1, 1, 1, 1]];
 
   const kpis = [

@@ -186,6 +186,7 @@ class MarketSnapshot(BaseModel):
     reference_sku: Optional[str] = None
     reference_dispersion: Optional[float] = Field(default=None, description="High/low within the reference SKU, all tiers")
     reference_same_tier_dispersion: Optional[float] = Field(default=None, description="Widest high/low within one tier of the reference SKU")
+    provenance: Optional[str] = Field(default=None, description="seed = shipped with the repo; live = taken by a sync or by hand; settle = daily settlement")
     checksum: str
     observations: List[Observation] = Field(default_factory=list)
 
