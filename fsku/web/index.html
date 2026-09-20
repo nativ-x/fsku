@@ -1444,8 +1444,9 @@ function renderOverview() {
   const hist = (window.__fixHistory || []).map(r => r.neocloud).filter(v => v != null);
   const fixSpark = hist.length >= 2 ? hist : [1, 1, 1, 1, 1, 1];
   const settledNote = hist.length ? ` · ${hist.length} settled day${hist.length > 1 ? 's' : ''}` : ' · not yet settled';
+  const stdz = fx && fx.standardized && fx.standardized.value != null ? `standardized ${money(fx.standardized.value)} (${fx.standardized.n_sellers} sellers) · ` : '';
   const fixTile = fx && fx.headline != null
-    ? [`${fx.family} FIX · NEOCLOUD`, money(fx.headline), `${fx.segments.neocloud.n} rows · hyperscaler list ${fx.segments.hyperscaler.value != null ? money(fx.segments.hyperscaler.value) : '—'} (${fx.segments.hyperscaler.n}) · as of ${(fx.as_of || '').slice(0, 10)}${settledNote}`, fixSpark]
+    ? [`${fx.family} FIX · NEOCLOUD`, money(fx.headline), `listed, ${fx.segments.neocloud.n} rows · ${stdz}hyperscaler list ${fx.segments.hyperscaler.value != null ? money(fx.segments.hyperscaler.value) : '—'} (${fx.segments.hyperscaler.n}) · as of ${(fx.as_of || '').slice(0, 10)}${settledNote}`, fixSpark]
     : ['H100 FIX · NEOCLOUD', '—', 'no neocloud constituents on the tape', [1, 1, 1, 1, 1, 1]];
 
   const kpis = [

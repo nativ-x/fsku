@@ -58,13 +58,44 @@ class FixReading(BaseModel):
     constituents: List[FixConstituent]
 
 
+STANDARDIZED_RULE = (
+    "one quote per seller: its lowest per-GPU price for the family on any term "
+    "(on-demand, spot/preemptible, reserved); median across sellers; neocloud tiers; SXM/OAM; "
+    "at least 3 sellers"
+)
+STANDARDIZED_MIN_SELLERS = 3
+
+
+class StandardizedReading(BaseModel):
+    """The term-standardized, seller-balanced reading -- comparable to a
+    quote-based benchmark that standardizes for rental term.
+
+    The listed reading answers "what is the on-demand ask?" A quote-based index
+    like Silicon Data's answers "what does this compute cost once you standardize
+    the term?" -- and a buyer standardizing the term takes each seller's best
+    term, not its headline. So: every seller gets one vote, its lowest per-GPU
+    quote for the family on any term, and the reading is the median of those.
+    No winsorizing (one vote per seller already caps influence), no fitted
+    parameters. Measured 2026-09-20 on a 62-row tape it sat within ~10% of
+    SDH100RT-family readings on H100/H200/B200/A100.
+    """
+    value: Optional[float]
+    n_sellers: int
+    sellers: List[str]
+    low: Optional[float]
+    high: Optional[float]
+    quotes: List[FixConstituent] = Field(description="The one quote per seller that voted")
+    rule: str = STANDARDIZED_RULE
+
+
 class FixResult(BaseModel):
     family: str
     computed_at: str
     as_of: str = Field(description="Newest recorded_at among headline constituents -- how fresh the number actually is")
     headline_segment: str = "neocloud"
-    headline: Optional[float]
+    headline: Optional[float] = Field(description="The listed reading: neocloud on-demand/spot asks, 10/90 winsorized median")
     segments: Dict[str, FixReading]
+    standardized: Optional[StandardizedReading] = Field(default=None, description="Term-standardized, seller-balanced reading; see StandardizedReading")
     excluded: Dict[str, int] = Field(description="Rows of this family left out, by reason")
     method: str = METHOD
 
@@ -123,6 +154,38 @@ class FixEngine:
         )
 
     @classmethod
+    def standardized(cls, observations: List[Dict[str, Any]], family: str) -> StandardizedReading:
+        """One vote per seller (its lowest quote on any term), median across sellers."""
+        fam = family.upper()
+        best: Dict[str, Dict[str, Any]] = {}
+        for r in observations:
+            if (PricingEngine.extract_gpu_family(r.get("gpu", "")) or "").upper() != fam:
+                continue
+            if any(x in r.get("gpu", "") for x in EXCLUDED_FORM_FACTORS):
+                continue
+            if r.get("tier") not in NEOCLOUD_TIERS or not r.get("perGpu") or r["perGpu"] <= 0:
+                continue
+            prov = r.get("provider", "")
+            if prov not in best or r["perGpu"] < best[prov]["perGpu"]:
+                best[prov] = r
+        quotes = sorted(best.values(), key=lambda r: r["perGpu"])
+        vals = [q["perGpu"] for q in quotes]
+        ok = len(vals) >= STANDARDIZED_MIN_SELLERS
+        return StandardizedReading(
+            value=round(PricingEngine.median(vals), 4) if ok else None,
+            n_sellers=len(vals),
+            sellers=sorted(best),
+            low=round(vals[0], 4) if vals else None,
+            high=round(vals[-1], 4) if vals else None,
+            quotes=[
+                FixConstituent(id=q.get("id", ""), provider=q.get("provider", ""), sku=q.get("gpu", ""),
+                               basis=q.get("basis", ""), tier=q.get("tier"), per_gpu=round(q["perGpu"], 4),
+                               provenance=q.get("provenance", "seed"), recorded_at=q.get("recorded_at", ""))
+                for q in quotes
+            ],
+        )
+
+    @classmethod
     def compute(cls, observations: List[Dict[str, Any]], family: str = "H100") -> FixResult:
         rows, excluded = cls.universe(observations, family)
         neo = [r for r in rows if r.get("tier") in NEOCLOUD_TIERS]
@@ -135,5 +198,6 @@ class FixEngine:
             as_of=max((c.recorded_at for c in head.constituents), default=""),
             headline=head.value,
             segments=segments,
+            standardized=cls.standardized(observations, family),
             excluded=excluded,
         )

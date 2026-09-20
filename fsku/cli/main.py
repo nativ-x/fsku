@@ -85,6 +85,8 @@ def fix_cmd(
         f"{head}\n"
         f"[dim]neocloud, {neo.n} rows from {', '.join(neo.providers) or 'none'} · newest constituent {fx.as_of[:10] or '-'}[/dim]\n"
         f"[bold]Hyperscaler list:[/bold] {('$%.2f' % hyp.value) if hyp.value is not None else '-'}  ({hyp.n} rows: {', '.join(hyp.providers) or 'none'}) -- published beside, never blended\n"
+        f"[bold]Standardized:[/bold] {('[bold cyan]$%.2f[/bold cyan]' % fx.standardized.value) if fx.standardized and fx.standardized.value is not None else '-'}  "
+        f"({fx.standardized.n_sellers if fx.standardized else 0} sellers, one best-term quote each) -- comparable to a term-standardized quote index\n"
         f"[dim]{fx.method}[/dim]"
     )
     if fx.excluded:
@@ -98,6 +100,14 @@ def fix_cmd(
         f = lambda v: f"${v:.2f}" if v is not None else "-"
         t.add_row(rd.segment, f(rd.value), str(rd.n), f(rd.low), f(rd.high), f(rd.trimmed_mean_10), f(rd.simple_mean), " · ".join(rd.tiers))
     console.print(t)
+
+    if show_constituents and fx.standardized:
+        sq = Table(title="Standardized: the one quote per seller", show_header=True, header_style="bold cyan")
+        for col in ("Provider", "SKU", "Basis", "Tier", "$/GPU-hr", "Sourcing"):
+            sq.add_column(col, justify="right" if col == "$/GPU-hr" else "left")
+        for k in fx.standardized.quotes:
+            sq.add_row(k.provider, k.sku, k.basis, k.tier or "?", f"${k.per_gpu:.2f}", k.provenance)
+        console.print(sq)
 
     if show_constituents:
         c = Table(title="Constituents", show_header=True, header_style="bold magenta")
@@ -144,11 +154,11 @@ def fix_history_cmd(
         console.print(f"[yellow]No settled history for {family.upper()} yet -- run `settle`.[/yellow]")
         return
     t = Table(title=f"{family.upper()} Fix history", show_header=True, header_style="bold cyan")
-    for c, j in (("Date", "left"), ("Neocloud", "right"), ("n", "right"), ("Hyperscaler", "right"), ("Snapshot", "left"), ("Verified", "left"), ("Sync", "left")):
+    for c, j in (("Date", "left"), ("Listed", "right"), ("n", "right"), ("Standardized", "right"), ("sellers", "right"), ("Hyperscaler", "right"), ("Snapshot", "left"), ("Verified", "left"), ("Sync", "left")):
         t.add_column(c, justify=j)
     for r in rows:
         f = lambda v: f"${v:.2f}" if v is not None else "-"
-        t.add_row(r["date"], f(r.get("neocloud")), str(r.get("neocloud_n")), f(r.get("hyperscaler")), r.get("snapshot_id", ""), str(r.get("verified")), f"{r.get('sync_status')} L{r.get('sync_live')}/F{r.get('sync_fallback')}/C{r.get('sync_catalog')}")
+        t.add_row(r["date"], f(r.get("neocloud")), str(r.get("neocloud_n")), f(r.get("standardized")), str(r.get("standardized_n", 0)), f(r.get("hyperscaler")), r.get("snapshot_id", ""), str(r.get("verified")), f"{r.get('sync_status')} L{r.get('sync_live')}/F{r.get('sync_fallback')}/C{r.get('sync_catalog')}")
     console.print(t)
 
 @app.command("index")
