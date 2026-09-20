@@ -33,6 +33,7 @@
 
 4. **The FSKU Fix** — one published reading per GPU family, free:
    - `fsku fix` / `GET /api/fix?family=H100`. The family's **SXM/OAM** rows only (PCIe and NVL are different products), both topologies per-GPU normalized, **spot bases only** (On-demand, Spot, Retail API — never Capacity block or Reserved), split into two seller segments that are **never blended**: `neocloud` (Community, Secure, Specialized cloud) is the headline; `hyperscaler` (retail list) is published beside it. Each segment is a 10/90 winsorized median, unweighted — there is no free source of trade volume, and the reading says so in `method`. Every constituent row is returned with its sourcing and capture date.
+   - **Settled daily.** `fsku settle` (and `POST /api/settle`) syncs every adapter, snapshots the tape, verifies the checksum re-derives, computes the Fix for H100 / H200 / B200 / A100 from that snapshot's constituents, and appends one compact row per family to `fix_history` with the values, depth, constituent ids, snapshot id and checksum. `fsku fix-history` / `GET /api/fix/history?family=H100` read it back. The repository's **Daily Fix** workflow runs it at 20:00 UTC and commits the settled tape, so the published series lives in git with its full audit trail. Settlement is idempotent per UTC day. Snapshots carry `provenance` — `seed` for the four shipped with v0.9.0, `live` for hand or sync snapshots, `settle` for the daily run.
    - On the shipped tape the H100 neocloud Fix prints ~$2.49 against Ornn OCPI $2.85 and Silicon Data SDH100RT $2.53 (2026‑09‑19); the hyperscaler-list reading is ~$11–12. The old per-SKU median blended those and printed $8.61.
 
 5. **Like-for-like dispersion**:
@@ -154,6 +155,8 @@ The `fsku` CLI offers complete programmatic command capabilities:
 | `fsku forward` | Derive and render implied forward term structure table | `python fsku_cli.py forward --gpu H100 --horizon 36` |
 | `fsku compare` | Align and compare multiple GPU forward curves simultaneously | `python fsku_cli.py compare --families H100,H200,B200` |
 | `fsku fix` | The FSKU Fix for a family: neocloud headline + hyperscaler-list reading, with constituents | `python fsku_cli.py fix --family H100 --constituents` |
+| `fsku settle` | Daily settlement: sync, snapshot, verify, publish the Fix, append history | `python fsku_cli.py settle` |
+| `fsku fix-history` | Settled Fix series for a family | `python fsku_cli.py fix-history --family H100` |
 | `fsku list` | Render sortable price observations table in terminal | `python fsku_cli.py list --gpu H100 --basis On-demand` |
 | `fsku sync` | Trigger live multi-provider feed resynchronization | `python fsku_cli.py sync --label "Weekly sync"` |
 | `fsku snapshot list`| List historical point-in-time market snapshots | `python fsku_cli.py snapshot list` |
@@ -173,6 +176,8 @@ The `fsku` CLI offers complete programmatic command capabilities:
 | `GET` | `/api/providers/matrix` | Cross-provider pricing matrix with index deltas |
 | `GET` | `/api/history` | Historical index benchmark time-series across snapshots |
 | `GET` | `/api/fix` | The FSKU Fix for a family (`?family=H100`): segmented readings + constituents |
+| `GET` | `/api/fix/history` | Settled daily Fix series (`?family=H100`) |
+| `POST` | `/api/settle` | Run the daily settlement now |
 | `GET` | `/api/observations` | Query price observations (filter by gpu, provider, basis, tier, region, search) |
 | `POST` | `/api/observations` | Insert custom or negotiated observation |
 | `GET` | `/api/forward-curve` | Calculate implied forward curve for specified GPU family |

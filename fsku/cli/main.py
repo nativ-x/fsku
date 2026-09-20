@@ -108,6 +108,49 @@ def fix_cmd(
                 c.add_row(rd.segment, k.provider, k.sku, k.basis, k.tier or "?", f"${k.per_gpu:.2f}", k.provenance, k.recorded_at[:10])
         console.print(c)
 
+@app.command("settle")
+def settle_cmd(
+    no_sync: bool = typer.Option(False, "--no-sync", help="Settle on the current tape without resyncing"),
+    db_path: Optional[str] = typer.Option(None, "--db-dir", help="Path to database storage directory"),
+):
+    """Daily settlement: sync, snapshot, verify, publish the Fix for H100/H200/B200/A100, append history."""
+    from fsku.core.settle import SettlementEngine
+    db = get_db(db_path)
+    with console.status("[bold green]Settling...[/bold green]"):
+        res = asyncio.run(SettlementEngine(db).settle(do_sync=not no_sync))
+    color = "green" if res.verified else "red"
+    console.print(Panel(
+        f"[bold]Date:[/bold] {res.date}   [bold]Snapshot:[/bold] {res.snapshot_id}   [bold]Checksum:[/bold] {res.checksum}   "
+        f"[bold]Verified:[/bold] [{color}]{res.verified}[/{color}]   [bold]Sync:[/bold] {res.sync_status or 'skipped'}",
+        title="FSKU Daily Settlement", border_style=color))
+    t = Table(show_header=True, header_style="bold cyan")
+    for c, j in (("Family", "left"), ("Neocloud Fix", "right"), ("n", "right"), ("Providers", "left"), ("Hyperscaler list", "right"), ("n", "right"), ("As of", "left")):
+        t.add_column(c, justify=j)
+    for r in res.rows:
+        f = lambda v: f"${v:.2f}" if v is not None else "-"
+        t.add_row(r.family, f(r.neocloud), str(r.neocloud_n), ", ".join(r.neocloud_providers), f(r.hyperscaler), str(r.hyperscaler_n), r.as_of[:10])
+    console.print(t)
+
+@app.command("fix-history")
+def fix_history_cmd(
+    family: str = typer.Option("H100", "--family", "-f"),
+    limit: int = typer.Option(30, "--limit", "-n"),
+    db_path: Optional[str] = typer.Option(None, "--db-dir", help="Path to database storage directory"),
+):
+    """Settled Fix values for a family, oldest first."""
+    from fsku.core.settle import SettlementEngine
+    rows = SettlementEngine(get_db(db_path)).history_for(family, limit)
+    if not rows:
+        console.print(f"[yellow]No settled history for {family.upper()} yet -- run `settle`.[/yellow]")
+        return
+    t = Table(title=f"{family.upper()} Fix history", show_header=True, header_style="bold cyan")
+    for c, j in (("Date", "left"), ("Neocloud", "right"), ("n", "right"), ("Hyperscaler", "right"), ("Snapshot", "left"), ("Verified", "left"), ("Sync", "left")):
+        t.add_column(c, justify=j)
+    for r in rows:
+        f = lambda v: f"${v:.2f}" if v is not None else "-"
+        t.add_row(r["date"], f(r.get("neocloud")), str(r.get("neocloud_n")), f(r.get("hyperscaler")), r.get("snapshot_id", ""), str(r.get("verified")), f"{r.get('sync_status')} L{r.get('sync_live')}/F{r.get('sync_fallback')}/C{r.get('sync_catalog')}")
+    console.print(t)
+
 @app.command("index")
 def index_cmd(
     method: str = typer.Option("median", "--method", "-m", help="Methodology: median, trimmed_10, trimmed_20, provider_balanced, simple_mean, gpu_weighted"),

@@ -642,7 +642,8 @@
         "snapshot_id": null,
         "metadata": {}
       }
-    ]
+    ],
+    "provenance": "seed"
   },
   {
     "id": "snap_20260415_8422a0",
@@ -1287,7 +1288,8 @@
         "snapshot_id": null,
         "metadata": {}
       }
-    ]
+    ],
+    "provenance": "seed"
   },
   {
     "id": "snap_20260701_1387d0",
@@ -1932,7 +1934,8 @@
         "snapshot_id": null,
         "metadata": {}
       }
-    ]
+    ],
+    "provenance": "seed"
   },
   {
     "id": "snap_20260818_7366ba",
@@ -2577,6 +2580,7 @@
         "snapshot_id": null,
         "metadata": {}
       }
-    ]
+    ],
+    "provenance": "seed"
   }
 ]

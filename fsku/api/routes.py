@@ -28,6 +28,7 @@ from fsku.core.models import (
 from fsku.core.pricing import PricingEngine
 from fsku.sync.engine import SyncEngine
 from fsku.core.fix import FixEngine, FixResult
+from fsku.core.settle import SettlementResult
 
 router = APIRouter(prefix="/api", tags=["FSKU Core Benchmark API"])
 
@@ -69,6 +70,28 @@ def get_fix(
     Listed-price, SXM/OAM only, spot bases only, 10/90 winsorized median. See fsku/core/fix.py.
     """
     return FixEngine.compute(db.observations.find(), family=family)
+
+@router.get("/fix/history")
+def get_fix_history(
+    family: str = Query("H100"),
+    limit: int = Query(365, ge=1, le=3650),
+    db: FSKUDb = Depends(get_db),
+):
+    """Daily settled Fix values for a family, oldest first, each traceable to a verified snapshot."""
+    from fsku.core.settle import SettlementEngine
+    return {"family": family.upper(), "rows": SettlementEngine(db).history_for(family, limit)}
+
+@router.post("/settle", response_model=SettlementResult)
+async def run_settlement(
+    sync: bool = Query(True, description="Resync all adapters before settling"),
+    db: FSKUDb = Depends(get_db),
+):
+    """Run the daily settlement now: sync, snapshot, verify, publish the Fix for every settled family."""
+    from fsku.core.settle import SettlementEngine
+    try:
+        return await SettlementEngine(db).settle(do_sync=sync)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Settlement failed: {str(e)}")
 
 @router.get("/index/summary", response_model=List[SkuIndexSummary])
 def get_sku_index_summaries(
