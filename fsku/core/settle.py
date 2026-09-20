@@ -34,6 +34,9 @@ class FixHistoryRow(BaseModel):
     neocloud_providers: List[str]
     hyperscaler: Optional[float]
     hyperscaler_n: int
+    standardized: Optional[float] = Field(default=None, description="Term-standardized, seller-balanced reading (FixEngine.standardized)")
+    standardized_n: int = Field(default=0, description="Sellers that voted")
+    standardized_ids: List[str] = Field(default_factory=list, description="The one quote per seller")
     as_of: str
     snapshot_id: str
     checksum: str
@@ -86,6 +89,9 @@ class SettlementEngine:
                 date=date, family=fam.upper(), settled_at=now.isoformat(),
                 neocloud=neo.value, neocloud_n=neo.n, neocloud_providers=neo.providers,
                 hyperscaler=hyp.value, hyperscaler_n=hyp.n,
+                standardized=fx.standardized.value if fx.standardized else None,
+                standardized_n=fx.standardized.n_sellers if fx.standardized else 0,
+                standardized_ids=[q.id for q in fx.standardized.quotes] if fx.standardized else [],
                 as_of=fx.as_of, snapshot_id=snap["id"], checksum=snap["checksum"],
                 verified=bool(verify.get("verified")),
                 constituent_ids={"neocloud": [c.id for c in neo.constituents], "hyperscaler": [c.id for c in hyp.constituents]},
