@@ -41,9 +41,9 @@
   },
   {
     "id": "lambda",
-    "name": "Lambda Cloud GPU Pricing",
+    "name": "Lambda Cloud Pricing",
     "domain": "lambdalabs.com",
-    "url": "https://lambdalabs.com/service/gpu-cloud",
+    "url": "https://lambda.ai/pricing",
     "desc": "Published on-demand and reserved 1-GPU and 8-GPU cloud instance pricing.",
     "adapter": "lambda"
   },
@@ -54,6 +54,22 @@
     "url": "https://vast.ai/pricing",
     "desc": "Live rentable on-demand asks from a peer-hosted GPU marketplace; FSKU publishes the per-SKU median ask with offer depth.",
     "adapter": "vast"
+  },
+  {
+    "id": "nebius",
+    "name": "Nebius AI Cloud Prices",
+    "domain": "nebius.com",
+    "url": "https://nebius.com/prices",
+    "desc": "Published per-GPU-hour on-demand and preemptible rates for HGX nodes.",
+    "adapter": "nebius"
+  },
+  {
+    "id": "together",
+    "name": "Together AI GPU Cluster Pricing",
+    "domain": "together.ai",
+    "url": "https://www.together.ai/pricing",
+    "desc": "Published per-GPU-hour on-demand and 7-30 day reserved rates for HGX clusters.",
+    "adapter": "together"
   },
   {
     "id": "h100",

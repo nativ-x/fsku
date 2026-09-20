@@ -15,6 +15,8 @@ from fsku.sync.providers.aws import AWSAdapter
 from fsku.sync.providers.gcp import GCPAdapter
 from fsku.sync.providers.lambda_cloud import LambdaCloudAdapter
 from fsku.sync.providers.vast import VastAdapter
+from fsku.sync.providers.nebius import NebiusAdapter
+from fsku.sync.providers.together import TogetherAdapter
 from fsku.sync.specs_catalog import SpecsCatalogSync
 
 class SyncEngine:
@@ -28,6 +30,8 @@ class SyncEngine:
         GCPAdapter,
         LambdaCloudAdapter,
         VastAdapter,
+        NebiusAdapter,
+        TogetherAdapter,
     ]
 
     def __init__(self, db: Optional[FSKUDb] = None, adapters: Optional[List[Type[BaseProviderAdapter]]] = None):
