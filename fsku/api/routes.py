@@ -27,6 +27,7 @@ from fsku.core.models import (
 )
 from fsku.core.pricing import PricingEngine
 from fsku.sync.engine import SyncEngine
+from fsku.core.fix import FixEngine, FixResult
 
 router = APIRouter(prefix="/api", tags=["FSKU Core Benchmark API"])
 
@@ -57,6 +58,17 @@ def get_market_kpis(db: FSKUDb = Depends(get_db)):
         "kpis": kpis,
         "memory_economics": mem_econ,
     }
+
+@router.get("/fix", response_model=FixResult)
+def get_fix(
+    family: str = Query("H100", description="GPU family: H100, H200, B200, B300, A100, MI300X"),
+    db: FSKUDb = Depends(get_db),
+):
+    """The FSKU Fix: the family's neocloud reading (headline) and hyperscaler-list reading, never blended.
+
+    Listed-price, SXM/OAM only, spot bases only, 10/90 winsorized median. See fsku/core/fix.py.
+    """
+    return FixEngine.compute(db.observations.find(), family=family)
 
 @router.get("/index/summary", response_model=List[SkuIndexSummary])
 def get_sku_index_summaries(

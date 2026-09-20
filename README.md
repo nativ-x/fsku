@@ -31,21 +31,25 @@
      $$\text{Upper Band}(T) = F(T) \times \exp\left(+ \sigma \sqrt{T}\right), \quad \text{Lower Band}(T) = F(T) \times \exp\left(- \sigma \sqrt{T}\right)$$
      where $S_0$ is the cash anchor median for the specific deliverable SKU, $c$ is the annual carry & scarcity rate, $d$ is data-derived technological decay, and $\sigma$ is spot price dispersion volatility expanding over longer tenors.
 
-4. **Like-for-like dispersion**:
+4. **The FSKU Fix** — one published reading per GPU family, free:
+   - `fsku fix` / `GET /api/fix?family=H100`. The family's **SXM/OAM** rows only (PCIe and NVL are different products), both topologies per-GPU normalized, **spot bases only** (On-demand, Spot, Retail API — never Capacity block or Reserved), split into two seller segments that are **never blended**: `neocloud` (Community, Secure, Specialized cloud) is the headline; `hyperscaler` (retail list) is published beside it. Each segment is a 10/90 winsorized median, unweighted — there is no free source of trade volume, and the reading says so in `method`. Every constituent row is returned with its sourcing and capture date.
+   - On the shipped tape the H100 neocloud Fix prints ~$2.49 against Ornn OCPI $2.85 and Silicon Data SDH100RT $2.53 (2026‑09‑19); the hyperscaler-list reading is ~$11–12. The old per-SKU median blended those and printed $8.61.
+
+5. **Like-for-like dispersion**:
    - The headline dispersion figure is computed for **one deliverable SKU** (the H100 unit with the most observations, HGX 8x on a tie) and reported as the widest high/low **within a single capacity tier** of it. The old figure — high/low across every H100-named row, PCIe card to HGX 8x cluster, community to hyperscaler — is still exposed, as `h100_family_range`, named for what it is. On the shipped tape the family range is 6.2×; the like-for-like figure for H100 SXM (HGX 8x) is a fraction of that. The difference is the pooling bias this project claims to remove, measured.
 
-5. **Institutional Stress Testing & Diagnostic Instruments**:
+6. **Institutional Stress Testing & Diagnostic Instruments**:
    - **Source Ablation Engine**: Assesses the price impact ($\Delta\%$) when individual providers are excluded from the index.
    - **Methodology Sensitivity Matrix**: Compares 6 aggregation methodologies (Robust Median, 10% Trimmed Mean, 20% Trimmed Mean, Provider-Balanced, GPU-Weighted, Simple Mean) in real time.
    - **Provenance Ledger**: Transparent unadjusted unit math and direct provider source URLs.
 
-6. **Multi-Provider Resync Engine, with honest provenance**:
+7. **Multi-Provider Resync Engine, with honest provenance**:
    - **One live adapter in this release**: Azure Retail Prices REST API. Each Azure SKU also carries a constant used only when the API returns nothing usable; such rows are tagged `fallback`, dated when the constant was captured, and counted in the report.
    - **Five catalog adapters**: RunPod, CoreWeave, AWS Capacity Blocks, GCP Accelerator VMs, Lambda Labs read hardcoded rate tables captured from the providers' public pricing pages and never touch the network. Their rows are tagged `catalog` and carry the capture date as `recorded_at` — a sync run does not re-stamp them with today's date.
    - Every observation carries `provenance` (`live` / `fallback` / `catalog` / `seed`). The sync log reports `providers_live`, `providers_catalog`, per-row counts, and a per-adapter table with request counts and every substitution. `status` is `success` only when no constant was substituted.
    - Diff engine: detects added, updated, unchanged, and deprecated rates with full audit logs.
 
-7. **Modern Web Terminal Dashboard**:
+8. **Modern Web Terminal Dashboard**:
    - Dark-mode financial terminal UI with one-click snapshot verification and constituent audit inspection.
    - Interactive Forward Curve explorer with configurable horizon, cadence, carry, and cash anchor.
    - Multi-column sortable and searchable market tape with CSV and JSON exports.
@@ -149,6 +153,7 @@ The `fsku` CLI offers complete programmatic command capabilities:
 | `fsku ablation` | Stress-test index stability by simulating provider exclusions | `python fsku_cli.py ablation --sku "H100 SXM"` |
 | `fsku forward` | Derive and render implied forward term structure table | `python fsku_cli.py forward --gpu H100 --horizon 36` |
 | `fsku compare` | Align and compare multiple GPU forward curves simultaneously | `python fsku_cli.py compare --families H100,H200,B200` |
+| `fsku fix` | The FSKU Fix for a family: neocloud headline + hyperscaler-list reading, with constituents | `python fsku_cli.py fix --family H100 --constituents` |
 | `fsku list` | Render sortable price observations table in terminal | `python fsku_cli.py list --gpu H100 --basis On-demand` |
 | `fsku sync` | Trigger live multi-provider feed resynchronization | `python fsku_cli.py sync --label "Weekly sync"` |
 | `fsku snapshot list`| List historical point-in-time market snapshots | `python fsku_cli.py snapshot list` |
@@ -167,6 +172,7 @@ The `fsku` CLI offers complete programmatic command capabilities:
 | `GET` | `/api/index/ablation` | Source ablation impact matrix (supports `sku=`) |
 | `GET` | `/api/providers/matrix` | Cross-provider pricing matrix with index deltas |
 | `GET` | `/api/history` | Historical index benchmark time-series across snapshots |
+| `GET` | `/api/fix` | The FSKU Fix for a family (`?family=H100`): segmented readings + constituents |
 | `GET` | `/api/observations` | Query price observations (filter by gpu, provider, basis, tier, region, search) |
 | `POST` | `/api/observations` | Insert custom or negotiated observation |
 | `GET` | `/api/forward-curve` | Calculate implied forward curve for specified GPU family |

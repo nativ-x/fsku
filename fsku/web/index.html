@@ -1312,6 +1312,7 @@ function applyForwardScenario(scenario) {
 }
 
 async function loadAllData() {
+  try { window.__fix = await fetch('/api/fix?family=H100').then(r => r.json()); } catch (e) { window.__fix = null; }
   try {
     const [obsRes, specsRes, srcRes, sumRes, sensRes, ablRes, provRes, histRes, snapRes] = await Promise.all([
       fetch('/api/observations').then(r => r.json()),
@@ -1435,7 +1436,13 @@ function renderOverview() {
         : `like-for-like, ${widestTier} · family range ${hSpread.toFixed(1)}× (cross-SKU, cross-tier)`)
     : 'no H100 rows';
 
+  const fx = window.__fix;
+  const fixTile = fx && fx.headline != null
+    ? [`${fx.family} FIX · NEOCLOUD`, money(fx.headline), `${fx.segments.neocloud.n} rows · hyperscaler list ${fx.segments.hyperscaler.value != null ? money(fx.segments.hyperscaler.value) : '—'} (${fx.segments.hyperscaler.n}) · as of ${(fx.as_of || '').slice(0, 10)}`, [1, 1, 1, 1, 1, 1]]
+    : ['H100 FIX · NEOCLOUD', '—', 'no neocloud constituents on the tape', [1, 1, 1, 1, 1, 1]];
+
   const kpis = [
+    fixTile,
     ['MARKET OBSERVATIONS', marketRows.length, 'NoSQL-synced quotes', [1, 2, 1.7, 2.8, 2.1, 3.1]],
     ['PUBLIC SOURCES', sourceCount, 'Verified provider feeds', [1, 1.2, 1.4, 1.8, 2.1, 2.3]],
     ['GPU SKUs TRACKED', gpuCount, 'Distinct accelerator SKUs', [1.2, 1.8, 1.6, 2.3, 2.5, 3]],
