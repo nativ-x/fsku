@@ -21,6 +21,7 @@
 2. **Physical Deliverable Contract Unit Resolution**:
    - Differentiates clustered **HGX 8x nodes** (900 GB/s NVLink 4, 3.2 Tbps InfiniBand/EFA) from **1x Standalone Pods**, **PCIe Gen5**, and **NVL** modules.
    - Eliminates pooling bias between high-end distributed training clusters and single inference cards.
+   - Every observation also carries a **capacity tier** — `Community` (peer-hosted marketplace, e.g. RunPod Community Cloud), `Secure` (provider-operated datacenter capacity on a marketplace), `Specialized cloud` (CoreWeave, Lambda), `Hyperscaler` (AWS / Azure / GCP retail) — orthogonal to the contract basis. The RunPod rates on the shipped tape are Community Cloud; Secure Cloud ran 12–31% higher for the same SKUs on 2026‑09‑19. A SKU index whose observations span more than one tier is flagged **mixed** in the overview.
 
 3. **Quantitative Pricing & Term Structure Volatility Diffusion**:
    - **Normalized Settlement Rate**: $$\text{Normalized Rate} = \frac{\text{Server Hourly Rate}}{\text{Published GPU Count}}$$
@@ -100,7 +101,7 @@ The platform provides a cohesive financial terminal workflow structured around t
 | **7. Provider Comparison View** | Cross-provider pricing matrix across hyperscalers (AWS, GCP, Azure), specialized clouds (CoreWeave, RunPod, Lambda Labs), and secondary marketplaces with delta vs benchmark index ($\Delta\%$). |
 | **8. Methodology Sensitivity View** | Quantitative sensitivity matrix demonstrating how 6 different aggregation formulas affect the spot index for every SKU with maximum divergence percentages. |
 | **9. Source Ablation View** | Benchmark resilience stress testing showing the exact price impact ($\Delta\$$, $\Delta\%$) when individual providers or feeds are excluded from the index calculation. |
-| **10. Market Tape View** | Full transparent access to all normalized underlying observations with instant multi-column sorting, live search, and filters by SKU, provider, and contract basis. |
+| **10. Market Tape View** | Full transparent access to all normalized underlying observations with instant multi-column sorting, live search, and filters by SKU, provider, contract basis, and capacity tier. |
 | **11. Data Provenance View** | Traceability ledger showing direct provider URLs, observation timestamps, contract bases, geographical regions, gross instance prices, and normalization formulas applied. |
 | **12. Methodology Documentation** | Plain-English institutional specification explaining unit normalization, outlier filtering, equal vs volume weighting, technological deflation inference, and forward curve formulations. |
 
@@ -163,7 +164,7 @@ The `fsku` CLI offers complete programmatic command capabilities:
 | `GET` | `/api/index/ablation` | Source ablation impact matrix (supports `sku=`) |
 | `GET` | `/api/providers/matrix` | Cross-provider pricing matrix with index deltas |
 | `GET` | `/api/history` | Historical index benchmark time-series across snapshots |
-| `GET` | `/api/observations` | Query price observations (filter by gpu, provider, basis, region, search) |
+| `GET` | `/api/observations` | Query price observations (filter by gpu, provider, basis, tier, region, search) |
 | `POST` | `/api/observations` | Insert custom or negotiated observation |
 | `GET` | `/api/forward-curve` | Calculate implied forward curve for specified GPU family |
 | `GET` | `/api/forward-curves/compare`| Simultaneously calculate and align multi-GPU forward curves |

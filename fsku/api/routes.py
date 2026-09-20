@@ -133,6 +133,7 @@ def list_observations(
     provider: Optional[str] = Query(None, description="Filter by provider name"),
     gpu: Optional[str] = Query(None, description="Filter by GPU family or name"),
     basis: Optional[str] = Query(None, description="Filter by price basis (On-demand, Spot, etc.)"),
+    tier: Optional[str] = Query(None, description="Filter by capacity tier (Community, Secure, Specialized cloud, Hyperscaler)"),
     region: Optional[str] = Query(None, description="Filter by region"),
     search: Optional[str] = Query(None, description="Full-text search query across fields"),
     sort_by: Optional[str] = Query("perGpu", description="Field to sort by"),
@@ -149,6 +150,8 @@ def list_observations(
         query["gpu"] = {"$contains": gpu}
     if basis and basis != "all":
         query["basis"] = basis
+    if tier and tier != "all":
+        query["tier"] = tier
     if region and region != "all":
         query["region"] = {"$contains": region}
 
@@ -158,7 +161,7 @@ def list_observations(
         s = search.lower().strip()
         all_rows = [
             r for r in all_rows
-            if s in f"{r.get('provider', '')} {r.get('gpu', '')} {r.get('instance', '')} {r.get('basis', '')} {r.get('region', '')}".lower()
+            if s in f"{r.get('provider', '')} {r.get('gpu', '')} {r.get('instance', '')} {r.get('basis', '')} {r.get('tier', '')} {r.get('region', '')}".lower()
         ]
 
     total_matched = len(all_rows)

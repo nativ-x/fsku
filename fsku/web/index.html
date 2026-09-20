@@ -431,6 +431,7 @@
               <th data-key="dispersion_ratio" class="num">Dispersion ↕</th>
               <th data-key="observation_count" class="num">Obs Count ↕</th>
               <th data-key="provider_count" class="num">Providers ↕</th>
+              <th>Tiers</th>
               <th data-key="confidence">Confidence ↕</th>
               <th data-key="market_status">Status ↕</th>
               <th>Action</th>
@@ -619,6 +620,7 @@
               <th>Provider</th>
               <th>Instance Name</th>
               <th>Basis</th>
+              <th>Tier</th>
               <th class="num">GPU Count</th>
               <th class="num">Gross $/hr</th>
               <th class="num">Normalized $/GPU-hr</th>
@@ -664,6 +666,7 @@
           <div class="callout-row"><span>Contributing Providers</span><b id="spotProvidersCount">—</b></div>
           <div class="callout-row"><span>Statistical Robustness</span><b id="spotConfidenceBadge">—</b></div>
           <div class="callout-row"><span>Basis Spectrum</span><b>On-demand · Spot · CapBlock · Retail API</b></div>
+          <div class="callout-row"><span>Tier Spectrum</span><b>Community · Specialized cloud · Hyperscaler</b></div>
         </div>
         <div class="panel callout">
           <div class="eyebrow">Index Dispersion Metrics</div>
@@ -1043,6 +1046,13 @@
             <option value="Capacity block">Capacity block</option>
             <option value="Retail API">Retail API</option>
           </select>
+          <select id="tapeTierFilter" class="select">
+            <option value="all">All Tiers</option>
+            <option value="Community">Community</option>
+            <option value="Secure">Secure</option>
+            <option value="Specialized cloud">Specialized cloud</option>
+            <option value="Hyperscaler">Hyperscaler</option>
+          </select>
           <button class="btn" onclick="copyTableToClipboard('#tapeTable')">Copy Tape</button>
         </div>
       </div>
@@ -1056,6 +1066,7 @@
               <th data-key="form_factor">Form Factor ↕</th>
               <th data-key="instance">Instance Name ↕</th>
               <th data-key="basis">Basis ↕</th>
+              <th data-key="tier">Tier ↕</th>
               <th data-key="gpuCount" class="num">GPUs ↕</th>
               <th data-key="total" class="num">Total $/hr ↕</th>
               <th data-key="perGpu" class="num">$/GPU-hr ↕</th>
@@ -1094,6 +1105,7 @@
               <th>Provider</th>
               <th>GPU SKU</th>
               <th>Contract Basis</th>
+              <th>Tier</th>
               <th>Sourcing</th>
               <th>Geography / Region</th>
               <th>Normalization Formula Applied</th>
@@ -1203,6 +1215,16 @@ const PROVENANCE_TITLE = {
   catalog: 'Adapter reads a hardcoded rate table and never calls the network',
   seed: 'Shipped with the repository; not produced by a sync run',
 };
+const TIER_TITLE = {
+  'Community': 'Peer-hosted marketplace capacity (RunPod Community Cloud)',
+  'Secure': 'Provider-operated datacenter capacity sold through a marketplace (RunPod Secure Cloud)',
+  'Specialized cloud': 'GPU-native cloud (CoreWeave, Lambda)',
+  'Hyperscaler': 'AWS / Azure / Google Cloud retail',
+};
+function tierChip(t) {
+  if (!t) return '<span class="chip" style="font-size:8.5px;color:var(--dim)">—</span>';
+  return `<span class="chip" style="font-size:8.5px;color:var(--purple, #c084fc);border-color:var(--purple, #c084fc)" title="${TIER_TITLE[t] || ''}">${t}</span>`;
+}
 function provenanceChip(r) {
   const p = r.provenance || 'seed';
   const color = p === 'live' ? 'var(--good)' : (p === 'fallback' ? 'var(--warn, #f59e0b)' : 'var(--dim)');
@@ -1442,6 +1464,7 @@ function renderOverview() {
       <td class="num"><b>${s.dispersion_ratio}×</b></td>
       <td class="num">${s.observation_count}</td>
       <td class="num">${s.provider_count}</td>
+      <td title="${(s.tiers||[]).length > 1 ? 'Mixed tiers: the low and high quotes may be different products' : ''}">${(s.tiers||[]).map(tierChip).join(' ') || tierChip(null)}${(s.tiers||[]).length > 1 ? ' <span style="font-size:8.5px;color:var(--warn, #f59e0b)">mixed</span>' : ''}</td>
       <td><span class="chip ${confClass}">${s.confidence}</span></td>
       <td><span class="chip ${statClass}">${s.market_status}</span></td>
       <td><button class="btn" style="padding:2.5px 7px;font-size:9.5px" onclick="selectSkuAndGo('${s.sku}');event.stopPropagation();">Inspect ↗</button></td>
@@ -1676,6 +1699,7 @@ function renderSkuDetail() {
       <td><div class="provider">${r.provider}</div></td>
       <td><div>${r.instance}</div></td>
       <td><span class="chip ${r.basis==='Spot'?'spot':(r.basis==='Capacity block'?'capacity':'api')}">${r.basis}</span></td>
+      <td>${tierChip(r.tier)}</td>
       <td class="num">${r.gpuCount}</td>
       <td class="num">${money(r.total)}</td>
       <td class="num"><b>${money(r.perGpu)}</b></td>
@@ -2203,6 +2227,7 @@ function renderTapeTable() {
   const q = document.getElementById('tapeSearch').value.toLowerCase().trim();
   const gf = document.getElementById('tapeGpuFilter').value;
   const bf = document.getElementById('tapeBasisFilter').value;
+  const tf = document.getElementById('tapeTierFilter')?.value || 'all';
 
   const gpuSel = document.getElementById('tapeGpuFilter');
   const gpus = [...new Set(marketRows.map(r=>r.gpu))].sort();
@@ -2210,7 +2235,7 @@ function renderTapeTable() {
     gpuSel.innerHTML = '<option value="all">All GPUs</option>' + gpus.map(g=>`<option value="${g}">${g}</option>`).join('');
   }
 
-  let rows = marketRows.filter(r => (gf==='all'||r.gpu===gf) && (bf==='all'||r.basis===bf) && (!q || `${r.provider} ${r.gpu} ${r.instance} ${r.basis} ${r.region}`.toLowerCase().includes(q)));
+  let rows = marketRows.filter(r => (gf==='all'||r.gpu===gf) && (bf==='all'||r.basis===bf) && (tf==='all'||r.tier===tf) && (!q || `${r.provider} ${r.gpu} ${r.instance} ${r.basis} ${r.tier || ''} ${r.region}`.toLowerCase().includes(q)));
   rows.sort((a,b) => {
     let A=a[sortKey], B=b[sortKey];
     if(typeof A==='string'){A=A.toLowerCase();B=B.toLowerCase();}
@@ -2227,6 +2252,7 @@ function renderTapeTable() {
       <td><span class="chip" style="font-size:8.5px">${r.form_factor || 'SXM'}</span></td>
       <td><div class="muted">${r.instance}</div></td>
       <td><span class="chip ${r.basis==='Spot'?'spot':(r.basis==='Capacity block'?'capacity':'api')}">${r.basis}</span></td>
+      <td>${tierChip(r.tier)}</td>
       <td class="num">${r.gpuCount}</td>
       <td class="num">${money(r.total)}</td>
       <td class="num"><b style="color:var(--good)">${money(r.perGpu)}</b></td>
@@ -2247,6 +2273,7 @@ function renderProvenanceView() {
       <td><div class="provider">${r.provider}</div></td>
       <td><div class="gpu">${r.gpu}</div></td>
       <td><span class="chip">${r.basis}</span></td>
+      <td>${tierChip(r.tier)}</td>
       <td>${provenanceChip(r)}</td>
       <td>${r.region || 'Global'}</td>
       <td><span style="font-family:monospace;font-size:10px;color:var(--cyan)">${formula}</span></td>

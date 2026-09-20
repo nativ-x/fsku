@@ -16,6 +16,7 @@ class AWSAdapter(BaseProviderAdapter):
     # tagged provenance="catalog" and dated catalog_as_of by the sync engine.
     mode = "catalog"
     catalog_as_of = "2026-08-25"
+    tier = "Hyperscaler"
 
     AWS_CATALOG = [
         {
