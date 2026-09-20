@@ -31,18 +31,21 @@
      $$\text{Upper Band}(T) = F(T) \times \exp\left(+ \sigma \sqrt{T}\right), \quad \text{Lower Band}(T) = F(T) \times \exp\left(- \sigma \sqrt{T}\right)$$
      where $S_0$ is the cash anchor median for the specific deliverable SKU, $c$ is the annual carry & scarcity rate, $d$ is data-derived technological decay, and $\sigma$ is spot price dispersion volatility expanding over longer tenors.
 
-4. **Institutional Stress Testing & Diagnostic Instruments**:
+4. **Like-for-like dispersion**:
+   - The headline dispersion figure is computed for **one deliverable SKU** (the H100 unit with the most observations, HGX 8x on a tie) and reported as the widest high/low **within a single capacity tier** of it. The old figure — high/low across every H100-named row, PCIe card to HGX 8x cluster, community to hyperscaler — is still exposed, as `h100_family_range`, named for what it is. On the shipped tape the family range is 6.2×; the like-for-like figure for H100 SXM (HGX 8x) is a fraction of that. The difference is the pooling bias this project claims to remove, measured.
+
+5. **Institutional Stress Testing & Diagnostic Instruments**:
    - **Source Ablation Engine**: Assesses the price impact ($\Delta\%$) when individual providers are excluded from the index.
    - **Methodology Sensitivity Matrix**: Compares 6 aggregation methodologies (Robust Median, 10% Trimmed Mean, 20% Trimmed Mean, Provider-Balanced, GPU-Weighted, Simple Mean) in real time.
    - **Provenance Ledger**: Transparent unadjusted unit math and direct provider source URLs.
 
-5. **Multi-Provider Resync Engine, with honest provenance**:
+6. **Multi-Provider Resync Engine, with honest provenance**:
    - **One live adapter in this release**: Azure Retail Prices REST API. Each Azure SKU also carries a constant used only when the API returns nothing usable; such rows are tagged `fallback`, dated when the constant was captured, and counted in the report.
    - **Five catalog adapters**: RunPod, CoreWeave, AWS Capacity Blocks, GCP Accelerator VMs, Lambda Labs read hardcoded rate tables captured from the providers' public pricing pages and never touch the network. Their rows are tagged `catalog` and carry the capture date as `recorded_at` — a sync run does not re-stamp them with today's date.
    - Every observation carries `provenance` (`live` / `fallback` / `catalog` / `seed`). The sync log reports `providers_live`, `providers_catalog`, per-row counts, and a per-adapter table with request counts and every substitution. `status` is `success` only when no constant was substituted.
    - Diff engine: detects added, updated, unchanged, and deprecated rates with full audit logs.
 
-6. **Modern Web Terminal Dashboard**:
+7. **Modern Web Terminal Dashboard**:
    - Dark-mode financial terminal UI with one-click snapshot verification and constituent audit inspection.
    - Interactive Forward Curve explorer with configurable horizon, cadence, carry, and cash anchor.
    - Multi-column sortable and searchable market tape with CSV and JSON exports.

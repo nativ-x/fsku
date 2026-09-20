@@ -125,10 +125,12 @@ class MarketKpis(BaseModel):
     source_count: int
     gpu_families_count: int
     median_observed_rate: float
-    h100_dispersion: float
+    h100_dispersion: float = Field(description="HIGH/LOW across every H100-named row, all SKUs, all tiers. A family range, kept for snapshot comparability. Use `reference` for a like-for-like figure.")
+    h100_family_range: Optional[float] = Field(default=None, description="Same value as h100_dispersion under an honest name")
     lowest_h100: Dict[str, Any]
     highest_h100: Dict[str, Any]
     median_h100: float
+    reference: Dict[str, Any] = Field(default_factory=dict, description="Dispersion of the reference H100 deliverable unit, overall and within a single tier. See PricingEngine.calculate_reference_dispersion.")
 
 class ProviderSyncReport(BaseModel):
     """What one adapter actually did during a sync run."""
@@ -180,7 +182,10 @@ class MarketSnapshot(BaseModel):
     source_count: int
     gpu_count: int
     median_rate: float
-    h100_dispersion: float
+    h100_dispersion: float = Field(description="Family range at snapshot time (cross-SKU, cross-tier); see reference_dispersion for like-for-like")
+    reference_sku: Optional[str] = None
+    reference_dispersion: Optional[float] = Field(default=None, description="High/low within the reference SKU, all tiers")
+    reference_same_tier_dispersion: Optional[float] = Field(default=None, description="Widest high/low within one tier of the reference SKU")
     checksum: str
     observations: List[Observation] = Field(default_factory=list)
 

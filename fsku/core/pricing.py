@@ -422,26 +422,104 @@ class PricingEngine:
         lowest_h100 = min(h100_rows, key=lambda x: x.get("perGpu", float("inf"))) if h100_rows else {}
         highest_h100 = max(h100_rows, key=lambda x: x.get("perGpu", float("-inf"))) if h100_rows else {}
 
+        def quote(r: Dict[str, Any]) -> Dict[str, Any]:
+            return {
+                "provider": r.get("provider", ""),
+                "rate": r.get("perGpu", 0.0),
+                "instance": r.get("instance", ""),
+                "sku": r.get("gpu", ""),
+                "tier": r.get("tier"),
+                "topology": r.get("topology"),
+                "basis": r.get("basis"),
+            } if r else {}
+
+        reference = cls.calculate_reference_dispersion(h100_rows)
+
         return {
             "observation_count": len(observations),
             "source_count": len(sources),
             "gpu_families_count": len(gpus),
             "median_observed_rate": round(cls.median(all_prices), 3),
+            # h100_dispersion is the HIGH/LOW across every row whose GPU name
+            # contains "H100" -- PCIe cards, 1x pods and HGX 8x clusters, every
+            # tier, every basis. It is kept under this name because stored
+            # snapshots carry it, but it is a family RANGE, not a dispersion of
+            # one product. The like-for-like figure is under "reference".
             "h100_dispersion": round(h_spread, 2),
+            "h100_family_range": round(h_spread, 2),
             "h100_count": len(h100_rows),
             "h100_min": round(h_min, 3),
             "h100_max": round(h_max, 3),
             "median_h100": round(h_med, 3),
-            "lowest_h100": {
-                "provider": lowest_h100.get("provider", ""),
-                "rate": lowest_h100.get("perGpu", 0.0),
-                "instance": lowest_h100.get("instance", ""),
-            } if lowest_h100 else {},
-            "highest_h100": {
-                "provider": highest_h100.get("provider", ""),
-                "rate": highest_h100.get("perGpu", 0.0),
-                "instance": highest_h100.get("instance", ""),
-            } if highest_h100 else {},
+            "lowest_h100": quote(lowest_h100),
+            "highest_h100": quote(highest_h100),
+            "reference": reference,
+        }
+
+    @classmethod
+    def calculate_reference_dispersion(cls, h100_rows: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Dispersion of ONE deliverable product, and within ONE tier of it.
+
+        "H100 dispersion 6.2x, RunPod $1.99 vs Azure $12.29" compares a
+        community-tier PCIe card with an enterprise HGX 8x cluster. Those are
+        different products at different tiers; the ratio is a fact about the
+        catalogue, not about price discovery. This picks the reference SKU (the
+        H100 deliverable unit with the most observations, HGX 8x on a tie) and
+        reports:
+
+          dispersion            high/low within that SKU, all tiers
+          same_tier_dispersion  the widest high/low within a single tier of it
+                                -- the like-for-like number
+          by_tier               count / low / high / dispersion per tier
+          like_for_like         True when the SKU has one tier only
+        """
+        if not h100_rows:
+            return {}
+        by_sku: Dict[str, List[Dict[str, Any]]] = {}
+        for r in h100_rows:
+            if r.get("perGpu", 0) > 0:
+                by_sku.setdefault(r.get("gpu", "").strip(), []).append(r)
+        if not by_sku:
+            return {}
+        ref_sku = max(by_sku, key=lambda k: (len(by_sku[k]), "8x" in k or "HGX" in k, k))
+        rows = by_sku[ref_sku]
+        prices = [r["perGpu"] for r in rows]
+        lo = min(rows, key=lambda r: r["perGpu"])
+        hi = max(rows, key=lambda r: r["perGpu"])
+
+        by_tier: Dict[str, Dict[str, Any]] = {}
+        for r in rows:
+            t = r.get("tier") or "unlabelled"
+            g = by_tier.setdefault(t, {"count": 0, "low": None, "high": None, "providers": set()})
+            g["count"] += 1
+            g["low"] = r["perGpu"] if g["low"] is None else min(g["low"], r["perGpu"])
+            g["high"] = r["perGpu"] if g["high"] is None else max(g["high"], r["perGpu"])
+            g["providers"].add(r.get("provider", ""))
+        for g in by_tier.values():
+            g["dispersion"] = round(g["high"] / g["low"], 2) if g["low"] else 1.0
+            g["low"] = round(g["low"], 3)
+            g["high"] = round(g["high"], 3)
+            g["providers"] = sorted(g["providers"])
+
+        same_tier = max((g["dispersion"] for g in by_tier.values()), default=1.0)
+        same_tier_name = max(by_tier, key=lambda t: by_tier[t]["dispersion"]) if by_tier else None
+
+        def q(r):
+            return {"provider": r.get("provider", ""), "rate": r.get("perGpu", 0.0),
+                    "instance": r.get("instance", ""), "tier": r.get("tier"), "basis": r.get("basis")}
+
+        return {
+            "sku": ref_sku,
+            "count": len(rows),
+            "providers": sorted({r.get("provider", "") for r in rows}),
+            "tiers": sorted(by_tier),
+            "like_for_like": len(by_tier) == 1,
+            "dispersion": round(max(prices) / min(prices), 2) if min(prices) else 1.0,
+            "low": q(lo),
+            "high": q(hi),
+            "same_tier_dispersion": same_tier,
+            "same_tier": same_tier_name,
+            "by_tier": by_tier,
         }
 
     @classmethod
