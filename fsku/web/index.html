@@ -1094,9 +1094,10 @@
               <th>Provider</th>
               <th>GPU SKU</th>
               <th>Contract Basis</th>
+              <th>Sourcing</th>
               <th>Geography / Region</th>
               <th>Normalization Formula Applied</th>
-              <th>Timestamp Recorded</th>
+              <th>Captured</th>
               <th>Primary Source Link</th>
             </tr>
           </thead>
@@ -1191,6 +1192,22 @@ let activeForwardScenario = 'base';
 const money = n => '$' + Number(n).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: Number(n) < 10 ? 2 : 2});
 const pct = (x, digits=1) => (x * 100).toFixed(digits) + '%';
 const h100ish = r => /^H100/i.test(r.gpu || '');
+
+// How a row was sourced. 'seed' = shipped with the repo, never synced;
+// 'catalog' = adapter has no API, reads a hardcoded table; 'fallback' = the
+// API call failed and a constant was substituted; 'live' = from the API.
+const PROVENANCE_LABEL = { live: 'LIVE', fallback: 'FALLBACK', catalog: 'CATALOG', seed: 'SEED' };
+const PROVENANCE_TITLE = {
+  live: 'Price returned by the provider API during a sync run',
+  fallback: 'API call failed or returned nothing usable; a hardcoded constant was substituted',
+  catalog: 'Adapter reads a hardcoded rate table and never calls the network',
+  seed: 'Shipped with the repository; not produced by a sync run',
+};
+function provenanceChip(r) {
+  const p = r.provenance || 'seed';
+  const color = p === 'live' ? 'var(--good)' : (p === 'fallback' ? 'var(--warn, #f59e0b)' : 'var(--dim)');
+  return `<span class="chip" style="font-size:8.5px;color:${color};border-color:${color}" title="${PROVENANCE_TITLE[p] || ''}">${PROVENANCE_LABEL[p] || p.toUpperCase()}</span>`;
+}
 
 function toast(message) {
   const container = document.getElementById('toastContainer');
@@ -2230,9 +2247,10 @@ function renderProvenanceView() {
       <td><div class="provider">${r.provider}</div></td>
       <td><div class="gpu">${r.gpu}</div></td>
       <td><span class="chip">${r.basis}</span></td>
+      <td>${provenanceChip(r)}</td>
       <td>${r.region || 'Global'}</td>
       <td><span style="font-family:monospace;font-size:10px;color:var(--cyan)">${formula}</span></td>
-      <td style="color:var(--dim)">${r.recorded_at ? r.recorded_at.substring(0,19).replace('T',' ') : '2026-08-18'}</td>
+      <td style="color:var(--dim)" title="${r.provenance === 'live' ? 'Fetched from the provider API at this time' : 'Date the constant was captured from the provider page — not a sync time'}">${r.recorded_at ? r.recorded_at.substring(0,19).replace('T',' ') : '—'}</td>
       <td><a class="source-link" href="${srcObj.url}" target="_blank" rel="noopener">${srcObj.domain} ↗</a></td>
     </tr>`;
   }).join('');
