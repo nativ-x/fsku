@@ -37,8 +37,13 @@ async def test_sync_adapters_fetch():
 
 @pytest.mark.asyncio
 async def test_sync_engine_resync_cycle(temp_db):
+    # Catalog adapters only: a live marketplace (Vast.ai) can legitimately
+    # list a new SKU between two calls, which is not what this test is about.
+    from fsku.sync.providers.aws import AWSAdapter
+    from fsku.sync.providers.gcp import GCPAdapter
+    from fsku.sync.providers.lambda_cloud import LambdaCloudAdapter
     temp_db.observations.clear()
-    engine = SyncEngine(db=temp_db)
+    engine = SyncEngine(db=temp_db, adapters=[CoreWeaveAdapter, AWSAdapter, GCPAdapter, LambdaCloudAdapter])
 
     log1 = await engine.resync(label="Initial test sync")
     assert log1.status in ("success", "partial")

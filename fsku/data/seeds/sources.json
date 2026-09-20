@@ -48,6 +48,14 @@
     "adapter": "lambda"
   },
   {
+    "id": "vast",
+    "name": "Vast.ai Marketplace Offers",
+    "domain": "vast.ai",
+    "url": "https://vast.ai/pricing",
+    "desc": "Live rentable on-demand asks from a peer-hosted GPU marketplace; FSKU publishes the per-SKU median ask with offer depth.",
+    "adapter": "vast"
+  },
+  {
     "id": "h100",
     "name": "NVIDIA H100",
     "domain": "nvidia.com",
