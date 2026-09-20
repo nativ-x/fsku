@@ -20,6 +20,9 @@ class RunPodAdapter(BaseProviderAdapter):
     # tagged provenance="catalog" and dated catalog_as_of by the sync engine.
     mode = "catalog"
     catalog_as_of = "2026-08-25"
+    # RUNPOD_CATALOG holds RunPod's *Community Cloud* rates (peer-hosted). The
+    # Secure Cloud tier for the same SKUs ran 12-31% higher on 2026-09-19.
+    tier = "Community"
 
     RUNPOD_CATALOG = [
         {"gpu": "H100 SXM (1x)", "vram": 80, "rate": 2.69, "form_factor": "SXM5", "interconnect": "NVLink / Sliced", "topology": "1x Standalone Pod"},

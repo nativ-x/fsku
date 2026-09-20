@@ -172,6 +172,7 @@ class PricingEngine:
             form_factors = {r.get("form_factor") for r in rows if r.get("form_factor")}
             interconnects = {r.get("interconnect") for r in rows if r.get("interconnect")}
             topologies = {r.get("topology") for r in rows if r.get("topology")}
+            tiers = sorted({r.get("tier") for r in rows if r.get("tier")})
 
             form_factor_val = next(iter(form_factors)) if form_factors else ("SXM5" if "H100" in sku or "H200" in sku else ("SXM6" if "B200" in sku else "PCIe"))
             interconnect_val = next(iter(interconnects)) if interconnects else ("NVLink 4" if "SXM" in sku else "PCIe")
@@ -211,6 +212,7 @@ class PricingEngine:
                     dispersion_ratio=round(disp_ratio, 2),
                     observation_count=count,
                     provider_count=len(providers),
+                    tiers=tiers,
                     confidence=conf,
                     market_status=status,
                     change_24h=0.0,
@@ -375,6 +377,7 @@ class PricingEngine:
                     sku=sku,
                     instance=r.get("instance", "Standard"),
                     basis=r.get("basis", "On-demand"),
+                    tier=r.get("tier"),
                     total_rate=r.get("total", 0.0),
                     gpu_count=r.get("gpuCount", 1),
                     per_gpu_rate=per_gpu,

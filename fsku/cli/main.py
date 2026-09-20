@@ -81,6 +81,7 @@ def index_cmd(
     table.add_column("Dispersion", justify="right")
     table.add_column("Obs", justify="right")
     table.add_column("Providers", justify="right")
+    table.add_column("Tiers")
     table.add_column("Confidence", style="bold")
     table.add_column("Status")
 
@@ -96,6 +97,7 @@ def index_cmd(
             f"{s.dispersion_ratio:.1f}x",
             str(s.observation_count),
             str(s.provider_count),
+            ("[yellow]" if len(s.tiers) > 1 else "") + " · ".join(s.tiers) + ("[/yellow]" if len(s.tiers) > 1 else ""),
             f"[{conf_color}]{s.confidence}[/{conf_color}]",
             f"[{stat_color}]{s.market_status}[/{stat_color}]",
         )
@@ -184,6 +186,7 @@ def list_cmd(
     gpu: Optional[str] = typer.Option(None, "--gpu", "-g", help="Filter by GPU family or name (e.g. H100, B200)"),
     provider: Optional[str] = typer.Option(None, "--provider", "-p", help="Filter by provider (e.g. RunPod, CoreWeave)"),
     basis: Optional[str] = typer.Option(None, "--basis", "-b", help="Filter by price basis (On-demand, Spot, etc.)"),
+    tier: Optional[str] = typer.Option(None, "--tier", "-t", help="Filter by capacity tier (Community, Secure, Specialized cloud, Hyperscaler)"),
     sort_by: str = typer.Option("perGpu", "--sort", "-s", help="Sort field (perGpu, provider, gpu, total)"),
     reverse: bool = typer.Option(False, "--desc", "-d", help="Sort descending"),
     limit: Optional[int] = typer.Option(50, "--limit", "-n", help="Max rows to show"),
@@ -198,6 +201,8 @@ def list_cmd(
         query["gpu"] = {"$contains": gpu}
     if basis:
         query["basis"] = basis
+    if tier:
+        query["tier"] = tier
 
     rows = db.observations.find(filter_query=query, sort_by=sort_by, reverse=reverse, limit=limit)
 
@@ -213,6 +218,7 @@ def list_cmd(
     table.add_column("Provider", style="bold white")
     table.add_column("GPU / Instance", style="white")
     table.add_column("Basis", style="cyan")
+    table.add_column("Tier", style="magenta")
     table.add_column("Count", justify="right")
     table.add_column("Published $/hr", justify="right")
     table.add_column("Normalized $/GPU-hr", justify="right", style="bold green")
@@ -224,6 +230,7 @@ def list_cmd(
             r.get("provider", ""),
             f"{r.get('gpu', '')} ({r.get('instance', '')})",
             r.get("basis", ""),
+            r.get("tier") or "?",
             str(r.get("gpuCount", 1)),
             f"${r.get('total', 0):.2f}",
             f"${r.get('perGpu', 0):.2f}",

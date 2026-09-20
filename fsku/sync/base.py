@@ -39,6 +39,10 @@ class BaseProviderAdapter(ABC):
     # ISO date the hardcoded rates were captured from source_url. Used as
     # recorded_at for catalog rows and for a live adapter's fallback rows.
     catalog_as_of: Optional[str] = None
+    # Capacity tier every row from this adapter belongs to, unless the row
+    # sets its own (an adapter that quotes several tiers sets it per row).
+    # See Observation.tier for the taxonomy.
+    tier: Optional[str] = None
 
     def __init__(self, timeout_seconds: float = 10.0):
         self.timeout = timeout_seconds

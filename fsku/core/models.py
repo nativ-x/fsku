@@ -35,6 +35,17 @@ class Observation(BaseModel):
     gpu: str
     instance: str
     basis: Literal["On-demand", "Spot", "Capacity block", "Retail API", "Reserved"] = "On-demand"
+    tier: Optional[Literal["Community", "Secure", "Specialized cloud", "Hyperscaler"]] = Field(
+        default=None,
+        description=(
+            "Capacity class the quote applies to, orthogonal to basis (the contract type). "
+            "Community = peer-hosted marketplace capacity (RunPod Community Cloud); "
+            "Secure = provider-operated datacenter capacity sold through a marketplace (RunPod Secure Cloud); "
+            "Specialized cloud = GPU-native cloud (CoreWeave, Lambda); "
+            "Hyperscaler = AWS / Azure / Google Cloud retail. "
+            "A tape that mixes tiers without saying so overstates dispersion: RunPod Secure runs 12-31% above Community for the same SKU."
+        ),
+    )
     gpuCount: int = Field(ge=1, default=1)
     total: float = Field(ge=0.0, description="Published hourly server or instance rate")
     perGpu: float = Field(ge=0.0, description="Normalized hourly rate per GPU unit")
@@ -191,6 +202,7 @@ class SkuIndexSummary(BaseModel):
     dispersion_ratio: float
     observation_count: int
     provider_count: int
+    tiers: List[str] = Field(default_factory=list, description="Capacity tiers present among this SKU's observations; more than one means the low/high quotes may be different products")
     confidence: Literal["HIGH", "MODERATE", "LOW (SPARSE)"]
     market_status: Literal["ACTIVE", "INDICATIVE", "EMERGING"]
     change_24h: Optional[float] = 0.0
@@ -223,6 +235,7 @@ class ProviderPriceRow(BaseModel):
     sku: str
     instance: str
     basis: str
+    tier: Optional[str] = None
     total_rate: float
     gpu_count: int
     per_gpu_rate: float

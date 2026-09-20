@@ -16,6 +16,7 @@ class CoreWeaveAdapter(BaseProviderAdapter):
     # tagged provenance="catalog" and dated catalog_as_of by the sync engine.
     mode = "catalog"
     catalog_as_of = "2026-08-25"
+    tier = "Specialized cloud"
 
     COREWEAVE_CATALOG = [
         {"gpu": "H100 SXM (HGX 8x)", "instance": "HGX H100", "basis": "On-demand", "gpu_count": 8, "total": 49.24, "vram": 80, "form_factor": "SXM5", "interconnect": "NVLink 4 (900 GB/s)", "topology": "HGX 8x Clustered (3.2 Tbps InfiniBand)"},

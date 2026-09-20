@@ -22,6 +22,7 @@ class AzureAdapter(BaseProviderAdapter):
     # Consumption item and always falls back.
     mode = "live"
     catalog_as_of = "2026-08-25"
+    tier = "Hyperscaler"
 
     AZURE_SKU_MAP = {
         "Standard_ND96isr_H100_v5": {

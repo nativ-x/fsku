@@ -16,6 +16,7 @@ class LambdaCloudAdapter(BaseProviderAdapter):
     # tagged provenance="catalog" and dated catalog_as_of by the sync engine.
     mode = "catalog"
     catalog_as_of = "2026-08-25"
+    tier = "Specialized cloud"
 
     LAMBDA_CATALOG = [
         {"gpu": "H100 SXM (1x)", "instance": "1x H100 SXM5", "basis": "On-demand", "gpu_count": 1, "total": 2.49, "vram": 80, "form_factor": "SXM5", "interconnect": "NVLink / Sliced", "topology": "1x Standalone Pod"},

@@ -94,6 +94,13 @@ class SyncEngine:
                         raise RuntimeError(
                             f"{adapter.provider_name}: live adapters must tag every row live or fallback"
                         )
+            for obs in res:
+                if obs.tier is None:
+                    if adapter.tier is None:
+                        raise RuntimeError(
+                            f"{adapter.provider_name}: every row needs a capacity tier (set adapter.tier or Observation.tier)"
+                        )
+                    obs.tier = adapter.tier
             provider_reports.append(adapter.report(res))
             fetched_observations.extend(res)
 

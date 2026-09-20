@@ -16,7 +16,8 @@
     "interconnect": "PCIe Bus (64 GB/s)",
     "topology": "Standard PCIe Server",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Community"
   },
   {
     "id": "obs_runpod_h100_nvl",
@@ -35,7 +36,8 @@
     "interconnect": "NVLink (600 GB/s)",
     "topology": "Dual-GPU Inference Module",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Community"
   },
   {
     "id": "obs_runpod_a100_pcie",
@@ -54,7 +56,8 @@
     "interconnect": "PCIe Bus (32 GB/s)",
     "topology": "Standard PCIe Server",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Community"
   },
   {
     "id": "obs_gcp_a2_highgpu_1g",
@@ -73,7 +76,8 @@
     "topology": "1x Standalone Pod",
     "recorded_at": "2026-08-24T17:37:52.173309+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Hyperscaler"
   },
   {
     "id": "obs_azure_h100_sxm_hgx_8x_eastus",
@@ -94,7 +98,8 @@
     "snapshot_id": null,
     "metadata": {
       "armSkuName": "Standard_ND96isr_H100_v5"
-    }
+    },
+    "tier": "Hyperscaler"
   },
   {
     "id": "obs_azure_a100_pcie_eastus",
@@ -115,7 +120,8 @@
     "snapshot_id": null,
     "metadata": {
       "armSkuName": "Standard_NC48ads_A100_v4"
-    }
+    },
+    "tier": "Hyperscaler"
   },
   {
     "id": "obs_azure_h200_sxm_hgx_8x_eastus",
@@ -136,7 +142,8 @@
     "snapshot_id": null,
     "metadata": {
       "armSkuName": "Standard_ND96is_H200_v5"
-    }
+    },
+    "tier": "Hyperscaler"
   },
   {
     "id": "obs_runpod_h100_sxm_1x",
@@ -155,7 +162,8 @@
     "topology": "1x Standalone Pod",
     "recorded_at": "2026-08-24T17:37:52.173072+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Community"
   },
   {
     "id": "obs_runpod_h200_sxm_1x",
@@ -174,7 +182,8 @@
     "topology": "1x Standalone Pod",
     "recorded_at": "2026-08-24T17:37:52.173072+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Community"
   },
   {
     "id": "obs_runpod_b200_sxm_1x",
@@ -193,7 +202,8 @@
     "topology": "1x Standalone Pod",
     "recorded_at": "2026-08-24T17:37:52.173072+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Community"
   },
   {
     "id": "obs_runpod_b300_sxm_1x",
@@ -212,7 +222,8 @@
     "topology": "1x Standalone Pod",
     "recorded_at": "2026-08-24T17:37:52.173072+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Community"
   },
   {
     "id": "obs_runpod_a100_sxm_1x",
@@ -231,7 +242,8 @@
     "topology": "1x Standalone Pod",
     "recorded_at": "2026-08-24T17:37:52.173072+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Community"
   },
   {
     "id": "obs_runpod_l40s_pcie",
@@ -250,7 +262,8 @@
     "topology": "Enterprise Inference Server",
     "recorded_at": "2026-08-24T17:37:52.173072+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Community"
   },
   {
     "id": "obs_runpod_rtx_4090_pcie",
@@ -269,7 +282,8 @@
     "topology": "Workstation / Bare Metal",
     "recorded_at": "2026-08-24T17:37:52.173072+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Community"
   },
   {
     "id": "obs_cw_h100_sxm_hgx_8x_on-demand",
@@ -288,7 +302,8 @@
     "topology": "HGX 8x Clustered (3.2 Tbps InfiniBand)",
     "recorded_at": "2026-08-24T17:37:52.173230+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Specialized cloud"
   },
   {
     "id": "obs_cw_h100_sxm_hgx_8x_spot",
@@ -307,7 +322,8 @@
     "topology": "HGX 8x Clustered (3.2 Tbps InfiniBand)",
     "recorded_at": "2026-08-24T17:37:52.173230+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Specialized cloud"
   },
   {
     "id": "obs_cw_h200_sxm_hgx_8x_on-demand",
@@ -326,7 +342,8 @@
     "topology": "HGX 8x Clustered (3.2 Tbps InfiniBand)",
     "recorded_at": "2026-08-24T17:37:52.173230+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Specialized cloud"
   },
   {
     "id": "obs_cw_h200_sxm_hgx_8x_spot",
@@ -345,7 +362,8 @@
     "topology": "HGX 8x Clustered (3.2 Tbps InfiniBand)",
     "recorded_at": "2026-08-24T17:37:52.173230+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Specialized cloud"
   },
   {
     "id": "obs_cw_b200_sxm_hgx_8x_on-demand",
@@ -364,7 +382,8 @@
     "topology": "HGX 8x Clustered (3.2 Tbps Quantum-2)",
     "recorded_at": "2026-08-24T17:37:52.173230+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Specialized cloud"
   },
   {
     "id": "obs_cw_b200_sxm_hgx_8x_spot",
@@ -383,7 +402,8 @@
     "topology": "HGX 8x Clustered (3.2 Tbps Quantum-2)",
     "recorded_at": "2026-08-24T17:37:52.173230+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Specialized cloud"
   },
   {
     "id": "obs_cw_b300_sxm_hgx_8x_spot",
@@ -402,7 +422,8 @@
     "topology": "HGX 8x Clustered",
     "recorded_at": "2026-08-24T17:37:52.173230+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Specialized cloud"
   },
   {
     "id": "obs_cw_a100_sxm_hgx_8x_on-demand",
@@ -421,7 +442,8 @@
     "topology": "HGX 8x Clustered (1.6 Tbps HDR)",
     "recorded_at": "2026-08-24T17:37:52.173230+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Specialized cloud"
   },
   {
     "id": "obs_cw_a100_sxm_hgx_8x_spot",
@@ -440,7 +462,8 @@
     "topology": "HGX 8x Clustered (1.6 Tbps HDR)",
     "recorded_at": "2026-08-24T17:37:52.173230+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Specialized cloud"
   },
   {
     "id": "obs_aws_h100_sxm_1x_capacity_block_1g",
@@ -459,7 +482,8 @@
     "topology": "1x Standalone Pod",
     "recorded_at": "2026-08-24T17:37:52.173292+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Hyperscaler"
   },
   {
     "id": "obs_aws_h100_sxm_hgx_8x_on-demand_8g",
@@ -478,7 +502,8 @@
     "topology": "HGX 8x Clustered (3.2 Tbps EFA)",
     "recorded_at": "2026-08-24T17:37:52.173292+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Hyperscaler"
   },
   {
     "id": "obs_gcp_a3_highgpu_8g",
@@ -497,7 +522,8 @@
     "topology": "HGX 8x Clustered (GPUDirect TCPX)",
     "recorded_at": "2026-08-24T17:37:52.173309+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Hyperscaler"
   },
   {
     "id": "obs_gcp_a3_ultragpu_8g",
@@ -516,7 +542,8 @@
     "topology": "HGX 8x Clustered (3.2 Tbps RoCE)",
     "recorded_at": "2026-08-24T17:37:52.173309+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Hyperscaler"
   },
   {
     "id": "obs_lambda_h100_sxm_1x_1x_h100_sxm5",
@@ -535,7 +562,8 @@
     "topology": "1x Standalone Pod",
     "recorded_at": "2026-08-24T17:37:52.173330+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Specialized cloud"
   },
   {
     "id": "obs_lambda_h100_sxm_hgx_8x_8x_h100_sxm5",
@@ -554,7 +582,8 @@
     "topology": "HGX 8x Clustered (3.2 Tbps InfiniBand)",
     "recorded_at": "2026-08-24T17:37:52.173330+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Specialized cloud"
   },
   {
     "id": "obs_lambda_a100_sxm_1x_1x_a100_sxm4_80gb",
@@ -573,7 +602,8 @@
     "topology": "1x Standalone Pod",
     "recorded_at": "2026-08-24T17:37:52.173330+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Specialized cloud"
   },
   {
     "id": "obs_lambda_a100_sxm_hgx_8x_8x_a100_sxm4_80gb",
@@ -592,7 +622,8 @@
     "topology": "HGX 8x Clustered (1.6 Tbps HDR)",
     "recorded_at": "2026-08-24T17:37:52.173330+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Specialized cloud"
   },
   {
     "id": "obs_lambda_gh200_nvlink-c2c_1x_gh200_grace_hopper",
@@ -611,6 +642,7 @@
     "topology": "Coherent CPU+GPU Superchip",
     "recorded_at": "2026-08-24T17:37:52.173330+00:00",
     "snapshot_id": null,
-    "metadata": {}
+    "metadata": {},
+    "tier": "Specialized cloud"
   }
 ]
