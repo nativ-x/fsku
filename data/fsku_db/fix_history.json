@@ -601,5 +601,210 @@
     "sync_live": 26,
     "sync_fallback": 2,
     "sync_catalog": 36
+  },
+  {
+    "id": "fix_2026-09-23_h100",
+    "date": "2026-09-23",
+    "family": "H100",
+    "settled_at": "2026-09-23T22:33:04.881777+00:00",
+    "neocloud": 3.67,
+    "neocloud_n": 10,
+    "neocloud_providers": [
+      "CoreWeave",
+      "Lambda Labs",
+      "Nebius",
+      "RunPod",
+      "Together AI",
+      "Vast.ai"
+    ],
+    "hyperscaler": 12.29,
+    "hyperscaler_n": 3,
+    "standardized": 2.5769,
+    "standardized_n": 6,
+    "standardized_ids": [
+      "obs_vast_h100_sxm_1x",
+      "obs_nebius_h100_sxm_hgx_8x_spot",
+      "obs_cw_h100_sxm_hgx_8x_spot",
+      "obs_runpod_h100_sxm_1x_community",
+      "obs_together_h100_sxm_hgx_8x_reserved",
+      "obs_lambda_h100_sxm_hgx_8x_8x_h100_sxm"
+    ],
+    "as_of": "2026-09-23T22:33:04.964389+00:00",
+    "snapshot_id": "snap_20260923_223311_d96318",
+    "checksum": "d96318eea9ce3590",
+    "verified": true,
+    "constituent_ids": {
+      "neocloud": [
+        "obs_vast_h100_sxm_1x",
+        "obs_nebius_h100_sxm_hgx_8x_spot",
+        "obs_cw_h100_sxm_hgx_8x_spot",
+        "obs_runpod_h100_sxm_1x_community",
+        "obs_runpod_h100_sxm_1x_secure",
+        "obs_nebius_h100_sxm_hgx_8x_on-demand",
+        "obs_lambda_h100_sxm_hgx_8x_8x_h100_sxm",
+        "obs_together_h100_sxm_hgx_8x_on-demand",
+        "obs_lambda_h100_sxm_1x_1x_h100_sxm",
+        "obs_cw_h100_sxm_hgx_8x_on-demand"
+      ],
+      "hyperscaler": [
+        "obs_gcp_a3_highgpu_8g",
+        "obs_azure_h100_sxm_hgx_8x_eastus",
+        "obs_aws_h100_sxm_hgx_8x_on-demand_8g"
+      ]
+    },
+    "method": "listed-price; SXM/OAM rows, both topologies, per-GPU; spot bases only; segmented by seller tier; 10/90 winsorized median; unweighted",
+    "sync_status": "partial",
+    "sync_live": 27,
+    "sync_fallback": 2,
+    "sync_catalog": 36
+  },
+  {
+    "id": "fix_2026-09-23_h200",
+    "date": "2026-09-23",
+    "family": "H200",
+    "settled_at": "2026-09-23T22:33:04.881777+00:00",
+    "neocloud": 4.1098,
+    "neocloud_n": 8,
+    "neocloud_providers": [
+      "CoreWeave",
+      "Nebius",
+      "RunPod",
+      "Together AI",
+      "Vast.ai"
+    ],
+    "hyperscaler": 11.8317,
+    "hyperscaler_n": 2,
+    "standardized": 3.59,
+    "standardized_n": 5,
+    "standardized_ids": [
+      "obs_nebius_h200_sxm_hgx_8x_spot",
+      "obs_cw_h200_sxm_hgx_8x_spot",
+      "obs_runpod_h200_sxm_1x_community",
+      "obs_vast_h200_sxm_1x",
+      "obs_together_h200_sxm_hgx_8x_reserved"
+    ],
+    "as_of": "2026-09-23T22:33:04.964389+00:00",
+    "snapshot_id": "snap_20260923_223311_d96318",
+    "checksum": "d96318eea9ce3590",
+    "verified": true,
+    "constituent_ids": {
+      "neocloud": [
+        "obs_nebius_h200_sxm_hgx_8x_spot",
+        "obs_cw_h200_sxm_hgx_8x_spot",
+        "obs_runpod_h200_sxm_1x_community",
+        "obs_vast_h200_sxm_1x",
+        "obs_nebius_h200_sxm_hgx_8x_on-demand",
+        "obs_runpod_h200_sxm_1x_secure",
+        "obs_together_h200_sxm_hgx_8x_on-demand",
+        "obs_cw_h200_sxm_hgx_8x_on-demand"
+      ],
+      "hyperscaler": [
+        "obs_gcp_a3_ultragpu_8g",
+        "obs_azure_h200_sxm_hgx_8x_eastus"
+      ]
+    },
+    "method": "listed-price; SXM/OAM rows, both topologies, per-GPU; spot bases only; segmented by seller tier; 10/90 winsorized median; unweighted",
+    "sync_status": "partial",
+    "sync_live": 27,
+    "sync_fallback": 2,
+    "sync_catalog": 36
+  },
+  {
+    "id": "fix_2026-09-23_b200",
+    "date": "2026-09-23",
+    "family": "B200",
+    "settled_at": "2026-09-23T22:33:04.881777+00:00",
+    "neocloud": 6.74,
+    "neocloud_n": 10,
+    "neocloud_providers": [
+      "CoreWeave",
+      "Lambda Labs",
+      "Nebius",
+      "RunPod",
+      "Together AI",
+      "Vast.ai"
+    ],
+    "hyperscaler": null,
+    "hyperscaler_n": 0,
+    "standardized": 6.1158,
+    "standardized_n": 6,
+    "standardized_ids": [
+      "obs_nebius_b200_sxm_hgx_8x_spot",
+      "obs_cw_b200_sxm_hgx_8x_spot",
+      "obs_runpod_b200_sxm_1x_community",
+      "obs_vast_b200_sxm_1x",
+      "obs_lambda_b200_sxm_hgx_8x_8x_b200_sxm6",
+      "obs_together_b200_sxm_hgx_8x_reserved"
+    ],
+    "as_of": "2026-09-23T22:33:04.964389+00:00",
+    "snapshot_id": "snap_20260923_223311_d96318",
+    "checksum": "d96318eea9ce3590",
+    "verified": true,
+    "constituent_ids": {
+      "neocloud": [
+        "obs_nebius_b200_sxm_hgx_8x_spot",
+        "obs_cw_b200_sxm_hgx_8x_spot",
+        "obs_runpod_b200_sxm_1x_community",
+        "obs_vast_b200_sxm_1x",
+        "obs_lambda_b200_sxm_hgx_8x_8x_b200_sxm6",
+        "obs_runpod_b200_sxm_1x_secure",
+        "obs_lambda_b200_sxm_1x_1x_b200_sxm6",
+        "obs_nebius_b200_sxm_hgx_8x_on-demand",
+        "obs_together_b200_sxm_hgx_8x_on-demand",
+        "obs_cw_b200_sxm_hgx_8x_on-demand"
+      ],
+      "hyperscaler": []
+    },
+    "method": "listed-price; SXM/OAM rows, both topologies, per-GPU; spot bases only; segmented by seller tier; 10/90 winsorized median; unweighted",
+    "sync_status": "partial",
+    "sync_live": 27,
+    "sync_fallback": 2,
+    "sync_catalog": 36
+  },
+  {
+    "id": "fix_2026-09-23_a100",
+    "date": "2026-09-23",
+    "family": "A100",
+    "settled_at": "2026-09-23T22:33:04.881777+00:00",
+    "neocloud": 1.49,
+    "neocloud_n": 6,
+    "neocloud_providers": [
+      "CoreWeave",
+      "Lambda Labs",
+      "RunPod",
+      "Vast.ai"
+    ],
+    "hyperscaler": 3.6738,
+    "hyperscaler_n": 1,
+    "standardized": 1.2981,
+    "standardized_n": 4,
+    "standardized_ids": [
+      "obs_vast_a100_sxm_1x",
+      "obs_cw_a100_sxm_hgx_8x_spot",
+      "obs_runpod_a100_sxm_1x_community",
+      "obs_lambda_a100_sxm_hgx_8x_8x_a100_sxm4_80gb"
+    ],
+    "as_of": "2026-09-23T22:33:04.964389+00:00",
+    "snapshot_id": "snap_20260923_223311_d96318",
+    "checksum": "d96318eea9ce3590",
+    "verified": true,
+    "constituent_ids": {
+      "neocloud": [
+        "obs_vast_a100_sxm_1x",
+        "obs_cw_a100_sxm_hgx_8x_spot",
+        "obs_runpod_a100_sxm_1x_community",
+        "obs_runpod_a100_sxm_1x_secure",
+        "obs_cw_a100_sxm_hgx_8x_on-demand",
+        "obs_lambda_a100_sxm_hgx_8x_8x_a100_sxm4_80gb"
+      ],
+      "hyperscaler": [
+        "obs_gcp_a2_highgpu_1g"
+      ]
+    },
+    "method": "listed-price; SXM/OAM rows, both topologies, per-GPU; spot bases only; segmented by seller tier; 10/90 winsorized median; unweighted",
+    "sync_status": "partial",
+    "sync_live": 27,
+    "sync_fallback": 2,
+    "sync_catalog": 36
   }
 ]
