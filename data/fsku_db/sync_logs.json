@@ -1317,5 +1317,168 @@
         "notes": []
       }
     ]
+  },
+  {
+    "id": "42547374",
+    "started_at": "2026-09-24T22:49:19.253549+00:00",
+    "completed_at": "2026-09-24T22:49:19.872623+00:00",
+    "status": "partial",
+    "duration_ms": 619,
+    "providers_polled": [
+      "Azure",
+      "RunPod",
+      "CoreWeave",
+      "AWS",
+      "Google Cloud",
+      "Lambda Labs",
+      "Vast.ai",
+      "Nebius",
+      "Together AI"
+    ],
+    "providers_live": [
+      "Azure",
+      "RunPod",
+      "Vast.ai"
+    ],
+    "providers_catalog": [
+      "CoreWeave",
+      "AWS",
+      "Google Cloud",
+      "Lambda Labs",
+      "Nebius",
+      "Together AI"
+    ],
+    "added_count": 0,
+    "updated_count": 5,
+    "unchanged_count": 58,
+    "live_count": 25,
+    "fallback_count": 2,
+    "catalog_count": 36,
+    "total_active": 63,
+    "snapshot_id": null,
+    "errors": [],
+    "provider_reports": [
+      {
+        "provider": "Azure",
+        "mode": "live",
+        "requests_attempted": 3,
+        "requests_succeeded": 3,
+        "observations": 3,
+        "live": 2,
+        "fallback": 1,
+        "catalog": 0,
+        "as_of": "2026-08-25",
+        "fallbacks": [
+          "Standard_ND96is_H200_v5: API returned no usable Consumption item; substituted 104.5 (as of 2026-08-25)"
+        ],
+        "notes": []
+      },
+      {
+        "provider": "RunPod",
+        "mode": "live",
+        "requests_attempted": 1,
+        "requests_succeeded": 1,
+        "observations": 19,
+        "live": 18,
+        "fallback": 1,
+        "catalog": 0,
+        "as_of": "2026-08-25",
+        "fallbacks": [
+          "B300: RunPod API does not list it; substituted Community 6.94 (as of 2026-08-25)"
+        ],
+        "notes": []
+      },
+      {
+        "provider": "CoreWeave",
+        "mode": "catalog",
+        "requests_attempted": 0,
+        "requests_succeeded": 0,
+        "observations": 9,
+        "live": 0,
+        "fallback": 0,
+        "catalog": 9,
+        "as_of": "2026-08-25",
+        "fallbacks": [],
+        "notes": []
+      },
+      {
+        "provider": "AWS",
+        "mode": "catalog",
+        "requests_attempted": 0,
+        "requests_succeeded": 0,
+        "observations": 2,
+        "live": 0,
+        "fallback": 0,
+        "catalog": 2,
+        "as_of": "2026-08-25",
+        "fallbacks": [],
+        "notes": []
+      },
+      {
+        "provider": "Google Cloud",
+        "mode": "catalog",
+        "requests_attempted": 0,
+        "requests_succeeded": 0,
+        "observations": 3,
+        "live": 0,
+        "fallback": 0,
+        "catalog": 3,
+        "as_of": "2026-08-25",
+        "fallbacks": [],
+        "notes": []
+      },
+      {
+        "provider": "Lambda Labs",
+        "mode": "catalog",
+        "requests_attempted": 0,
+        "requests_succeeded": 0,
+        "observations": 7,
+        "live": 0,
+        "fallback": 0,
+        "catalog": 7,
+        "as_of": "2026-09-20",
+        "fallbacks": [],
+        "notes": []
+      },
+      {
+        "provider": "Vast.ai",
+        "mode": "live",
+        "requests_attempted": 1,
+        "requests_succeeded": 1,
+        "observations": 5,
+        "live": 5,
+        "fallback": 0,
+        "catalog": 0,
+        "as_of": null,
+        "fallbacks": [],
+        "notes": []
+      },
+      {
+        "provider": "Nebius",
+        "mode": "catalog",
+        "requests_attempted": 0,
+        "requests_succeeded": 0,
+        "observations": 9,
+        "live": 0,
+        "fallback": 0,
+        "catalog": 9,
+        "as_of": "2026-09-20",
+        "fallbacks": [],
+        "notes": []
+      },
+      {
+        "provider": "Together AI",
+        "mode": "catalog",
+        "requests_attempted": 0,
+        "requests_succeeded": 0,
+        "observations": 6,
+        "live": 0,
+        "fallback": 0,
+        "catalog": 6,
+        "as_of": "2026-09-20",
+        "fallbacks": [],
+        "notes": []
+      }
+    ]
   }
 ]
