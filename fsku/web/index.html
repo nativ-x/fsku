@@ -211,6 +211,40 @@
   
   .curve-wrap{height:330px;padding:2px 10px 12px;position:relative}
   .curve-wrap svg{width:100%;height:100%;display:block;overflow:visible;cursor:crosshair}
+  .term-chart-wrap{height:500px;padding:4px 10px 10px;position:relative;touch-action:none}
+  .term-chart-wrap svg{width:100%;height:100%;display:block;overflow:visible;cursor:grab;user-select:none}
+  .term-chart-wrap svg.dragging{cursor:grabbing}
+  .tc-floor{fill:rgba(255,255,255,0.015);stroke:rgba(145,145,145,0.3);stroke-width:1}
+  .tc-gap{fill:none;stroke:rgba(145,145,145,0.35);stroke-width:1;stroke-dasharray:3 4}
+  .tc-edge{stroke:#181818;stroke-width:1.6;stroke-linejoin:round}
+  #termPricingChart g[data-band]{transition:opacity .15s}
+  .tc-edge.est{stroke:rgba(226,226,226,0.65);stroke-width:1;stroke-dasharray:3 3}
+  .term-chart-box{position:relative}
+  .term-chart-wrap:focus-visible{outline:1px solid rgba(145,145,145,0.6);outline-offset:-4px}
+  .term-reset{position:absolute;right:14px;bottom:10px;z-index:2}
+  .term-reset:disabled{opacity:.35;cursor:default}
+  .term-reset:disabled:hover{background:#1b1b1b;border-color:rgba(71,71,71,0.4);color:var(--text)}
+  .term-key{display:flex;gap:2px;padding:2px 16px 14px;flex-wrap:wrap}
+  .term-key .band{flex:1;min-width:56px;cursor:default}
+  .term-key .band i{display:block;height:9px;border-radius:2px}
+  .term-key .band span{display:block;margin-top:5px;font-size:10px;color:var(--muted);font-family:ui-monospace,monospace;text-align:center;font-variant-numeric:tabular-nums}
+  .term-key .band.unused{opacity:.28}
+  .term-key .band:hover span{color:#fff}
+  .term-key-title{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-family:ui-monospace,monospace;padding:0 16px 6px}
+  .term-matrix .sw{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
+  .tc-drop{stroke:rgba(226,226,226,0.4);stroke-width:1;stroke-dasharray:2 3}
+  .tc-ruler{stroke:rgba(145,145,145,0.45);stroke-width:1}
+  .tc-tick{fill:#919191;font-size:11px;font-family:ui-monospace,monospace}
+  .tc-corner,.tc-tick{paint-order:stroke;stroke:#181818;stroke-width:3px;stroke-linejoin:round}
+  .tc-axis-title{fill:#6f6f6f;font-size:10.5px;letter-spacing:.08em;font-family:ui-monospace,monospace}
+  .tc-corner{fill:#fff;font-size:12px;font-weight:650}
+  .tc-corner tspan.px{fill:#919191;font-weight:500}
+  .term-legend{display:flex;gap:12px;font-size:9.5px;color:var(--muted);font-family:ui-monospace,monospace;align-items:center;flex-wrap:wrap}
+  .term-legend i{display:inline-block;width:14px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+  .toggle{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text);border:1px solid rgba(71,71,71,0.4);background:#141414;border-radius:3px;padding:5px 9px;cursor:pointer;user-select:none}
+  .term-matrix td.est{color:var(--muted);font-style:italic}
+  .term-matrix td.none{color:var(--dim)}
+  .term-matrix td .n{color:var(--dim);font-size:9px;margin-left:3px}
   .curve-line{fill:none;stroke:#38bdf8;stroke-width:2.2;vector-effect:non-scaling-stroke}
   .curve-band{fill:rgba(56,189,248,0.06);stroke:none}
   .curve-dot{fill:#fff;transition:.1s}
@@ -271,6 +305,7 @@
   .empty{padding:36px;text-align:center;color:var(--muted)}
   
   @media(max-width:1080px){.forward-controls{grid-template-columns:repeat(3,1fr)}.kpis{grid-template-columns:repeat(2,1fr)}.kpis .kpi:last-child{grid-column:1/-1}.grid2,.grid-even{grid-template-columns:1fr}.specs{grid-template-columns:repeat(2,1fr)}.sources{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:680px){.term-chart-wrap{height:330px}}
   @media(max-width:680px){.forward-controls{grid-template-columns:1fr 1fr}.forward-kpis{grid-template-columns:1fr 1fr}.shell{padding:0 12px 36px}.topbar{margin:0 -12px;padding:0 12px}.brand-tag,.status{display:none}.kpis{grid-template-columns:1fr}.kpis .kpi:last-child{grid-column:auto}.section-head{align-items:flex-start;flex-direction:column;gap:8px}.tools{width:100%}.search,.select{flex:1;min-width:120px}.specs,.sources{grid-template-columns:1fr}.footer{flex-direction:column}.chart-wrap,.curve-wrap{height:270px}}
 </style>
 </head>
@@ -372,6 +407,7 @@
     <button class="tab-btn" data-view="history">Historical Index</button>
     <button class="tab-btn" data-view="forward">Forward Curve</button>
     <button class="tab-btn" data-view="curve-compare">Curve Comparison</button>
+    <button class="tab-btn" data-view="term-pricing">Term Pricing</button>
     <button class="tab-btn" data-view="providers">Provider Matrix</button>
     <button class="tab-btn" data-view="sensitivity">Methodology Sensitivity</button>
     <button class="tab-btn" data-view="ablation">Source Ablation</button>
@@ -925,6 +961,73 @@
     </section>
   </div>
 
+  <div class="view-pane" id="view-term-pricing">
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Term Pricing</div>
+          <div class="section-sub">Published $/GPU-hour by commitment length and GPU family · one vote per seller per cell · neocloud and hyperscaler never blended</div>
+        </div>
+        <div class="tools">
+          <select class="select" id="termSegmentSelect"><option value="neocloud">Neocloud sellers</option><option value="hyperscaler">Hyperscaler list</option></select>
+          <label class="toggle" title="Estimate empty cells from the same seller's term ratio in another family. Estimated cells are dashed."><input type="checkbox" id="termFillToggle"> Fill gaps (estimated)</label>
+          <button class="btn" onclick="copyTableToClipboard('#termMatrixTable')">Copy Matrix</button>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="panel">
+          <div class="panel-head">
+            <div><h3 id="termPricingTitle">Neocloud term pricing</h3><p id="termPricingSub">Drag or use arrow keys to rotate · double-click to reset · hover a point for its sellers</p></div>
+            <div class="term-legend">
+              <span><i style="background:rgba(57,135,229,.4);outline:1px dashed rgba(226,226,226,.6)"></i>Estimated</span>
+              <span><i style="border:1px dashed rgba(145,145,145,.6)"></i>No price</span>
+            </div>
+          </div>
+          <div class="term-chart-box">
+            <div class="term-chart-wrap" id="termPricingChart" tabindex="0" aria-label="Term pricing chart. Arrow keys rotate, R resets."></div>
+            <button class="btn dense-btn term-reset" id="termResetView" type="button" disabled title="Return the chart to its starting angle">↺ Reset position</button>
+          </div>
+          <div class="term-key-title">$/GPU-hour</div>
+          <div class="term-key" id="termPricingKey"></div>
+        </div>
+        <div class="panel callout">
+          <div class="eyebrow">Coverage</div>
+          <div class="big" id="termCoverageBig">—</div>
+          <div class="muted" id="termCoverageSub">cells with a published price</div>
+          <hr/>
+          <div class="callout-row"><span>Sellers in panel</span><b id="termSellerCount">—</b></div>
+          <div class="muted" id="termSellerList" style="font-size:10px;margin:-2px 0 6px"></div>
+          <div class="callout-row"><span>Published quotes</span><b id="termQuoteCount">—</b></div>
+          <div class="callout-row"><span>H100 on-demand → longest term</span><b id="termH100Slope">—</b></div>
+          <div class="callout-row" id="termReferenceRow"><span>H100 1Y vs SemiAnalysis p25–p75</span><b id="termReference">—</b></div>
+          <div class="callout-row"><span>No seller publishes</span><b id="termEmptyTerms">—</b></div>
+          <div class="callout-row"><span>Captured</span><b id="termCaptured">—</b></div>
+          <hr/>
+          <div class="muted" id="termRule" style="font-size:10px"></div>
+        </div>
+      </div>
+
+      <div class="section-head" style="margin-top:24px">
+        <div><div class="section-title">Term Matrix</div><div class="section-sub">Median of seller votes in $/GPU-hour · small number = sellers · ~ = estimated</div></div>
+      </div>
+      <div class="panel table-panel">
+        <table class="table term-matrix" id="termMatrixTable"><thead></thead><tbody></tbody></table>
+      </div>
+
+      <div class="section-head" style="margin-top:24px">
+        <div><div class="section-title">Published Term Quotes</div><div class="section-sub">Every price behind the chart, as published, with the unit math and source</div></div>
+        <div class="tools"><select class="select" id="termLedgerFamily"><option value="">All families</option></select></div>
+      </div>
+      <div class="panel table-panel">
+        <table class="table" id="termLedgerTable">
+          <thead><tr><th>Seller</th><th>Family</th><th>Instance</th><th>Option</th><th>Term</th><th class="num">$/GPU-hr</th><th>Published</th><th>Unit math</th><th>Region</th><th>Source</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
   <div class="view-pane" id="view-providers">
     <section class="section">
       <div class="section-head">
@@ -1148,7 +1251,19 @@
         <div class="formula">F(T) = S₀ × [(1 + c) × (1 − d)]ᵀ</div>
         <p>where $T$ represents the delivery tenor in years ($T = m / 12$). Forward curves are indicative term structure models, not executed transaction commitments.</p>
 
-        <h2>6. Legal Governance, Public Data & Nominative Fair Use</h2>
+        <h2>6. Term Pricing</h2>
+        <p>The forward curve above is a model. Term pricing is not: it is built only from prices sellers publish for committing to a length of time — reserved instances, savings plans, committed-use discounts, capacity blocks, calendar reservations, monthly and annual contracts. Each quote keeps the figure as published and the arithmetic to $/GPU-hour.</p>
+        <ul>
+          <li><b>One vote per seller per cell:</b> the seller's lowest published per-GPU price for that family and term; the cell is the median of the votes. A quote sold for a range of lengths (an AWS Capacity Block, 1–182 days) prices every term inside the range.</li>
+          <li><b>Segments never blended:</b> neocloud and hyperscaler are priced separately, as in the Fix.</li>
+          <li><b>Single node:</b> multi-node cluster products are listed and excluded, never averaged in.</li>
+          <li><b>Matched on-demand:</b> a seller's on-demand rate enters only alongside a term price it publishes, so each discount is measured against the same seller's on-demand.</li>
+          <li><b>Color is the price band:</b> six fixed $/GPU-hour bands shared by both segments. Each published point owns the tile around it, so the chart and the matrix show the same color for the same cell.</li>
+          <li><b>Estimates are opt-in:</b> with <code>fill</code>, an empty cell is the family's nearest published term times the median same-seller ratio between the two terms in other families. Estimated cells are dashed and carry their arithmetic.</li>
+        </ul>
+        <p>Cells can rise with term where the sellers differ between columns (a seller that publishes monthly blocks but no hourly rate enters the 1M column only). Every cell names its sellers so this is visible rather than smoothed away.</p>
+
+        <h2>7. Legal Governance, Public Data & Nominative Fair Use</h2>
         <p><b>Open Public Data Sources:</b> FSKU aggregates rate observations strictly from publicly accessible web rate cards, open documentation tables, and unauthenticated public developer APIs (e.g. Azure Retail API, RunPod Public API, AWS Price List). No password-protected, paywalled, or authenticated user accounts are accessed.</p>
         <p><b>Nominative Trademark Fair Use:</b> All product names, hardware SKUs, and provider marks (e.g. <i>NVIDIA, Hopper, Blackwell, H100, H200, B200, A100, AMD, AWS, Google Cloud, Microsoft Azure, CoreWeave, RunPod, Lambda Labs</i>) are the property of their respective trademark holders. They are used exclusively under the legal doctrine of <i>Nominative Fair Use</i> for factual, descriptive market reference to identify the underlying physical hardware and cloud hosts.</p>
         <p><b>Non-Advisory & Independence Notice:</b> FSKU is an independent reference index and research engine developed and maintained under the Apache License 2.0. FSKU is not affiliated with, sponsored by, or endorsed by any referenced cloud service provider or semiconductor manufacturer. Benchmark indices and model-implied forward curves are published solely for informational, risk-management, and analytical modeling purposes, and do not constitute investment advice, trading recommendations, or executed bilateral trading commitments.</p>
@@ -1250,6 +1365,8 @@ function switchView(viewId, updateHash = true) {
   activeView = viewId;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.view === viewId));
   document.querySelectorAll('.view-pane').forEach(p => p.classList.toggle('active', p.id === 'view-' + viewId));
+  // The term pricing chart scales to its panel, which has no width while hidden.
+  if (viewId === 'term-pricing' && window.__termPricing) drawTermChart(window.__termPricing);
   if (updateHash && window.location.hash !== '#/' + viewId) {
     window.location.hash = '#/' + viewId;
   }
@@ -1357,7 +1474,7 @@ function handleHashNavigation() {
     const sku = decodeURIComponent(hash.replace('sku/', ''));
     selectSkuAndGo(sku, false);
   } else {
-    const validViews = ['overview', 'sku-detail', 'spot-index', 'history', 'forward', 'curve-compare', 'providers', 'sensitivity', 'ablation', 'tape', 'provenance', 'methodology'];
+    const validViews = ['overview', 'sku-detail', 'spot-index', 'history', 'forward', 'curve-compare', 'term-pricing', 'providers', 'sensitivity', 'ablation', 'tape', 'provenance', 'methodology'];
     if (validViews.includes(hash)) {
       switchView(hash, false);
     }
@@ -1397,6 +1514,7 @@ function renderAllViews() {
   renderHistoryView();
   renderForwardCurve();
   renderCurveComparison();
+  renderTermPricing();
   renderProviderMatrix();
   renderSensitivityView();
   renderAblationView();
@@ -2352,6 +2470,373 @@ function renderSpecsCards() {
   }).join('');
 }
 
+// ---- Term pricing ----------------------------------------------------------
+// Published term prices (reserved, savings plans, CUDs, capacity blocks,
+// monthly/annual contracts) as a 3D chart: commitment length along one floor
+// axis, GPU family along the other, $/GPU-hr as height. Drawn as plain SVG with
+// a small orthographic projection; drag rotates it.
+const TERM_VIEW_DEFAULT = { az: 0.74, el: 0.6 };
+let termView = { ...TERM_VIEW_DEFAULT };
+let termDragging = false;
+const termPricingCache = {};
+const TERM_LONG = { OD: 'On-demand', '1M': '1 month', '3M': '3 months', '6M': '6 months', '1Y': '1 year', '2Y': '2 years', '3Y': '3 years', '5Y': '5 years' };
+
+async function renderTermPricing() {
+  const seg = document.getElementById('termSegmentSelect').value;
+  const fill = document.getElementById('termFillToggle').checked;
+  const key = `${seg}|${fill}`;
+  if (!termPricingCache[key]) {
+    try {
+      const r = await fetch(`/api/term-pricing?segment=${seg}&fill=${fill}`);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      termPricingCache[key] = await r.json();
+    } catch (e) {
+      document.getElementById('termPricingChart').innerHTML = '<div class="empty">Term pricing unavailable.</div>';
+      return;
+    }
+    // The controls may have changed while this request was in flight; the
+    // call made for the current state draws, not whichever response lands last.
+    if (key !== `${document.getElementById('termSegmentSelect').value}|${document.getElementById('termFillToggle').checked}`) return;
+  }
+  const res = termPricingCache[key];
+  window.__termPricing = res;
+  if (!document.querySelector('#termPricingKey .band')) renderTermKey();
+  document.getElementById('termPricingTitle').textContent = `${seg === 'neocloud' ? 'Neocloud' : 'Hyperscaler'} term pricing`;
+  drawTermChart(res);
+  renderTermSidebar(res);
+  renderTermMatrix(res);
+  const famSel = document.getElementById('termLedgerFamily');
+  if (famSel.options.length <= 1) res.families.forEach(f => famSel.insertAdjacentHTML('beforeend', `<option value="${f}">${f}</option>`));
+  renderTermLedger(res);
+}
+
+function termCellMap(res) {
+  const m = {};
+  res.cells.forEach(c => { m[c.family + '|' + c.term] = c; });
+  return m;
+}
+
+// Price bands: one hue, dark to light as price rises (on a dark panel the
+// lightest step carries the most weight). Fixed dollar edges shared by both
+// segments, so a color means the same price in either view. Checked as an
+// ordinal ramp against #181818: monotone lightness, visible gaps, darkest step
+// clears 2:1.
+const TERM_BANDS = [
+  { max: 2, color: '#184f95', label: '< $2' },
+  { max: 3, color: '#256abf', label: '$2–3' },
+  { max: 5, color: '#3987e5', label: '$3–5' },
+  { max: 8, color: '#6da7ec', label: '$5–8' },
+  { max: 12, color: '#9ec5f4', label: '$8–12' },
+  { max: Infinity, color: '#cde2fb', label: '$12+' },
+];
+const termBand = v => TERM_BANDS.findIndex(b => v < b.max);
+
+function renderTermKey() {
+  const key = document.getElementById('termPricingKey');
+  key.innerHTML = TERM_BANDS.map((b, i) => `<div class="band" data-band="${i}"><i style="background:${b.color}"></i><span>${b.label}</span></div>`).join('');
+  key.querySelectorAll('.band').forEach(el => {
+    el.addEventListener('mouseenter', () => focusTermBand(Number(el.dataset.band)));
+    el.addEventListener('mouseleave', () => focusTermBand(null));
+  });
+}
+
+function focusTermBand(band) {
+  document.querySelectorAll('#termPricingChart g[data-band]').forEach(g => {
+    g.style.opacity = band === null || Number(g.dataset.band) === band ? '' : '0.15';
+  });
+}
+
+const isDefaultTermView = () => Math.abs(termView.az - TERM_VIEW_DEFAULT.az) < 1e-3 && Math.abs(termView.el - TERM_VIEW_DEFAULT.el) < 1e-3;
+
+function resetTermView() {
+  if (isDefaultTermView()) return;
+  const from = { ...termView }, t0 = performance.now(), dur = 320;
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const frame = now => {
+    const k = reduce ? 1 : Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    termView = { az: from.az + (TERM_VIEW_DEFAULT.az - from.az) * e, el: from.el + (TERM_VIEW_DEFAULT.el - from.el) * e };
+    if (k >= 1) termView = { ...TERM_VIEW_DEFAULT };
+    if (window.__termPricing) drawTermChart(window.__termPricing);
+    if (k < 1) requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
+
+function niceStep(max, target = 4) {
+  const raw = max / target, pow = Math.pow(10, Math.floor(Math.log10(raw)));
+  return [1, 2, 2.5, 5, 10].map(m => m * pow).find(s => s >= raw) || raw;
+}
+
+function drawTermChart(res) {
+  const el = document.getElementById('termPricingChart');
+  const terms = res.terms;
+  const fams = [...res.families].reverse();          // newest family at the back
+  const nT = terms.length, nF = fams.length;
+  const cells = termCellMap(res);
+  const at = (i, j) => cells[fams[j] + '|' + terms[i].key];
+  const vals = res.cells.filter(c => c.value != null).map(c => c.value);
+  if (!vals.length || nT < 2 || nF < 2) { el.innerHTML = '<div class="empty">Not enough published term prices to draw the chart.</div>'; return; }
+  const step = niceStep(Math.max(...vals));
+  const vmax = Math.ceil(Math.max(...vals) / step) * step;
+
+  // Scene coordinates are unbounded; the viewBox is fitted to what gets drawn,
+  // so no rotation can push a corner or label out of the panel.
+  const wide = el.clientWidth >= 520;
+  const S = Math.max(170, Math.min(480, el.clientWidth * 0.56)), HZ = S * 0.48;
+  const box = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
+  const grow = (x, y) => { box.x0 = Math.min(box.x0, x); box.y0 = Math.min(box.y0, y); box.x1 = Math.max(box.x1, x); box.y1 = Math.max(box.y1, y); };
+  const label = (x, y, text, anchor, px = 11) => {
+    const w = String(text).length * px * 0.62, x0 = anchor === 'end' ? x - w : anchor === 'middle' ? x - w / 2 : x;
+    grow(x0, y - px); grow(x0 + w, y + 3);
+  };
+  const ca = Math.cos(termView.az), sa = Math.sin(termView.az), se = Math.sin(termView.el), ce = Math.cos(termView.el);
+  const gx = i => (i / (nT - 1) - 0.5) * 1.1;
+  const gy = j => (j / (nF - 1) - 0.5) * 0.8;
+  const P = (x, y, z) => {
+    const xr = x * ca - y * sa, yr = x * sa + y * ca;
+    const p = { x: Math.round(xr * S * 10) / 10, y: Math.round((yr * S * se - z * HZ * ce) * 10) / 10, d: yr };
+    grow(p.x, p.y);
+    return p;
+  };
+  const F = (i, j) => P(gx(i), gy(j), 0);
+  const V = (i, j) => { const c = at(i, j); return c && c.value != null ? P(gx(i), gy(j), c.value / vmax) : null; };
+  const pts = arr => arr.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+
+  let s = '';
+
+  // Floor, and a dashed outline wherever a cell has no price to draw.
+  s += `<polygon class="tc-floor" points="${pts([F(0, 0), F(nT - 1, 0), F(nT - 1, nF - 1), F(0, nF - 1)])}"/>`;
+  for (let i = 0; i < nT - 1; i++) for (let j = 0; j < nF - 1; j++) {
+    if (![V(i, j), V(i + 1, j), V(i + 1, j + 1), V(i, j + 1)].every(Boolean))
+      s += `<polygon class="tc-gap" points="${pts([F(i, j), F(i + 1, j), F(i + 1, j + 1), F(i, j + 1)])}"/>`;
+  }
+
+  // $ ruler on the left corner, where prices are lowest.
+  const r0 = F(0, nF - 1), r1 = P(gx(0), gy(nF - 1), 1);
+  s += `<line class="tc-ruler" x1="${r0.x}" y1="${r0.y}" x2="${r1.x}" y2="${r1.y}"/>`;
+  for (let v = step; v <= vmax + 1e-9; v += step) {
+    const p = P(gx(0), gy(nF - 1), v / vmax);
+    const txt = `$${v % 1 ? v.toFixed(1) : v}`;
+    label(p.x - 8, p.y + 4, txt, 'end');
+    s += `<line class="tc-ruler" x1="${p.x - 4}" y1="${p.y}" x2="${p.x}" y2="${p.y}"/><text class="tc-tick" x="${p.x - 8}" y="${p.y + 4}" text-anchor="end">${txt}</text>`;
+  }
+
+  // Axis ticks along the two front edges.
+  terms.forEach((t, i) => {
+    const p = P(gx(i), gy(nF - 1) + 0.1, 0);
+    label(p.x, p.y + 10, t.key, 'middle');
+    s += `<text class="tc-tick" x="${p.x}" y="${p.y + 10}" text-anchor="middle">${t.key}</text>`;
+  });
+  fams.forEach((f, j) => {
+    const p = P(gx(nT - 1) + 0.09, gy(j), 0);
+    label(p.x + 6, p.y + 8, f, 'start');
+    s += `<text class="tc-tick" x="${p.x + 6}" y="${p.y + 8}" text-anchor="start">${f}</text>`;
+  });
+  const tt = P(gx(0) + 0.12, gy(nF - 1) + 0.24, 0), ft = P(gx(nT - 1) + 0.24, gy(0) + 0.14, 0);
+  label(tt.x, tt.y + 12, 'TERM →', 'middle');
+  label(ft.x + 10, ft.y + 12, '← GPU FAMILY', 'start');
+  s += `<text class="tc-axis-title" x="${tt.x}" y="${tt.y + 12}" text-anchor="middle">TERM →</text>`;
+  s += `<text class="tc-axis-title" x="${ft.x + 10}" y="${ft.y + 12}" text-anchor="start">← GPU FAMILY</text>`;
+
+  // Corner labels: the extreme priced vertex in each of the four directions.
+  const priced = [];
+  for (let i = 0; i < nT; i++) for (let j = 0; j < nF; j++) if (V(i, j)) priced.push([i, j]);
+  const pick = score => priced.reduce((a, b) => (score(b) > score(a) ? b : a));
+  const corners = [
+    { v: pick(([i, j]) => -i - j), dx: 0, dy: -14, anchor: 'middle' },
+    { v: pick(([i, j]) => -i + j), dx: 10, dy: -9, anchor: 'start', side: true },
+    { v: pick(([i, j]) => i - j), dx: -10, dy: -9, anchor: 'end', side: true },
+    { v: pick(([i, j]) => i + j), dx: -8, dy: -12, anchor: 'end' },
+  ].filter(c => wide || !c.side);
+  corners.forEach(({ v: [i, j] }) => {
+    const top = V(i, j), bot = F(i, j);
+    s += `<line class="tc-drop" x1="${top.x}" y1="${top.y}" x2="${bot.x}" y2="${bot.y}"/>`;
+  });
+
+  // Tiles back to front. Each published point owns the part of the chart
+  // nearest to it -- a quarter of every quad it touches -- in its own price
+  // band, so a cell has the same color here as in the matrix below. Tile
+  // borders run along the midlines between points.
+  const W3 = (i, j) => { const c = at(i, j); return c && c.value != null ? [gx(i), gy(j), c.value / vmax] : null; };
+  const mid = (...ps) => ps[0].map((_, k) => ps.reduce((a, q) => a + q[k], 0) / ps.length);
+  const tiles = [];
+  for (let i = 0; i < nT - 1; i++) for (let j = 0; j < nF - 1; j++) {
+    const idx = [[i, j], [i + 1, j], [i + 1, j + 1], [i, j + 1]];
+    const w = idx.map(([a, b]) => W3(a, b));
+    if (!w.every(Boolean)) continue;
+    const ctr = mid(...w), m = [0, 1, 2, 3].map(k => mid(w[k], w[(k + 1) % 4]));
+    idx.forEach(([a, b], k) => {
+      const c = at(a, b), ring = [w[k], m[k], ctr, m[(k + 3) % 4]].map(q => P(...q));
+      tiles.push({ ring, band: termBand(c.value), est: c.status === 'estimated', d: ring.reduce((acc, q) => acc + q.d, 0) / 4 });
+    });
+  }
+  tiles.sort((a, b) => a.d - b.d).forEach(t => {
+    const col = TERM_BANDS[t.band].color, op = t.est ? 0.4 : 1;
+    s += `<g data-band="${t.band}"><polygon points="${pts(t.ring)}" fill="${col}" fill-opacity="${op}" stroke="${col}" stroke-opacity="${op}" stroke-width="0.6"/>`
+      + `<polyline class="tc-edge${t.est ? ' est' : ''}" points="${pts(t.ring.slice(1))}" fill="none"/></g>`;
+  });
+  const used = new Set(res.cells.filter(c => c.value != null).map(c => termBand(c.value)));
+  document.querySelectorAll('#termPricingKey .band').forEach(b => b.classList.toggle('unused', !used.has(Number(b.dataset.band))));
+
+  // Corner labels on top.
+  corners.forEach(({ v: [i, j], dx, dy, anchor }) => {
+    const p = V(i, j), c = at(i, j);
+    const txt = `${terms[i].key} · ${fams[j]} ${c.status === 'estimated' ? '~' : ''}${money(c.value)}`;
+    label(p.x + dx, p.y + dy, txt, anchor, 12);
+    s += `<circle cx="${p.x}" cy="${p.y}" r="3.6" fill="#fff" stroke="#181818" stroke-width="2"/>`;
+    s += `<text class="tc-corner" x="${p.x + dx}" y="${p.y + dy}" text-anchor="${anchor}">${terms[i].key} · ${fams[j]} <tspan class="px">${c.status === 'estimated' ? '~' : ''}${money(c.value)}</tspan></text>`;
+  });
+
+  // Invisible hover targets for every grid point, priced or not.
+  for (let i = 0; i < nT; i++) for (let j = 0; j < nF; j++) {
+    const p = V(i, j) || F(i, j);
+    s += `<circle class="term-hit" cx="${p.x}" cy="${p.y}" r="10" fill="transparent" data-fam="${fams[j]}" data-term="${terms[i].key}"/>`;
+  }
+  const pad = 14, vb = [box.x0 - pad, box.y0 - pad, box.x1 - box.x0 + 2 * pad, box.y1 - box.y0 + 2 * pad].map(v => v.toFixed(1));
+  el.innerHTML = `<svg viewBox="${vb.join(' ')}" class="${termDragging ? 'dragging' : ''}" role="img" aria-label="${res.segment} term pricing chart">${s}</svg>`;
+  document.getElementById('termResetView').disabled = isDefaultTermView();
+}
+
+function termHudHtml(res, fam, term) {
+  const c = termCellMap(res)[fam + '|' + term];
+  if (!c) return null;
+  const quotes = Object.fromEntries(res.quotes.map(q => [q.id, q]));
+  const head = `<div class="hud-title">${fam} · ${TERM_LONG[term] || term}</div>`;
+  if (c.status === 'none') return head + '<div class="hud-price">No published price</div><div class="hud-row"><span>Sellers</span><b>none in this segment</b></div>';
+  const band = TERM_BANDS[termBand(c.value)];
+  let html = head + `<div class="hud-price">${c.status === 'estimated' ? '~' : ''}${money(c.value)} / GPU-hr</div>`
+    + `<div class="hud-row"><span>Price band</span><b><i style="display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;background:${band.color}"></i>${band.label}</b></div>`;
+  if (c.status === 'estimated') {
+    return html + `<div class="hud-row"><span>Status</span><b>Estimated</b></div><div style="max-width:280px;white-space:normal;color:var(--muted);font-size:9.5px;margin-top:4px">${c.estimate}</div>`;
+  }
+  html += `<div class="hud-row"><span>Sellers</span><b>${c.n_sellers}</b></div>`;
+  if (c.n_sellers > 1) html += `<div class="hud-row"><span>Range</span><b>${money(c.low)} – ${money(c.high)}</b></div>`;
+  html += c.quote_ids.map(id => quotes[id]).filter(Boolean)
+    .map(q => `<div class="hud-row"><span>${q.provider}</span><b>${money(q.per_gpu)}</b></div>`).join('');
+  const ref = (res.references || []).find(r => r.family === fam && r.term === term);
+  if (ref) html += `<div class="hud-row"><span>SemiAnalysis p25–p75</span><b>${money(ref.low)} – ${money(ref.high)}</b></div>`;
+  return html;
+}
+
+function wireTermChartInteraction() {
+  const el = document.getElementById('termPricingChart');
+  const hud = document.getElementById('chartHudTooltip');
+  let drag = null;
+  el.addEventListener('pointerdown', e => {
+    drag = { x: e.clientX, y: e.clientY, az: termView.az, el: termView.el };
+    termDragging = true;
+    el.setPointerCapture(e.pointerId);
+    hud.style.display = 'none';
+  });
+  el.addEventListener('pointermove', e => {
+    if (drag) {
+      termView.az = Math.max(0.2, Math.min(1.35, drag.az + (e.clientX - drag.x) * 0.008));
+      termView.el = Math.max(0.22, Math.min(1.1, drag.el - (e.clientY - drag.y) * 0.006));
+      if (window.__termPricing) drawTermChart(window.__termPricing);
+      return;
+    }
+    const t = e.target;
+    const html = t && t.classList && t.classList.contains('term-hit') && window.__termPricing
+      ? termHudHtml(window.__termPricing, t.dataset.fam, t.dataset.term) : null;
+    if (!html) { hud.style.display = 'none'; return; }
+    hud.innerHTML = html;
+    hud.style.display = 'block';
+    const w = hud.offsetWidth;
+    hud.style.left = Math.min(e.pageX + 14, window.scrollX + document.documentElement.clientWidth - w - 8) + 'px';
+    hud.style.top = (e.pageY - 10) + 'px';
+  });
+  const end = () => {
+    drag = null;
+    termDragging = false;
+    el.querySelector('svg')?.classList.remove('dragging');
+  };
+  el.addEventListener('pointerup', end);
+  el.addEventListener('pointercancel', end);
+  el.addEventListener('dblclick', resetTermView);
+  el.addEventListener('keydown', e => {
+    const d = { ArrowLeft: [-0.06, 0], ArrowRight: [0.06, 0], ArrowUp: [0, 0.05], ArrowDown: [0, -0.05] }[e.key];
+    if (d) {
+      e.preventDefault();
+      termView.az = Math.max(0.2, Math.min(1.35, termView.az + d[0]));
+      termView.el = Math.max(0.22, Math.min(1.1, termView.el + d[1]));
+      if (window.__termPricing) drawTermChart(window.__termPricing);
+    } else if (e.key === 'r' || e.key === 'R' || e.key === 'Home') {
+      e.preventDefault();
+      resetTermView();
+    }
+  });
+  el.addEventListener('mouseleave', () => { hud.style.display = 'none'; });
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => { if (activeView === 'term-pricing' && window.__termPricing) drawTermChart(window.__termPricing); }, 120);
+  });
+}
+
+function renderTermSidebar(res) {
+  const cov = res.coverage;
+  document.getElementById('termCoverageBig').textContent = `${cov.observed}/${cov.total}`;
+  document.getElementById('termCoverageSub').textContent = 'cells with a published price'
+    + (cov.estimated ? ` · ${cov.estimated} estimated` : '') + (cov.none ? ` · ${cov.none} empty` : '');
+  const sellers = [...new Set(res.quotes.map(q => q.provider))].sort();
+  document.getElementById('termSellerCount').textContent = sellers.length;
+  document.getElementById('termSellerList').textContent = sellers.join(' · ');
+  document.getElementById('termQuoteCount').textContent = `${res.quotes.length}` + (res.excluded.length ? ` (+${res.excluded.length} cluster excluded)` : '');
+
+  const cells = termCellMap(res);
+  const h = res.terms.map(t => cells['H100|' + t.key]).filter(c => c && c.status === 'observed');
+  if (h.length >= 2) {
+    const a = h[0], b = h[h.length - 1];
+    document.getElementById('termH100Slope').textContent = `${money(a.value)} → ${money(b.value)} ${b.term} (${((b.value / a.value - 1) * 100).toFixed(0)}%)`;
+  } else {
+    document.getElementById('termH100Slope').textContent = '—';
+  }
+  const ref = (res.references || []).find(r => r.family === 'H100' && r.term === '1Y');
+  const refCell = cells['H100|1Y'];
+  document.getElementById('termReferenceRow').style.display = ref ? '' : 'none';
+  if (ref && refCell && refCell.value != null) {
+    const inside = refCell.value >= ref.low && refCell.value <= ref.high;
+    document.getElementById('termReference').innerHTML = `${money(refCell.value)} vs ${money(ref.low)}–${money(ref.high)} <span style="color:${inside ? 'var(--good)' : 'var(--warn)'}">${inside ? 'inside' : 'outside'}</span>`;
+  }
+  document.getElementById('termEmptyTerms').textContent = res.empty_terms.length ? res.empty_terms.map(k => TERM_LONG[k] || k).join(', ') : '—';
+  document.getElementById('termCaptured').textContent = res.captured;
+  document.getElementById('termRule').textContent = res.rule;
+}
+
+function renderTermMatrix(res) {
+  const cells = termCellMap(res);
+  const table = document.getElementById('termMatrixTable');
+  table.querySelector('thead').innerHTML = '<tr><th>Family</th>' + res.terms.map(t => `<th class="num">${t.label}</th>`).join('') + '</tr>';
+  table.querySelector('tbody').innerHTML = res.families.map(f => '<tr><td><b>' + f + '</b></td>' + res.terms.map(t => {
+    const c = cells[f + '|' + t.key];
+    const sw = c.value != null ? `<i class="sw" style="background:${TERM_BANDS[termBand(c.value)].color}${c.status === 'estimated' ? ';opacity:.45' : ''}"></i>` : '';
+    if (c.status === 'observed') return `<td class="num" title="${c.sellers.join(', ')}">${sw}${money(c.value)}<span class="n">${c.n_sellers}</span></td>`;
+    if (c.status === 'estimated') return `<td class="num est" title="${c.estimate}">${sw}~${money(c.value)}</td>`;
+    return '<td class="num none">—</td>';
+  }).join('') + '</tr>').join('');
+}
+
+function termDaysLabel(q) {
+  const one = d => d === 0 ? 'On-demand' : d % 365 === 0 ? `${d / 365} yr` : d % 30 === 0 ? `${d / 30} mo` : `${d} d`;
+  return q.min_days === q.max_days ? one(q.min_days) : `${q.min_days}–${q.max_days} d`;
+}
+
+function renderTermLedger(res) {
+  const fam = document.getElementById('termLedgerFamily').value;
+  const rows = res.quotes.filter(q => !fam || q.family === fam);
+  const ex = res.excluded.filter(q => !fam || q.family === fam);
+  const link = u => `<a class="source-link" href="${u}" target="_blank" rel="noopener">${new URL(u).hostname.replace(/^www\./, '')} ↗</a>`;
+  document.querySelector('#termLedgerTable tbody').innerHTML = rows.map(q => `<tr>
+      <td>${q.provider}</td><td>${q.family}</td><td>${q.instance}</td>
+      <td title="${q.notes || ''}">${q.option}${q.notes ? ' <span class="muted">*</span>' : ''}</td>
+      <td>${termDaysLabel(q)}</td><td class="num"><b>${money(q.per_gpu)}</b></td>
+      <td class="muted">${q.published}</td><td class="muted" style="font-family:ui-monospace,monospace;font-size:10px">${q.math}</td>
+      <td>${q.region || '—'}</td><td>${link(q.source)}</td></tr>`).join('')
+    + ex.map(q => `<tr style="opacity:.55">
+      <td>${q.provider}</td><td>${q.family}</td><td>—</td><td>${q.option}</td><td><span class="chip">Excluded</span></td>
+      <td class="num">${money(q.per_gpu)}</td><td class="muted" colspan="3">${q.reason}</td><td>${link(q.source)}</td></tr>`).join('');
+}
+
 function attachChartHudListener(chartContainer, dataGetter) {
   const hud = document.getElementById('chartHudTooltip');
   chartContainer.addEventListener('mousemove', e => {
@@ -2404,6 +2889,7 @@ const COMMAND_ACTIONS = [
   { label: 'View: Historical Index', cat: 'VIEWS', action: () => switchView('history') },
   { label: 'View: Forward Curve', cat: 'VIEWS', action: () => switchView('forward') },
   { label: 'View: Curve Comparison', cat: 'VIEWS', action: () => switchView('curve-compare') },
+  { label: 'View: Term Pricing', cat: 'VIEWS', action: () => switchView('term-pricing') },
   { label: 'View: Provider Matrix', cat: 'VIEWS', action: () => switchView('providers') },
   { label: 'View: Methodology Sensitivity', cat: 'VIEWS', action: () => switchView('sensitivity') },
   { label: 'View: Source Ablation', cat: 'VIEWS', action: () => switchView('ablation') },
@@ -2576,6 +3062,11 @@ function initEventHandlers() {
   document.getElementById('tapeGpuFilter').addEventListener('change', renderTapeTable);
   document.getElementById('tapeBasisFilter').addEventListener('change', renderTapeTable);
   document.getElementById('ablationSkuFilter').addEventListener('change', renderAblationView);
+  document.getElementById('termSegmentSelect').addEventListener('change', renderTermPricing);
+  document.getElementById('termFillToggle').addEventListener('change', renderTermPricing);
+  document.getElementById('termLedgerFamily').addEventListener('change', () => window.__termPricing && renderTermLedger(window.__termPricing));
+  document.getElementById('termResetView').addEventListener('click', resetTermView);
+  wireTermChartInteraction();
 
   document.getElementById('diffBaseSelect')?.addEventListener('change', renderSnapshotDiff);
   document.getElementById('diffTargetSelect')?.addEventListener('change', renderSnapshotDiff);

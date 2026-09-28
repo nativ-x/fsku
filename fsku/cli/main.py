@@ -118,6 +118,56 @@ def fix_cmd(
                 c.add_row(rd.segment, k.provider, k.sku, k.basis, k.tier or "?", f"${k.per_gpu:.2f}", k.provenance, k.recorded_at[:10])
         console.print(c)
 
+@app.command("term-pricing")
+def term_pricing_cmd(
+    segment: str = typer.Option("neocloud", "--segment", "-s", help="neocloud or hyperscaler (never blended)"),
+    fill: bool = typer.Option(False, "--fill", help="Estimate empty cells from same-seller term ratios (shown with ~)"),
+    show_quotes: bool = typer.Option(False, "--quotes", "-q", help="List every published quote behind the numbers"),
+):
+    """Term pricing: published $/GPU-hr by commitment length x GPU family."""
+    from fsku.core.term_pricing import TermPricingEngine
+    if segment not in ("neocloud", "hyperscaler"):
+        console.print("[red]--segment must be neocloud or hyperscaler[/red]")
+        raise typer.Exit(1)
+    res = TermPricingEngine.compute(segment=segment, fill=fill)
+    cells = {(c.family, c.term): c for c in res.cells}
+
+    t = Table(title=f"{segment.title()} term pricing ($/GPU-hr, sellers in parentheses) · captured {res.captured}",
+              show_header=True, header_style="bold cyan")
+    t.add_column("Family", style="bold white")
+    for term in res.terms:
+        t.add_column(term.key, justify="right")
+    for fam in res.families:
+        row = []
+        for term in res.terms:
+            c = cells[(fam, term.key)]
+            if c.status == "observed":
+                row.append(f"${c.value:.2f} [dim]({c.n_sellers})[/dim]")
+            elif c.status == "estimated":
+                row.append(f"[dim italic]~${c.value:.2f}[/dim italic]")
+            else:
+                row.append("[dim]-[/dim]")
+        t.add_row(fam, *row)
+    console.print(t)
+    cov = res.coverage
+    console.print(f"[dim]{cov['observed']}/{cov['total']} cells published, {cov['estimated']} estimated, {cov['none']} empty"
+                  + (f"; no {segment} seller publishes: {', '.join(res.empty_terms)}" if res.empty_terms else "") + "[/dim]")
+    for ref in res.references:
+        c = cells.get((ref.family, ref.term))
+        at = f"${c.value:.2f}" if c and c.value is not None else "-"
+        console.print(f"[dim]{ref.family} {ref.term} {at} vs {ref.label}: ${ref.low:.2f}-${ref.high:.2f}[/dim]")
+    console.print(f"[dim]{res.rule}[/dim]")
+
+    if show_quotes:
+        q = Table(title="Published quotes", show_header=True, header_style="bold magenta")
+        for col in ("Seller", "Family", "Instance", "Option", "$/GPU-hr", "Published", "Math", "Region"):
+            q.add_column(col, justify="right" if col == "$/GPU-hr" else "left")
+        for k in res.quotes:
+            q.add_row(k.provider, k.family, k.instance, k.option, f"${k.per_gpu:.2f}", k.published, k.math, k.region or "-")
+        console.print(q)
+        for ex in res.excluded:
+            console.print(f"[dim]excluded {ex['id']}: {ex['reason']}[/dim]")
+
 @app.command("settle")
 def settle_cmd(
     no_sync: bool = typer.Option(False, "--no-sync", help="Settle on the current tape without resyncing"),

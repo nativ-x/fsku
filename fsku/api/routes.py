@@ -4,7 +4,7 @@ from __future__ import annotations
 import csv
 import io
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.responses import JSONResponse, PlainTextResponse, StreamingResponse
 
@@ -29,6 +29,7 @@ from fsku.core.pricing import PricingEngine
 from fsku.sync.engine import SyncEngine
 from fsku.core.fix import FixEngine, FixResult
 from fsku.core.settle import SettlementResult
+from fsku.core.term_pricing import FAMILIES as TERM_FAMILIES, TermPricingEngine, TermPricingResult
 
 router = APIRouter(prefix="/api", tags=["FSKU Core Benchmark API"])
 
@@ -284,6 +285,19 @@ def compare_forward_curves(
         carry_rate=carry_rate,
         horizon=horizon,
     )
+
+@router.get("/term-pricing", response_model=TermPricingResult)
+def get_term_pricing(
+    segment: Literal["neocloud", "hyperscaler"] = Query("neocloud", description="Seller segment; the two are never blended"),
+    fill: bool = Query(False, description="Estimate empty cells from same-seller term ratios in other families (marked estimated)"),
+    families: str = Query(",".join(TERM_FAMILIES), description="Comma-separated GPU families"),
+):
+    """Published $/GPU-hr by commitment length x GPU family: one vote per seller per cell, median across sellers.
+
+    Built from the term-price catalog (fsku/sync/term_catalog.py); every quote carries its source URL and unit math.
+    """
+    fam_list = [f.strip() for f in families.split(",") if f.strip()]
+    return TermPricingEngine.compute(segment=segment, fill=fill, families=fam_list)
 
 @router.get("/specs")
 def list_specs(db: FSKUDb = Depends(current_db)):
