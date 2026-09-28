@@ -11,10 +11,15 @@ from fastapi.staticfiles import StaticFiles
 
 from fsku import __version__
 from fsku.api.routes import router
-from fsku.core.database import get_db
+from fsku.core.database import DB_DIR_ENV, get_db
 
 def create_app(db_storage_dir: str = None) -> FastAPI:
-    """Create and configure the FastAPI web application."""
+    """Create and configure the FastAPI web application.
+
+    The database directory is ``db_storage_dir`` if given, else the FSKU_DB_DIR
+    environment variable (how ``fsku serve --db-dir`` reaches the server
+    process), else the repository's data/fsku_db.
+    """
     app = FastAPI(
         title="FSKU - GPU Compute Benchmark Index & Forward Curves (Built by NATIVX)",
         description="Open GPU compute price normalization, benchmark indexing, and implied forward curves. Built and maintained by NATIVX (nativx.net).",
@@ -34,7 +39,7 @@ def create_app(db_storage_dir: str = None) -> FastAPI:
 
     app.include_router(router)
 
-    db = get_db(db_storage_dir)
+    db = get_db(db_storage_dir or os.environ.get(DB_DIR_ENV) or None)
 
     web_dir = Path(__file__).resolve().parent.parent / "web"
     index_file = web_dir / "index.html"

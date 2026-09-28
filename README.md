@@ -161,7 +161,7 @@ The `fsku` CLI offers complete programmatic command capabilities:
 | `fsku list` | Render sortable price observations table in terminal | `python fsku_cli.py list --gpu H100 --basis On-demand` |
 | `fsku sync` | Trigger live multi-provider feed resynchronization | `python fsku_cli.py sync --label "Weekly sync"` |
 | `fsku snapshot list`| List historical point-in-time market snapshots | `python fsku_cli.py snapshot list` |
-| `fsku serve` | Start FastAPI REST server and interactive web dashboard | `python fsku_cli.py serve --port 8000` |
+| `fsku serve` | Start FastAPI REST server and interactive web dashboard. `--db-dir` (or the `FSKU_DB_DIR` environment variable) selects the database directory; the default is the committed `data/fsku_db` | `python fsku_cli.py serve --port 8000 --db-dir /tmp/fsku_db` |
 
 ---
 

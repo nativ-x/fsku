@@ -543,10 +543,18 @@ def serve_cmd(
     db_path: Optional[str] = typer.Option(None, "--db-dir", help="Path to database storage directory"),
 ):
     """Start the FSKU FastAPI REST server and interactive web dashboard."""
+    import os
     import uvicorn
+    from fsku.core.database import DB_DIR_ENV
+    # The app is built in whatever process uvicorn runs it in (a new one under
+    # --reload), so the directory travels in the environment, and the app is
+    # built by factory after it is set rather than at import time.
+    if db_path:
+        os.environ[DB_DIR_ENV] = str(Path(db_path).resolve())
     console.print(f"[bold green]Starting FSKU Benchmark Platform (Built by NATIVX) on http://{host}:{port}...[/bold green]")
     console.print(f"[dim]Interactive REST API docs available at http://{host}:{port}/api/docs[/dim]")
-    uvicorn.run("fsku.api.app:app", host=host, port=port, reload=reload)
+    console.print(f"[dim]Database: {os.environ.get(DB_DIR_ENV) or 'data/fsku_db (default)'}[/dim]")
+    uvicorn.run("fsku.api.app:create_app", factory=True, host=host, port=port, reload=reload)
 
 if __name__ == "__main__":
     app()

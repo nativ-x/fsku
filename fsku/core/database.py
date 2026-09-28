@@ -362,6 +362,11 @@ class FSKUDb:
 _GLOBAL_DB: Optional[FSKUDb] = None
 _DB_LOCK = threading.Lock()
 
+# The database directory a server process should use. `fsku serve --db-dir`
+# sets it so the directory reaches the process uvicorn builds the app in --
+# a fresh one under --reload.
+DB_DIR_ENV = "FSKU_DB_DIR"
+
 def get_db(storage_dir: Optional[Union[str, Path]] = None) -> FSKUDb:
     """Retrieve global thread-safe FSKUDb singleton instance."""
     global _GLOBAL_DB
@@ -369,3 +374,13 @@ def get_db(storage_dir: Optional[Union[str, Path]] = None) -> FSKUDb:
         if _GLOBAL_DB is None or storage_dir is not None:
             _GLOBAL_DB = FSKUDb(storage_dir)
         return _GLOBAL_DB
+
+def current_db() -> FSKUDb:
+    """The process's database, for FastAPI's Depends().
+
+    Takes no parameters on purpose: FastAPI turns a dependency's parameters into
+    request parameters, so Depends(get_db) let any caller pass ?storage_dir= and
+    re-point the server's database at an arbitrary directory (creating it and
+    writing seed files there).
+    """
+    return get_db()

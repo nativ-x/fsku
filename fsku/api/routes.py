@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.responses import JSONResponse, PlainTextResponse, StreamingResponse
 
 from fsku import __version__
-from fsku.core.database import FSKUDb, get_db
+from fsku.core.database import FSKUDb, current_db
 from fsku.core.forward_curve import ForwardCurveEngine
 from fsku.core.models import (
     ForwardCurveRequest,
@@ -33,7 +33,7 @@ from fsku.core.settle import SettlementResult
 router = APIRouter(prefix="/api", tags=["FSKU Core Benchmark API"])
 
 @router.get("/health")
-def health_check(db: FSKUDb = Depends(get_db)):
+def health_check(db: FSKUDb = Depends(current_db)):
     """API health status and database statistics."""
     return {
         "status": "healthy",
@@ -49,7 +49,7 @@ def health_check(db: FSKUDb = Depends(get_db)):
     }
 
 @router.get("/kpis")
-def get_market_kpis(db: FSKUDb = Depends(get_db)):
+def get_market_kpis(db: FSKUDb = Depends(current_db)):
     """Executive market metrics, dispersion, and memory economics."""
     observations = db.observations.find()
     specs = db.specs.find()
@@ -63,7 +63,7 @@ def get_market_kpis(db: FSKUDb = Depends(get_db)):
 @router.get("/fix", response_model=FixResult)
 def get_fix(
     family: str = Query("H100", description="GPU family: H100, H200, B200, B300, A100, MI300X"),
-    db: FSKUDb = Depends(get_db),
+    db: FSKUDb = Depends(current_db),
 ):
     """The FSKU Fix: the family's neocloud reading (headline) and hyperscaler-list reading, never blended.
 
@@ -75,7 +75,7 @@ def get_fix(
 def get_fix_history(
     family: str = Query("H100"),
     limit: int = Query(365, ge=1, le=3650),
-    db: FSKUDb = Depends(get_db),
+    db: FSKUDb = Depends(current_db),
 ):
     """Daily settled Fix values for a family, oldest first, each traceable to a verified snapshot."""
     from fsku.core.settle import SettlementEngine
@@ -84,7 +84,7 @@ def get_fix_history(
 @router.post("/settle", response_model=SettlementResult)
 async def run_settlement(
     sync: bool = Query(True, description="Resync all adapters before settling"),
-    db: FSKUDb = Depends(get_db),
+    db: FSKUDb = Depends(current_db),
 ):
     """Run the daily settlement now: sync, snapshot, verify, publish the Fix for every settled family."""
     from fsku.core.settle import SettlementEngine
@@ -96,14 +96,14 @@ async def run_settlement(
 @router.get("/index/summary", response_model=List[SkuIndexSummary])
 def get_sku_index_summaries(
     method: str = Query("median", description="Index methodology: median, trimmed_10, trimmed_20, provider_balanced, simple_mean, gpu_weighted"),
-    db: FSKUDb = Depends(get_db),
+    db: FSKUDb = Depends(current_db),
 ):
     """Retrieve computed spot indices for all tracked GPU SKUs under the selected methodology."""
     observations = db.observations.find()
     return PricingEngine.calculate_sku_index_summaries(observations, method=method)
 
 @router.get("/index/sensitivity", response_model=List[MethodologySensitivity])
-def get_methodology_sensitivity(db: FSKUDb = Depends(get_db)):
+def get_methodology_sensitivity(db: FSKUDb = Depends(current_db)):
     """Examine index price sensitivity across 6 standard aggregation methodologies."""
     observations = db.observations.find()
     return PricingEngine.calculate_sensitivity(observations)
@@ -111,21 +111,21 @@ def get_methodology_sensitivity(db: FSKUDb = Depends(get_db)):
 @router.get("/index/ablation", response_model=List[SourceAblationResult])
 def get_source_ablation(
     sku: Optional[str] = Query(None, description="Optional target SKU filter (e.g. H100 SXM, B200)"),
-    db: FSKUDb = Depends(get_db),
+    db: FSKUDb = Depends(current_db),
 ):
     """Examine index resilience by assessing the price delta when each data provider is ablated."""
     observations = db.observations.find()
     return PricingEngine.calculate_ablation(observations, target_sku=sku)
 
 @router.get("/providers/matrix", response_model=List[ProviderPriceRow])
-def get_provider_pricing_matrix(db: FSKUDb = Depends(get_db)):
+def get_provider_pricing_matrix(db: FSKUDb = Depends(current_db)):
     """Cross-provider pricing matrix with basis normalization and delta vs benchmark index."""
     observations = db.observations.find()
     sources = db.sources.find()
     return PricingEngine.calculate_provider_matrix(observations, sources=sources)
 
 @router.get("/history")
-def get_historical_indices(db: FSKUDb = Depends(get_db)):
+def get_historical_indices(db: FSKUDb = Depends(current_db)):
     """Time-series index benchmarks reconstructed across historical snapshots."""
     snaps = db.snapshots.find(sort_by="timestamp")
     series_by_sku: Dict[str, List[Dict[str, Any]]] = {}
@@ -175,7 +175,7 @@ def list_observations(
     reverse: bool = Query(False, description="Sort descending"),
     limit: Optional[int] = Query(None, description="Max records to return"),
     offset: int = Query(0, description="Offset for pagination"),
-    db: FSKUDb = Depends(get_db),
+    db: FSKUDb = Depends(current_db),
 ):
     """Retrieve filtered, sorted price observations from the current tape."""
     query: Dict[str, Any] = {}
@@ -210,14 +210,14 @@ def list_observations(
     }
 
 @router.post("/observations", status_code=status.HTTP_201_CREATED)
-def create_observation(obs: Observation, db: FSKUDb = Depends(get_db)):
+def create_observation(obs: Observation, db: FSKUDb = Depends(current_db)):
     """Manually append or record a custom observation to the tape."""
     obs.perGpu = Observation.compute_normalized(obs.total, obs.gpuCount)
     saved = db.observations.insert(obs.model_dump())
     return saved
 
 @router.get("/observations/{obs_id}")
-def get_observation(obs_id: str, db: FSKUDb = Depends(get_db)):
+def get_observation(obs_id: str, db: FSKUDb = Depends(current_db)):
     """Retrieve a single observation by ID."""
     obs = db.observations.find_by_id(obs_id)
     if not obs:
@@ -225,7 +225,7 @@ def get_observation(obs_id: str, db: FSKUDb = Depends(get_db)):
     return obs
 
 @router.delete("/observations/{obs_id}")
-def delete_observation(obs_id: str, db: FSKUDb = Depends(get_db)):
+def delete_observation(obs_id: str, db: FSKUDb = Depends(current_db)):
     """Delete an observation by ID."""
     deleted = db.observations.delete_by_id(obs_id)
     if not deleted:
@@ -233,7 +233,7 @@ def delete_observation(obs_id: str, db: FSKUDb = Depends(get_db)):
     return {"deleted": True, "id": obs_id}
 
 @router.post("/forward-curve", response_model=ForwardCurveResult)
-def calculate_forward_curve(req: ForwardCurveRequest, db: FSKUDb = Depends(get_db)):
+def calculate_forward_curve(req: ForwardCurveRequest, db: FSKUDb = Depends(current_db)):
     """Calculate implied forward curve term structure with custom parameters."""
     observations = db.observations.find()
     res = ForwardCurveEngine.calculate_forward_curve(observations, req)
@@ -248,7 +248,7 @@ def get_forward_curve(
     cadence: int = Query(24, ge=6, le=60, description="Architecture cadence in months"),
     carry_rate: float = Query(5.0, description="Annual carry + scarcity rate in %"),
     horizon: int = Query(36, ge=6, le=60, description="Forward curve horizon in months"),
-    db: FSKUDb = Depends(get_db),
+    db: FSKUDb = Depends(current_db),
 ):
     """GET endpoint to calculate implied forward curve."""
     req = ForwardCurveRequest(
@@ -271,7 +271,7 @@ def compare_forward_curves(
     cadence: int = Query(24, ge=6, le=60),
     carry_rate: float = Query(5.0),
     horizon: int = Query(36, ge=6, le=60),
-    db: FSKUDb = Depends(get_db),
+    db: FSKUDb = Depends(current_db),
 ):
     """Simultaneously calculate and align multiple forward curves for cross-SKU term structure analysis."""
     fam_list = [f.strip() for f in families.split(",") if f.strip()]
@@ -286,12 +286,12 @@ def compare_forward_curves(
     )
 
 @router.get("/specs")
-def list_specs(db: FSKUDb = Depends(get_db)):
+def list_specs(db: FSKUDb = Depends(current_db)):
     """Official hardware engineering specs (VRAM, memory bandwidth, TDP, peak compute)."""
     return db.specs.find(sort_by="name")
 
 @router.get("/sources")
-def list_sources(db: FSKUDb = Depends(get_db)):
+def list_sources(db: FSKUDb = Depends(current_db)):
     """Primary source provenance references."""
     return db.sources.find()
 
@@ -300,7 +300,7 @@ async def trigger_resync(
     provider: Optional[str] = Query(None, description="Optional provider filter (e.g. azure, runpod, coreweave)"),
     dry_run: bool = Query(False, description="Preview changes without updating database"),
     label: Optional[str] = Query(None, description="Optional snapshot label"),
-    db: FSKUDb = Depends(get_db),
+    db: FSKUDb = Depends(current_db),
 ):
     """Trigger an on-demand market feed resynchronization across all or selected providers."""
     engine = SyncEngine(db=db)
@@ -315,12 +315,12 @@ async def trigger_resync(
         raise HTTPException(status_code=500, detail=f"Sync execution failed: {str(e)}")
 
 @router.get("/sync/history")
-def get_sync_history(limit: int = Query(20, ge=1, le=100), db: FSKUDb = Depends(get_db)):
+def get_sync_history(limit: int = Query(20, ge=1, le=100), db: FSKUDb = Depends(current_db)):
     """Audit log of past resync runs."""
     return db.sync_logs.find(sort_by="started_at", reverse=True, limit=limit)
 
 @router.get("/snapshots")
-def list_snapshots(limit: int = Query(50, ge=1, le=200), db: FSKUDb = Depends(get_db)):
+def list_snapshots(limit: int = Query(50, ge=1, le=200), db: FSKUDb = Depends(current_db)):
     """List historical point-in-time market snapshots."""
     snaps = db.snapshots.find(sort_by="timestamp", reverse=True, limit=limit)
     summaries = []
@@ -331,7 +331,7 @@ def list_snapshots(limit: int = Query(50, ge=1, le=200), db: FSKUDb = Depends(ge
     return summaries
 
 @router.get("/snapshots/{snap_id}")
-def get_snapshot(snap_id: str, db: FSKUDb = Depends(get_db)):
+def get_snapshot(snap_id: str, db: FSKUDb = Depends(current_db)):
     """Retrieve full detail and observation array of a specific snapshot."""
     snap = db.snapshots.find_by_id(snap_id)
     if not snap:
@@ -339,7 +339,7 @@ def get_snapshot(snap_id: str, db: FSKUDb = Depends(get_db)):
     return snap
 
 @router.get("/snapshots/{snap_id}/verify")
-def verify_snapshot_integrity(snap_id: str, db: FSKUDb = Depends(get_db)):
+def verify_snapshot_integrity(snap_id: str, db: FSKUDb = Depends(current_db)):
     """Verify cryptographic SHA-256 integrity and audit reproducibility of a snapshot."""
     result = db.verify_snapshot(snap_id)
     if not result.get("verified") and result.get("error") == "Snapshot not found":
@@ -347,7 +347,7 @@ def verify_snapshot_integrity(snap_id: str, db: FSKUDb = Depends(get_db)):
     return result
 
 @router.get("/export/csv")
-def export_observations_csv(db: FSKUDb = Depends(get_db)):
+def export_observations_csv(db: FSKUDb = Depends(current_db)):
     """Export current observation tape as formatted CSV."""
     rows = db.observations.find(sort_by="perGpu")
     sources_map = {s["id"]: s for s in db.sources.find()}
@@ -398,7 +398,7 @@ def export_forward_csv(
     cadence: int = Query(24),
     carry_rate: float = Query(5.0),
     horizon: int = Query(36),
-    db: FSKUDb = Depends(get_db),
+    db: FSKUDb = Depends(current_db),
 ):
     """Export calculated forward curve term structure as CSV."""
     req = ForwardCurveRequest(
@@ -452,7 +452,7 @@ def export_forward_csv(
     )
 
 @router.get("/export/history-csv")
-def export_history_csv(db: FSKUDb = Depends(get_db)):
+def export_history_csv(db: FSKUDb = Depends(current_db)):
     """Export historical spot index benchmark time-series as CSV."""
     snaps = db.snapshots.find(sort_by="timestamp")
     output = io.StringIO()
