@@ -241,8 +241,38 @@
   .tc-row{fill:#fff;font-size:calc(11.5px*var(--fs,1));font-weight:650;cursor:default;transition:opacity .15s}
   .tc-row tspan.px{fill:#919191;font-weight:500}
   .tc-row.dim{opacity:.3}
-  .tc-row-line{fill:none;stroke:rgba(255,255,255,0.45);stroke-width:1;stroke-linecap:round}
-  .tc-row-line.on{stroke:#fff;stroke-width:2.4}
+  .tc-row-line{fill:none;stroke:var(--rc,#fff);stroke-opacity:var(--ro,.45);stroke-width:var(--rw,1px);stroke-linecap:round;stroke-linejoin:round}
+  .tc-row-line.on{stroke-opacity:1;stroke-width:calc(var(--rw,1px) + 1.6px)}
+  .tc-ghost-row{stroke-dasharray:4 3}
+  .tc-ghost-col{fill:none;stroke:#e6e6e6;stroke-width:1}
+  .tc-val{font-size:calc(10.5px*var(--fs,1));font-family:ui-monospace,monospace;font-weight:650;text-anchor:middle;pointer-events:none}
+  .tc-premium{display:none;pointer-events:none}
+  .tc-premium.on{display:inline}
+  line.tc-premium{stroke:#fff;stroke-width:1.3;stroke-dasharray:2 3}
+  text.tc-premium{fill:#fff;font-size:calc(10.5px*var(--fs,1));font-weight:650;paint-order:stroke;stroke:#181818;stroke-width:calc(3px*var(--fs,1));stroke-linejoin:round}
+  .term-chart-tools{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 15px 0;flex-wrap:wrap}
+  .seg-toggle{display:inline-flex;border:1px solid rgba(71,71,71,0.4);border-radius:3px;overflow:hidden}
+  .seg-toggle button{background:#141414;color:var(--muted);border:0;border-right:1px solid rgba(71,71,71,0.4);padding:5px 10px;font-size:11px;cursor:pointer;white-space:nowrap}
+  .seg-toggle button:last-child{border-right:0}
+  .seg-toggle button:hover{color:#fff}
+  .seg-toggle button.active{background:#262626;color:#fff}
+  .curve-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
+  .curve-panel{background:#181818;border:1px solid var(--line);border-radius:4px;padding:12px 12px 4px;box-shadow:var(--shadow);transition:border-color .15s}
+  .curve-panel.focus{border-color:rgba(226,226,226,0.5)}
+  .curve-head{display:flex;flex-direction:column;gap:3px;margin-bottom:6px;min-height:44px}
+  .curve-head b{font-size:13px;color:#fff;letter-spacing:-.02em}
+  .curve-head span{font-size:10px;color:var(--muted);line-height:1.45}
+  svg.cv{width:100%;height:auto;display:block;overflow:visible;cursor:crosshair}
+  .cv-grid{stroke:rgba(71,71,71,0.35);stroke-width:1}
+  .cv-grid.zero{stroke:rgba(145,145,145,0.6)}
+  .cv-axis{fill:#919191;font-size:10px;font-family:ui-monospace,monospace}
+  .cv-band{fill-opacity:.16;stroke:none}
+  .cv-line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+  .cv-dot{stroke:#181818;stroke-width:2}
+  .cv-dot.on{r:5.5}
+  .cv-end{fill:#e2e2e2;font-size:10.5px;font-family:ui-monospace,monospace;font-variant-numeric:tabular-nums}
+  .cv-cross{stroke:rgba(226,226,226,0.45);stroke-width:1}
+  .term-legend i.key{width:14px;height:2px;border-radius:1px;vertical-align:3px}
   .term-matrix tbody tr.focus td{background:#232323}
   .tc-corner tspan.px{fill:#919191;font-weight:500}
   .term-legend{display:flex;gap:12px;font-size:9.5px;color:var(--muted);font-family:ui-monospace,monospace;align-items:center;flex-wrap:wrap}
@@ -984,11 +1014,20 @@
       <div class="grid2">
         <div class="panel">
           <div class="panel-head">
-            <div><h3 id="termPricingTitle">Neocloud term prices</h3><p id="termPricingSub">Hover a row label or point to trace a family · drag or arrow keys to rotate · double-click to reset</p></div>
+            <div><h3 id="termPricingTitle">Neocloud term prices</h3><p id="termPricingSub">Hover a row label or point to trace a family · drag or arrow keys to rotate · T / S / D fly the camera · double-click to reset</p></div>
             <div class="term-legend">
               <span><i style="background:rgba(57,135,229,.4);outline:1px dashed rgba(226,226,226,.6)"></i>Estimated</span>
               <span><i style="border:1px dashed rgba(145,145,145,.6)"></i>No price</span>
+              <span id="termGhostLegend" style="display:none"><i style="border:1px dashed rgba(230,230,230,.8)"></i><span id="termGhostLegendText">Hyperscaler (wireframe)</span></span>
             </div>
+          </div>
+          <div class="term-chart-tools">
+            <div class="seg-toggle" id="termCamera" role="group" aria-label="Camera">
+              <button type="button" data-cam="3d" class="active" title="Rotatable 3D view (D)">3D</button>
+              <button type="button" data-cam="top" title="Look straight down: a heatmap (T)">Top · heatmap</button>
+              <button type="button" data-cam="side" title="Look edge-on: price curves (S)">Side · curves</button>
+            </div>
+            <label class="toggle" title="Draw the other seller segment on the same axes as a wireframe"><input type="checkbox" id="termOverlayToggle"> <span id="termOverlayLabel">Overlay hyperscaler list</span></label>
           </div>
           <div class="term-chart-box">
             <div class="term-chart-wrap" id="termPricingChart" tabindex="0" aria-label="The Matrix chart. Arrow keys rotate, R resets."></div>
@@ -1013,6 +1052,18 @@
           <div class="muted" id="termRule" style="font-size:10px"></div>
         </div>
       </div>
+
+      <div class="section-head" style="margin-top:24px">
+        <div><div class="section-title">Term Curves</div><div class="section-sub">Price by commitment length for each family · both seller segments · shaded band = range across sellers · log time axis</div></div>
+        <div class="tools">
+          <div class="term-legend"><span><i class="key" style="background:#3987e5"></i>Neocloud sellers</span><span><i class="key" style="background:#d95926"></i>Hyperscaler list</span></div>
+          <div class="seg-toggle" id="termCurveUnit" role="group" aria-label="Units">
+            <button type="button" data-unit="usd" class="active">$/GPU-hr</button>
+            <button type="button" data-unit="pct">% off on-demand</button>
+          </div>
+        </div>
+      </div>
+      <div class="curve-grid" id="termCurves"><div class="empty">Loading term curves…</div></div>
 
       <div class="section-head" style="margin-top:24px">
         <div><div class="section-title">Price Table</div><div class="section-sub">Median of seller votes in $/GPU-hour · small number = sellers · ~ = estimated</div></div>
@@ -2479,41 +2530,72 @@ function renderSpecsCards() {
 // ---- The Matrix: term prices ------------------------------------------------
 // Published term prices (reserved, savings plans, CUDs, capacity blocks,
 // monthly/annual contracts) as a 3D chart: commitment length along one floor
-// axis, GPU family along the other, $/GPU-hr as height. Drawn as plain SVG with
-// a small orthographic projection; drag rotates it.
-const TERM_VIEW_DEFAULT = { az: 0.74, el: 0.6 };
+// axis, GPU family along the other, $/GPU-hr as height. Plain SVG with a small
+// orthographic camera. Drag rotates it; the camera buttons fly it to a top-down
+// heatmap or an edge-on curves view; the overlay adds the other seller segment
+// as a wireframe, so the gap between the two layers is the price difference.
+const TERM_CAMERAS = { '3d': { az: 0.74, el: 0.6 }, top: { az: 0, el: Math.PI / 2 }, side: { az: 0, el: 0 } };
+const TERM_VIEW_DEFAULT = TERM_CAMERAS['3d'];
+const TERM_AZ = [0, 1.45], TERM_EL = [0, Math.PI / 2];
 let termView = { ...TERM_VIEW_DEFAULT };
 let termDragging = false;
+let termAnim = 0;
 const termPricingCache = {};
 const TERM_LONG = { OD: 'On-demand', '1M': '1 month', '3M': '3 months', '6M': '6 months', '1Y': '1 year', '2Y': '2 years', '3Y': '3 years', '5Y': '5 years' };
+const TERM_DAYS = { OD: 0, '1M': 30, '3M': 90, '6M': 180, '1Y': 365, '2Y': 730, '3Y': 1095, '5Y': 1825 };
+// Seller segments as series: categorical slots 1 and 2, dark-surface steps.
+const SEG_COLOR = { neocloud: '#3987e5', hyperscaler: '#d95926' };
+const SEG_NAME = { neocloud: 'Neocloud', hyperscaler: 'Hyperscaler' };
+const otherSeg = s => (s === 'neocloud' ? 'hyperscaler' : 'neocloud');
+const clampTo = (v, [lo, hi]) => Math.max(lo, Math.min(hi, v));
+const easeStep = (x, a, b) => { const t = clampTo((x - a) / (b - a), [0, 1]); return t * t * (3 - 2 * t); };
+const signedPct = f => `${f > 0 ? '+' : f < 0 ? '−' : ''}${Math.abs(f * 100).toFixed(0)}%`;
+const mixHex = (a, b, t) => {
+  const pa = [1, 3, 5].map(i => parseInt(a.slice(i, i + 2), 16)), pb = [1, 3, 5].map(i => parseInt(b.slice(i, i + 2), 16));
+  return '#' + pa.map((v, i) => Math.round(v + (pb[i] - v) * t).toString(16).padStart(2, '0')).join('');
+};
 
-async function renderTermPricing() {
-  const seg = document.getElementById('termSegmentSelect').value;
-  const fill = document.getElementById('termFillToggle').checked;
+async function fetchTermPricing(seg, fill) {
   const key = `${seg}|${fill}`;
   if (!termPricingCache[key]) {
-    try {
-      const r = await fetch(`/api/matrix?segment=${seg}&fill=${fill}`);
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      termPricingCache[key] = await r.json();
-    } catch (e) {
-      document.getElementById('termPricingChart').innerHTML = '<div class="empty">The Matrix is unavailable.</div>';
-      return;
-    }
-    // The controls may have changed while this request was in flight; the
-    // call made for the current state draws, not whichever response lands last.
-    if (key !== `${document.getElementById('termSegmentSelect').value}|${document.getElementById('termFillToggle').checked}`) return;
+    const r = await fetch(`/api/matrix?segment=${seg}&fill=${fill}`);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    termPricingCache[key] = await r.json();
   }
-  const res = termPricingCache[key];
+  return termPricingCache[key];
+}
+
+async function renderTermPricing() {
+  const controls = () => ['termSegmentSelect', 'termFillToggle', 'termOverlayToggle']
+    .map(id => { const e = document.getElementById(id); return e.type === 'checkbox' ? e.checked : e.value; }).join('|');
+  const want = controls();
+  const seg = document.getElementById('termSegmentSelect').value;
+  const fill = document.getElementById('termFillToggle').checked;
+  const overlay = document.getElementById('termOverlayToggle').checked;
+  let res, ghost;
+  try {
+    [res, ghost] = await Promise.all([fetchTermPricing(seg, fill), overlay ? fetchTermPricing(otherSeg(seg), fill) : null]);
+  } catch (e) {
+    document.getElementById('termPricingChart').innerHTML = '<div class="empty">The Matrix is unavailable.</div>';
+    return;
+  }
+  // The controls may have changed while a request was in flight; only the call
+  // made for the current state draws, not whichever response lands last.
+  if (want !== controls()) return;
   window.__termPricing = res;
+  window.__termGhost = ghost;
   if (!document.querySelector('#termPricingKey .band')) renderTermKey();
-  document.getElementById('termPricingTitle').textContent = `${seg === 'neocloud' ? 'Neocloud' : 'Hyperscaler'} term prices`;
+  document.getElementById('termPricingTitle').textContent = `${SEG_NAME[seg]} term prices`;
+  document.getElementById('termOverlayLabel').textContent = `Overlay ${seg === 'neocloud' ? 'hyperscaler list' : 'neocloud'}`;
+  document.getElementById('termGhostLegend').style.display = ghost ? '' : 'none';
+  document.getElementById('termGhostLegendText').textContent = `${SEG_NAME[otherSeg(seg)]} (wireframe)`;
   drawTermChart(res);
   renderTermSidebar(res);
   renderTermMatrix(res);
   const famSel = document.getElementById('termLedgerFamily');
   if (famSel.options.length <= 1) res.families.forEach(f => famSel.insertAdjacentHTML('beforeend', `<option value="${f}">${f}</option>`));
   renderTermLedger(res);
+  if (!window.__termCurves) renderTermCurves();
 }
 
 function termCellMap(res) {
@@ -2552,20 +2634,28 @@ function focusTermBand(band) {
   });
 }
 
-const isDefaultTermView = () => Math.abs(termView.az - TERM_VIEW_DEFAULT.az) < 1e-3 && Math.abs(termView.el - TERM_VIEW_DEFAULT.el) < 1e-3;
+const nearView = v => Math.abs(termView.az - v.az) < 1e-3 && Math.abs(termView.el - v.el) < 1e-3;
+const isDefaultTermView = () => nearView(TERM_VIEW_DEFAULT);
 
-function resetTermView() {
-  if (isDefaultTermView()) return;
-  const from = { ...termView }, t0 = performance.now(), dur = 320;
+function animateTermView(to) {
+  if (nearView(to)) return;
+  const token = ++termAnim, from = { ...termView }, t0 = performance.now(), dur = 560;
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const frame = now => {
-    const k = reduce ? 1 : Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
-    termView = { az: from.az + (TERM_VIEW_DEFAULT.az - from.az) * e, el: from.el + (TERM_VIEW_DEFAULT.el - from.el) * e };
-    if (k >= 1) termView = { ...TERM_VIEW_DEFAULT };
+    if (token !== termAnim) return;                       // a newer move took over
+    const p = reduce ? 1 : Math.min(1, (now - t0) / dur);
+    const e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+    termView = p >= 1 ? { ...to } : { az: from.az + (to.az - from.az) * e, el: from.el + (to.el - from.el) * e };
     if (window.__termPricing) drawTermChart(window.__termPricing);
-    if (k < 1) requestAnimationFrame(frame);
+    if (p < 1) requestAnimationFrame(frame);
   };
   requestAnimationFrame(frame);
+}
+const resetTermView = () => animateTermView(TERM_VIEW_DEFAULT);
+
+function updateTermCamButtons() {
+  document.querySelectorAll('#termCamera button').forEach(b => b.classList.toggle('active', nearView(TERM_CAMERAS[b.dataset.cam])));
+  document.getElementById('termResetView').disabled = isDefaultTermView();
 }
 
 function niceStep(max, target = 4) {
@@ -2575,12 +2665,15 @@ function niceStep(max, target = 4) {
 
 function drawTermChart(res, k = 1) {
   const el = document.getElementById('termPricingChart');
-  const terms = res.terms;
+  const layers = [res, window.__termGhost].filter(Boolean);    // 0 = solid, 1 = wireframe overlay
+  // One term axis for every layer, in commitment order.
+  const terms = Object.keys(TERM_DAYS).filter(key => layers.some(L => L.terms.some(t => t.key === key)));
   const fams = [...res.families].reverse();          // newest family at the back
   const nT = terms.length, nF = fams.length;
-  const cells = termCellMap(res);
-  const at = (i, j) => cells[fams[j] + '|' + terms[i].key];
-  const vals = res.cells.filter(c => c.value != null).map(c => c.value);
+  const maps = layers.map(termCellMap);
+  const at = (L, i, j) => maps[L][fams[j] + '|' + terms[i]];
+  const priced = (L, i, j) => { const c = at(L, i, j); return !!(c && c.value != null); };
+  const vals = layers.flatMap(L => L.cells.filter(c => c.value != null).map(c => c.value));
   if (!vals.length || nT < 2 || nF < 2) { el.innerHTML = '<div class="empty">Not enough published term prices to draw the chart.</div>'; return; }
   const step = niceStep(Math.max(...vals));
   const vmax = Math.ceil(Math.max(...vals) / step) * step;
@@ -2599,109 +2692,175 @@ function drawTermChart(res, k = 1) {
     grow(x0, y - px); grow(x0 + w, y + 3 * k);
   };
   const ca = Math.cos(termView.az), sa = Math.sin(termView.az), se = Math.sin(termView.el), ce = Math.cos(termView.el);
+  // How close the camera is to its two flat end states.
+  const tileA = easeStep(termView.el, 0.03, 0.3);    // 0 when edge-on: tiles fade out, rows become lines
+  const sideA = 1 - tileA;
+  const topA = easeStep(termView.el, 1.28, 1.5);     // 1 when top-down: a heatmap with values printed
+  const ghostA = 1 - topA;
   const gx = i => (i / (nT - 1) - 0.5) * 1.1;
   const gy = j => (j / (nF - 1) - 0.5) * 0.8;
   const P = (x, y, z) => {
     const xr = x * ca - y * sa, yr = x * sa + y * ca;
-    const p = { x: Math.round(xr * S * 10) / 10, y: Math.round((yr * S * se - z * HZ * ce) * 10) / 10, d: yr };
+    // d is distance toward the camera, so a higher layer draws over a lower one seen from above.
+    const p = { x: Math.round(xr * S * 10) / 10, y: Math.round((yr * S * se - z * HZ * ce) * 10) / 10, d: yr * ce + z * se };
     grow(p.x, p.y);
     return p;
   };
   const F = (i, j) => P(gx(i), gy(j), 0);
-  const V = (i, j) => { const c = at(i, j); return c && c.value != null ? P(gx(i), gy(j), c.value / vmax) : null; };
+  const W3 = (L, i, j) => (priced(L, i, j) ? [gx(i), gy(j), at(L, i, j).value / vmax] : null);
+  const V = (L, i, j) => { const w = W3(L, i, j); return w ? P(...w) : null; };
   const pts = arr => arr.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
   const est = c => (c.status === 'estimated' ? '~' : '');
+  // Each layer's own columns: the overlay may not publish a term the other
+  // does (no hyperscaler sells 2 years), so its quads span straight across.
+  const cols = layers.map(L => terms.map((t, i) => i).filter(i => L.terms.some(tt => tt.key === terms[i])));
+  const quadAt = (L, ci, j) => {
+    const c = cols[L];
+    if (ci < 0 || ci >= c.length - 1 || j < 0 || j >= nF - 1) return null;
+    const q = [[c[ci], j], [c[ci + 1], j], [c[ci + 1], j + 1], [c[ci], j + 1]];
+    return q.every(([a, b]) => priced(L, a, b)) ? q : null;
+  };
+  const rowStyle = L => {
+    const col = mixHex('#ffffff', SEG_COLOR[layers[L].segment], sideA);
+    const op = (0.45 + 0.55 * sideA) * (1 - topA) * (L ? 0.85 * ghostA : 1);
+    return `--rc:${col};--ro:${op.toFixed(2)};--rw:${(1 + 1.4 * sideA).toFixed(2)}px`;
+  };
 
   let s = '';
 
-  // Floor, and a dashed outline wherever a cell has no price to draw.
-  s += `<polygon class="tc-floor" points="${pts([F(0, 0), F(nT - 1, 0), F(nT - 1, nF - 1), F(0, nF - 1)])}"/>`;
-  for (let i = 0; i < nT - 1; i++) for (let j = 0; j < nF - 1; j++) {
-    if (![V(i, j), V(i + 1, j), V(i + 1, j + 1), V(i, j + 1)].every(Boolean))
-      s += `<polygon class="tc-gap" points="${pts([F(i, j), F(i + 1, j), F(i + 1, j + 1), F(i, j + 1)])}"/>`;
+  // Floor, and a dashed outline wherever a solid-layer cell has no price.
+  s += `<polygon class="tc-floor" style="opacity:${(se * (1 - topA)).toFixed(2)}" points="${pts([F(0, 0), F(nT - 1, 0), F(nT - 1, nF - 1), F(0, nF - 1)])}"/>`;
+  if (se > 0.12) for (let ci = 0; ci < cols[0].length - 1; ci++) for (let j = 0; j < nF - 1; j++) {
+    if (quadAt(0, ci, j)) continue;
+    const i = cols[0][ci], i2 = cols[0][ci + 1];
+    s += `<polygon class="tc-gap" points="${pts([F(i, j), F(i2, j), F(i2, j + 1), F(i, j + 1)])}"/>`;
   }
 
-  // $ ruler on the left corner, where prices are lowest.
-  const r0 = F(0, nF - 1), r1 = P(gx(0), gy(nF - 1), 1);
-  s += `<line class="tc-ruler" x1="${r0.x}" y1="${r0.y}" x2="${r1.x}" y2="${r1.y}"/>`;
-  for (let v = step; v <= vmax + 1e-9; v += step) {
-    const p = P(gx(0), gy(nF - 1), v / vmax);
-    const txt = `$${v % 1 ? v.toFixed(1) : v}`;
-    label(p.x - 8 * k, p.y + 4 * k, txt, 'end');
-    s += `<line class="tc-ruler" x1="${p.x - 4 * k}" y1="${p.y}" x2="${p.x}" y2="${p.y}"/><text class="tc-tick" x="${p.x - 8 * k}" y="${p.y + 4 * k}" text-anchor="end">${txt}</text>`;
+  // $ ruler on the left corner, where prices are lowest. Gone when looking straight down.
+  if (ce > 0.2) {
+    const r0 = F(0, nF - 1), r1 = P(gx(0), gy(nF - 1), 1);
+    s += `<line class="tc-ruler" x1="${r0.x}" y1="${r0.y}" x2="${r1.x}" y2="${r1.y}"/>`;
+    for (let v = step; v <= vmax + 1e-9; v += step) {
+      const p = P(gx(0), gy(nF - 1), v / vmax);
+      const txt = `$${v % 1 ? v.toFixed(1) : v}`;
+      label(p.x - 8 * k, p.y + 4 * k, txt, 'end');
+      s += `<line class="tc-ruler" x1="${p.x - 4 * k}" y1="${p.y}" x2="${p.x}" y2="${p.y}"/><text class="tc-tick" x="${p.x - 8 * k}" y="${p.y + 4 * k}" text-anchor="end">${txt}</text>`;
+    }
   }
 
-  // Term ticks along the front-left edge. Families are named on the chart
-  // itself, where each row ends (below).
-  terms.forEach((t, i) => {
-    const p = P(gx(i), gy(nF - 1) + 0.1, 0);
-    label(p.x, p.y + 10 * k, t.key, 'middle');
-    s += `<text class="tc-tick" x="${p.x}" y="${p.y + 10 * k}" text-anchor="middle">${t.key}</text>`;
+  // Term ticks along the front-left edge. Families are named where each row ends.
+  const hy = 0.4 / (nF - 1), tickY = [];
+  terms.forEach((key, i) => {
+    const p = P(gx(i), gy(nF - 1) + 0.1 + hy * topA, 0);
+    label(p.x, p.y + 10 * k, key, 'middle');
+    tickY.push(p.y + 10 * k);
+    s += `<text class="tc-tick" x="${p.x}" y="${p.y + 10 * k}" text-anchor="middle">${key}</text>`;
   });
-  const tt = P(gx(0) + 0.12, gy(nF - 1) + 0.24, 0);
-  label(tt.x, tt.y + 12 * k, 'TERM →', 'middle', 10.5);
-  s += `<text class="tc-axis-title" x="${tt.x}" y="${tt.y + 12 * k}" text-anchor="middle">TERM →</text>`;
+  const tt = P(gx(0) + 0.12, gy(nF - 1) + 0.24 + hy * topA, 0), ttY = tt.y + (12 + 16 * sideA) * k;
+  label(tt.x, ttY, 'TERM →', 'middle', 10.5);
+  s += `<text class="tc-axis-title" x="${tt.x}" y="${ttY}" text-anchor="middle">TERM →</text>`;
 
-  // On-demand anchors: the dearest and cheapest on-demand corners. The row
-  // labels name the other end of every row.
-  const priced = [];
-  for (let i = 0; i < nT; i++) for (let j = 0; j < nF; j++) if (V(i, j)) priced.push([i, j]);
-  const pick = score => priced.reduce((a, b) => (score(b) > score(a) ? b : a));
-  const corners = [
+  // On-demand anchors (3D only): the dearest and cheapest on-demand corners.
+  const pricedPts = [];
+  for (let i = 0; i < nT; i++) for (let j = 0; j < nF; j++) if (priced(0, i, j)) pricedPts.push([i, j]);
+  const pick = score => pricedPts.reduce((a, b) => (score(b) > score(a) ? b : a));
+  const corners = termView.el > 0.15 && termView.el < 1.3 ? [
     { v: pick(([i, j]) => -i - j), dx: 0, dy: -14, anchor: 'middle' },
     { v: pick(([i, j]) => -i + j), dx: 10, dy: -9, anchor: 'start', side: true },
-  ].filter(c => wide || !c.side);
-  corners.forEach(({ v: [i, j] }) => {
-    const top = V(i, j), bot = F(i, j);
+  ].filter(c => wide || !c.side) : [];
+  if (se > 0.1 && ce > 0.2) corners.forEach(({ v: [i, j] }) => {
+    const top = V(0, i, j), bot = F(i, j);
     s += `<line class="tc-drop" x1="${top.x}" y1="${top.y}" x2="${bot.x}" y2="${bot.y}"/>`;
   });
 
-  // Tiles back to front. Each published point owns the part of the chart
-  // nearest to it -- a quarter of every quad it touches -- in its own price
-  // band, so a cell has the same color here as in the price table below. Tile
-  // borders run along the midlines between points; a thin line runs through
+  // Tiles back to front, both layers in one pass. Each published point owns the
+  // part of the chart nearest to it -- a quarter of every quad it touches -- in
+  // its own price band, so a cell has the same color here as in the price table.
+  // Tile borders run along the midlines between points; a line runs through
   // each family's points so a row can be followed across.
-  const W3 = (i, j) => { const c = at(i, j); return c && c.value != null ? [gx(i), gy(j), c.value / vmax] : null; };
   const mid = (...ps) => ps[0].map((_, n) => ps.reduce((a, q) => a + q[n], 0) / ps.length);
   const tiles = [];
-  for (let i = 0; i < nT - 1; i++) for (let j = 0; j < nF - 1; j++) {
-    const idx = [[i, j], [i + 1, j], [i + 1, j + 1], [i, j + 1]];
-    const w = idx.map(([a, b]) => W3(a, b));
-    if (!w.every(Boolean)) continue;
-    const ctr = mid(...w), m = [0, 1, 2, 3].map(n => mid(w[n], w[(n + 1) % 4]));
-    idx.forEach(([a, b], n) => {
-      const c = at(a, b), ring = [w[n], m[n], ctr, m[(n + 3) % 4]].map(q => P(...q));
-      // Corners 0-1 and 2-3 share a row, so one grid edge of every tile runs along its row.
-      const rowEdge = n % 2 === 0 ? [ring[0], ring[1]] : [ring[3], ring[0]];
-      tiles.push({ ring, rowEdge, fam: fams[b], band: termBand(c.value), est: c.status === 'estimated', d: ring.reduce((acc, q) => acc + q.d, 0) / 4 });
-    });
-  }
+  layers.forEach((_, L) => {
+    for (let ci = 0; ci < cols[L].length - 1; ci++) for (let j = 0; j < nF - 1; j++) {
+      const q = quadAt(L, ci, j);
+      if (!q) continue;
+      const w = q.map(([a, b]) => W3(L, a, b));
+      const ctr = mid(...w), m = [0, 1, 2, 3].map(n => mid(w[n], w[(n + 1) % 4]));
+      q.forEach(([a, b], n) => {
+        const c = at(L, a, b), ring = [w[n], m[n], ctr, m[(n + 3) % 4]].map(p => P(...p));
+        // Corners 0-1 and 2-3 share a row, 1-2 and 3-0 a column. A row or column
+        // line is shared by the quads on both sides of it; draw it from one only,
+        // or dashed lines double into solid ones and inner rows draw brighter.
+        const rowEdge = n < 2 || !quadAt(L, ci, j + 1) ? (n % 2 === 0 ? [ring[0], ring[1]] : [ring[3], ring[0]]) : null;
+        const colEdge = n === 0 || n === 3 || !quadAt(L, ci + 1, j) ? (n % 2 === 0 ? [ring[3], ring[0]] : [ring[0], ring[1]]) : null;
+        tiles.push({ L, ring, rowEdge, colEdge, fam: fams[b], band: termBand(c.value), est: c.status === 'estimated', d: ring.reduce((acc, p) => acc + p.d, 0) / 4 });
+      });
+    }
+  });
   tiles.sort((a, b) => a.d - b.d).forEach(t => {
-    const col = TERM_BANDS[t.band].color, op = t.est ? 0.4 : 1;
-    s += `<g data-band="${t.band}" data-fam="${t.fam}"><polygon points="${pts(t.ring)}" fill="${col}" fill-opacity="${op}" stroke="${col}" stroke-opacity="${op}" stroke-width="0.6"/>`
-      + `<polyline class="tc-edge${t.est ? ' est' : ''}" points="${pts(t.ring.slice(1))}" fill="none"/>`
-      + `<polyline class="tc-row-line" points="${pts(t.rowEdge)}"/></g>`;
+    if (t.L === 0) {
+      const col = TERM_BANDS[t.band].color, op = (t.est ? 0.4 : 1) * tileA * (1 - topA);
+      s += `<g data-band="${t.band}" data-fam="${t.fam}">`
+        + (op > 0.01 ? `<polygon points="${pts(t.ring)}" fill="${col}" fill-opacity="${op.toFixed(2)}" stroke="${col}" stroke-opacity="${op.toFixed(2)}" stroke-width="0.6"/>`
+          + `<polyline class="tc-edge${t.est ? ' est' : ''}" stroke-opacity="${tileA.toFixed(2)}" points="${pts(t.ring.slice(1))}" fill="none"/>` : '')
+        + (t.rowEdge ? `<polyline class="tc-row-line" style="${rowStyle(0)}" points="${pts(t.rowEdge)}"/>` : '') + '</g>';
+    } else if (ghostA > 0.01) {
+      s += `<g data-fam="${t.fam}" data-layer="1">`
+        + (tileA > 0.01 ? `<polygon points="${pts(t.ring)}" fill="#ffffff" fill-opacity="${(0.05 * tileA * ghostA).toFixed(3)}"/>`
+          + (t.colEdge ? `<polyline class="tc-ghost-col" stroke-opacity="${(0.4 * tileA * ghostA).toFixed(2)}" points="${pts(t.colEdge)}"/>` : '') : '')
+        + (t.rowEdge ? `<polyline class="tc-row-line tc-ghost-row" style="${rowStyle(1)}" points="${pts(t.rowEdge)}"/>` : '') + '</g>';
+    }
   });
   const used = new Set(res.cells.filter(c => c.value != null).map(c => termBand(c.value)));
   document.querySelectorAll('#termPricingKey .band').forEach(b => b.classList.toggle('unused', !used.has(Number(b.dataset.band))));
 
   // A published point with no complete quad around it (a lone 5-year price,
   // say) is still drawn: joined to its row by a line and stood on the floor.
-  const quadOK = (i, j) => i >= 0 && j >= 0 && i < nT - 1 && j < nF - 1 && [V(i, j), V(i + 1, j), V(i + 1, j + 1), V(i, j + 1)].every(Boolean);
-  for (let j = 0; j < nF; j++) {
-    let g = '';
-    for (let i = 0; i < nT - 1; i++) {
-      if (V(i, j) && V(i + 1, j) && !quadOK(i, j - 1) && !quadOK(i, j)) g += `<polyline class="tc-row-line" points="${pts([V(i, j), V(i + 1, j)])}"/>`;
-    }
-    for (let i = 0; i < nT; i++) {
-      const p = V(i, j);
-      if (p && !quadOK(i - 1, j - 1) && !quadOK(i, j - 1) && !quadOK(i - 1, j) && !quadOK(i, j)) {
-        const f = F(i, j);
-        g += `<line class="tc-drop" x1="${p.x}" y1="${p.y}" x2="${f.x}" y2="${f.y}"/>`
-          + `<circle cx="${p.x}" cy="${p.y}" r="${3.2 * k}" fill="${TERM_BANDS[termBand(at(i, j).value)].color}" stroke="#fff" stroke-width="${1.2 * k}"/>`;
+  layers.forEach((_, L) => {
+    if (L && ghostA <= 0.01) return;
+    for (let j = 0; j < nF; j++) {
+      let g = '';
+      const c = cols[L];
+      for (let ci = 0; ci < c.length - 1; ci++) {
+        const a = V(L, c[ci], j), b = V(L, c[ci + 1], j);
+        if (a && b && !quadAt(L, ci, j - 1) && !quadAt(L, ci, j)) g += `<polyline class="tc-row-line${L ? ' tc-ghost-row' : ''}" style="${rowStyle(L)}" points="${pts([a, b])}"/>`;
       }
+      for (let ci = 0; ci < c.length; ci++) {
+        const p = V(L, c[ci], j);
+        if (!p || quadAt(L, ci - 1, j - 1) || quadAt(L, ci, j - 1) || quadAt(L, ci - 1, j) || quadAt(L, ci, j)) continue;
+        const f = F(c[ci], j);
+        if (ce > 0.2) g += `<line class="tc-drop" x1="${p.x}" y1="${p.y}" x2="${f.x}" y2="${f.y}"/>`;
+        g += L ? `<circle cx="${p.x}" cy="${p.y}" r="${3 * k}" fill="#181818" stroke="#e6e6e6" stroke-opacity="${ghostA.toFixed(2)}" stroke-width="${1.2 * k}"/>`
+          : `<circle cx="${p.x}" cy="${p.y}" r="${3.2 * k}" fill="${TERM_BANDS[termBand(at(L, c[ci], j).value)].color}" stroke="#fff" stroke-width="${1.2 * k}"/>`;
+      }
+      if (g) s += `<g data-fam="${fams[j]}"${L ? ' data-layer="1"' : ''}>${g}</g>`;
     }
-    if (g) s += `<g data-fam="${fams[j]}">${g}</g>`;
+  });
+
+  // Top-down, the chart becomes a heatmap: one full cell per point (the 3D tiles
+  // stop at the edge points, which would put edge values on the border), each
+  // with its value printed.
+  const hx = 0.55 / (nT - 1);
+  if (topA > 0.01) for (let i = 0; i < nT; i++) for (let j = 0; j < nF; j++) {
+    const c = at(0, i, j), z = priced(0, i, j) ? c.value / vmax : 0;
+    const cell = pts([[-hx, -hy], [hx, -hy], [hx, hy], [-hx, hy]].map(([dx, dy]) => P(gx(i) + dx, gy(j) + dy, z)));
+    if (!priced(0, i, j)) { s += `<polygon class="tc-gap" style="opacity:${topA.toFixed(2)}" points="${cell}"/>`; continue; }
+    const b = termBand(c.value), op = (c.status === 'estimated' ? 0.45 : 1) * topA;
+    s += `<g data-band="${b}" data-fam="${fams[j]}"><polygon points="${cell}" fill="${TERM_BANDS[b].color}" fill-opacity="${op.toFixed(2)}" stroke="#181818" stroke-width="1.6" stroke-opacity="${topA.toFixed(2)}"/></g>`;
+  }
+  if (topA > 0.02) for (let i = 0; i < nT; i++) for (let j = 0; j < nF; j++) {
+    if (!priced(0, i, j)) continue;
+    const p = V(0, i, j), c = at(0, i, j), b = termBand(c.value);
+    s += `<text class="tc-val" x="${p.x}" y="${p.y + 4 * k}" fill="${b >= 3 ? '#0b0b0b' : '#ffffff'}" style="opacity:${topA.toFixed(2)}">${est(c)}${money(c.value)}</text>`;
+  }
+
+  // Overlay: the vertical gap between the layers is the price difference.
+  // Drawn for every point, shown for the family under the pointer.
+  if (layers.length > 1 && topA < 0.5) for (let i = 0; i < nT; i++) for (let j = 0; j < nF; j++) {
+    if (!priced(0, i, j) || !priced(1, i, j)) continue;
+    const a = V(0, i, j), b = V(1, i, j), diff = at(1, i, j).value / at(0, i, j).value - 1;
+    s += `<line class="tc-premium" data-fam="${fams[j]}" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"/>`
+      + `<text class="tc-premium" data-fam="${fams[j]}" x="${(a.x + b.x) / 2 + 5 * k}" y="${(a.y + b.y) / 2 + 4 * k}">${signedPct(diff)}</text>`;
   }
 
   // Row labels: every family named where its row ends, at the height of its
@@ -2709,42 +2868,53 @@ function drawTermChart(res, k = 1) {
   const lh = 14 * k;
   const rows = fams.map((f, j) => {
     let i = nT - 1;
-    while (i >= 0 && !V(i, j)) i--;
+    while (i >= 0 && !priced(0, i, j)) i--;
     if (i < 0) return null;
-    const p = V(i, j);
-    return { f, i, j, p, c: at(i, j), lx: p.x + 11 * k, ly: p.y + 4 * k };
+    const p = V(0, i, j), edge = P(gx(i) + hx * topA, gy(j), at(0, i, j).value / vmax);
+    return { f, i, j, p, c: at(0, i, j), lx: edge.x + 11 * k, ly: p.y + 4 * k };
   }).filter(Boolean).sort((a, b) => a.ly - b.ly);
   for (let n = 1; n < rows.length; n++) rows[n].ly = Math.max(rows[n].ly, rows[n - 1].ly + lh);
+  if (sideA > 0.5 && rows.length) {
+    const floor = Math.min(...tickY) - 14 * k;
+    if (rows[rows.length - 1].ly > floor) {
+      rows[rows.length - 1].ly = floor;
+      for (let n = rows.length - 2; n >= 0; n--) rows[n].ly = Math.min(rows[n].ly, rows[n + 1].ly - lh);
+    }
+  }
   // When rows end at different terms, say which term each label's price is for.
   const mixed = new Set(rows.map(r => r.i)).size > 1;
   rows.forEach(r => {
-    const term = mixed ? `${terms[r.i].key} ` : '';
-    const txt = `${r.f} ${term}${est(r.c)}${money(r.c.value)}`;
-    label(r.lx, r.ly, txt, 'start', 11.5);
+    const term = mixed ? `${terms[r.i]} ` : '';
+    label(r.lx, r.ly, `${r.f} ${term}${est(r.c)}${money(r.c.value)}`, 'start', 11.5);
     if (Math.abs(r.ly - (r.p.y + 4 * k)) > 2) s += `<line class="tc-drop" x1="${r.p.x}" y1="${r.p.y}" x2="${r.lx - 3 * k}" y2="${r.ly - 4 * k}"/>`;
     s += `<text class="tc-row" data-fam="${r.f}" x="${r.lx}" y="${r.ly}">${r.f} <tspan class="px">${term}${est(r.c)}${money(r.c.value)}</tspan></text>`;
   });
 
   // Corner labels on top.
   corners.forEach(({ v: [i, j], dx, dy, anchor }) => {
-    const p = V(i, j), c = at(i, j);
-    label(p.x + dx * k, p.y + dy * k, `${terms[i].key} · ${fams[j]} ${est(c)}${money(c.value)}`, anchor, 12);
+    const p = V(0, i, j), c = at(0, i, j);
+    label(p.x + dx * k, p.y + dy * k, `${terms[i]} · ${fams[j]} ${est(c)}${money(c.value)}`, anchor, 12);
     s += `<circle cx="${p.x}" cy="${p.y}" r="${3.6 * k}" fill="#fff" stroke="#181818" stroke-width="${2 * k}"/>`;
-    s += `<text class="tc-corner" x="${p.x + dx * k}" y="${p.y + dy * k}" text-anchor="${anchor}">${terms[i].key} · ${fams[j]} <tspan class="px">${est(c)}${money(c.value)}</tspan></text>`;
+    s += `<text class="tc-corner" x="${p.x + dx * k}" y="${p.y + dy * k}" text-anchor="${anchor}">${terms[i]} · ${fams[j]} <tspan class="px">${est(c)}${money(c.value)}</tspan></text>`;
   });
 
-  // Invisible hover targets for every grid point, priced or not.
+  // Invisible hover targets: every grid point of the solid layer, priced or
+  // not, and every priced point of the overlay.
   for (let i = 0; i < nT; i++) for (let j = 0; j < nF; j++) {
-    const p = V(i, j) || F(i, j);
-    s += `<circle class="term-hit" cx="${p.x}" cy="${p.y}" r="${10 * k}" fill="transparent" data-fam="${fams[j]}" data-term="${terms[i].key}"/>`;
+    const p = V(0, i, j) || F(i, j);
+    s += `<circle class="term-hit" cx="${p.x}" cy="${p.y}" r="${10 * k}" fill="transparent" data-layer="0" data-fam="${fams[j]}" data-term="${terms[i]}"/>`;
+    if (layers.length > 1 && ghostA > 0.3 && priced(1, i, j)) {
+      const g = V(1, i, j);
+      s += `<circle class="term-hit" cx="${g.x}" cy="${g.y}" r="${9 * k}" fill="transparent" data-layer="1" data-fam="${fams[j]}" data-term="${terms[i]}"/>`;
+    }
   }
   const pad = 14 * k, vbW = box.x1 - box.x0 + 2 * pad, vbH = box.y1 - box.y0 + 2 * pad;
   const availW = el.clientWidth - 20, availH = el.clientHeight - 14;
   const shrink = availW > 0 && availH > 0 ? Math.max(vbW / availW, vbH / availH) : 1;
-  if (k === 1 && shrink > 1.1) return drawTermChart(res, Math.min(shrink, 2.4));
+  if (k === 1 && (shrink > 1.1 || shrink < 0.85)) return drawTermChart(res, clampTo(shrink, [0.7, 2.4]));
   const vb = [box.x0 - pad, box.y0 - pad, vbW, vbH].map(v => v.toFixed(1));
   el.innerHTML = `<svg viewBox="${vb.join(' ')}" style="--fs:${k.toFixed(3)}" class="${termDragging ? 'dragging' : ''}" role="img" aria-label="The Matrix: ${res.segment} term prices">${s}</svg>`;
-  document.getElementById('termResetView').disabled = isDefaultTermView();
+  updateTermCamButtons();
   if (termFocusFam) focusTermRow(termFocusFam);
 }
 
@@ -2756,19 +2926,24 @@ function focusTermRow(fam) {
     svg.querySelectorAll('g[data-fam]').forEach(g => { g.style.opacity = !fam || g.dataset.fam === fam ? '' : '0.3'; });
     svg.querySelectorAll('.tc-row-line').forEach(l => l.classList.toggle('on', !!fam && l.parentNode.dataset.fam === fam));
     svg.querySelectorAll('.tc-row').forEach(t => t.classList.toggle('dim', !!fam && t.dataset.fam !== fam));
+    svg.querySelectorAll('.tc-premium').forEach(p => p.classList.toggle('on', !!fam && p.dataset.fam === fam));
   }
   document.querySelectorAll('#termMatrixTable tbody tr').forEach(tr => tr.classList.toggle('focus', !!fam && tr.dataset.fam === fam));
+  document.querySelectorAll('#termCurves .curve-panel').forEach(p => p.classList.toggle('focus', !!fam && p.dataset.fam === fam));
 }
 
-function termHudHtml(res, fam, term) {
+function termHudHtml(res, fam, term, other) {
   const c = termCellMap(res)[fam + '|' + term];
   if (!c) return null;
   const quotes = Object.fromEntries(res.quotes.map(q => [q.id, q]));
-  const head = `<div class="hud-title">${fam} · ${TERM_LONG[term] || term}</div>`;
-  if (c.status === 'none') return head + '<div class="hud-price">No published price</div><div class="hud-row"><span>Sellers</span><b>none in this segment</b></div>';
+  const head = `<div class="hud-title">${fam} · ${TERM_LONG[term] || term} · ${SEG_NAME[res.segment]}</div>`;
+  const oc = other ? termCellMap(other)[fam + '|' + term] : null;
+  const vs = oc && oc.value != null && c.value != null
+    ? `<div class="hud-row"><span>${SEG_NAME[other.segment]}</span><b>${oc.status === 'estimated' ? '~' : ''}${money(oc.value)} (${signedPct(oc.value / c.value - 1)})</b></div>` : '';
+  if (c.status === 'none') return head + '<div class="hud-price">No published price</div><div class="hud-row"><span>Sellers</span><b>none in this segment</b></div>' + vs;
   const band = TERM_BANDS[termBand(c.value)];
   let html = head + `<div class="hud-price">${c.status === 'estimated' ? '~' : ''}${money(c.value)} / GPU-hr</div>`
-    + `<div class="hud-row"><span>Price band</span><b><i style="display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;background:${band.color}"></i>${band.label}</b></div>`;
+    + `<div class="hud-row"><span>Price band</span><b><i style="display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;background:${band.color}"></i>${band.label}</b></div>` + vs;
   if (c.status === 'estimated') {
     return html + `<div class="hud-row"><span>Status</span><b>Estimated</b></div><div style="max-width:280px;white-space:normal;color:var(--muted);font-size:9.5px;margin-top:4px">${c.estimate}</div>`;
   }
@@ -2781,11 +2956,20 @@ function termHudHtml(res, fam, term) {
   return html;
 }
 
+function placeHud(hud, e) {
+  hud.style.display = 'block';
+  const w = hud.offsetWidth;
+  hud.style.left = Math.min(e.pageX + 14, window.scrollX + document.documentElement.clientWidth - w - 8) + 'px';
+  hud.style.top = (e.pageY - 10) + 'px';
+}
+
 function wireTermChartInteraction() {
   const el = document.getElementById('termPricingChart');
   const hud = document.getElementById('chartHudTooltip');
+  const redraw = () => { if (window.__termPricing) drawTermChart(window.__termPricing); };
   let drag = null;
   el.addEventListener('pointerdown', e => {
+    termAnim++;                                          // grabbing the chart stops a camera move
     drag = { x: e.clientX, y: e.clientY, az: termView.az, el: termView.el };
     termDragging = true;
     el.setPointerCapture(e.pointerId);
@@ -2793,23 +2977,24 @@ function wireTermChartInteraction() {
   });
   el.addEventListener('pointermove', e => {
     if (drag) {
-      termView.az = Math.max(0.2, Math.min(1.35, drag.az + (e.clientX - drag.x) * 0.008));
-      termView.el = Math.max(0.22, Math.min(1.1, drag.el - (e.clientY - drag.y) * 0.006));
-      if (window.__termPricing) drawTermChart(window.__termPricing);
+      termView.az = clampTo(drag.az + (e.clientX - drag.x) * 0.008, TERM_AZ);
+      termView.el = clampTo(drag.el - (e.clientY - drag.y) * 0.006, TERM_EL);
+      redraw();
       return;
     }
     const t = e.target;
     const rowEl = t && t.closest ? t.closest('.term-hit, .tc-row') : null;
     const fam = rowEl ? rowEl.dataset.fam : null;
     if (fam !== termFocusFam) focusTermRow(fam);
-    const html = t && t.classList && t.classList.contains('term-hit') && window.__termPricing
-      ? termHudHtml(window.__termPricing, t.dataset.fam, t.dataset.term) : null;
+    let html = null;
+    if (t && t.classList && t.classList.contains('term-hit') && window.__termPricing) {
+      const ghostHit = t.dataset.layer === '1' && window.__termGhost;
+      html = ghostHit ? termHudHtml(window.__termGhost, t.dataset.fam, t.dataset.term, window.__termPricing)
+        : termHudHtml(window.__termPricing, t.dataset.fam, t.dataset.term, window.__termGhost);
+    }
     if (!html) { hud.style.display = 'none'; return; }
     hud.innerHTML = html;
-    hud.style.display = 'block';
-    const w = hud.offsetWidth;
-    hud.style.left = Math.min(e.pageX + 14, window.scrollX + document.documentElement.clientWidth - w - 8) + 'px';
-    hud.style.top = (e.pageY - 10) + 'px';
+    placeHud(hud, e);
   });
   const end = () => {
     drag = null;
@@ -2821,11 +3006,16 @@ function wireTermChartInteraction() {
   el.addEventListener('dblclick', resetTermView);
   el.addEventListener('keydown', e => {
     const d = { ArrowLeft: [-0.06, 0], ArrowRight: [0.06, 0], ArrowUp: [0, 0.05], ArrowDown: [0, -0.05] }[e.key];
+    const cam = { t: 'top', T: 'top', s: 'side', S: 'side', d: '3d', D: '3d' }[e.key];
     if (d) {
       e.preventDefault();
-      termView.az = Math.max(0.2, Math.min(1.35, termView.az + d[0]));
-      termView.el = Math.max(0.22, Math.min(1.1, termView.el + d[1]));
-      if (window.__termPricing) drawTermChart(window.__termPricing);
+      termAnim++;
+      termView.az = clampTo(termView.az + d[0], TERM_AZ);
+      termView.el = clampTo(termView.el + d[1], TERM_EL);
+      redraw();
+    } else if (cam) {
+      e.preventDefault();
+      animateTermView(TERM_CAMERAS[cam]);
     } else if (e.key === 'r' || e.key === 'R' || e.key === 'Home') {
       e.preventDefault();
       resetTermView();
@@ -2835,8 +3025,154 @@ function wireTermChartInteraction() {
   let resizeTimer = null;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => { if (activeView === 'matrix' && window.__termPricing) drawTermChart(window.__termPricing); }, 120);
+    resizeTimer = setTimeout(() => { if (activeView === 'matrix') redraw(); }, 120);
   });
+}
+
+// ---- Term curves ------------------------------------------------------------
+// The same published prices as small multiples: one panel per family, price
+// against commitment length on a log time axis, both seller segments with a
+// band for the spread across sellers. Where the 3D chart shows the whole
+// shape, these are for reading and comparing values.
+let termCurveUnit = 'usd';
+
+async function renderTermCurves() {
+  const wrap = document.getElementById('termCurves');
+  try {
+    const [neo, hyp] = await Promise.all([fetchTermPricing('neocloud', false), fetchTermPricing('hyperscaler', false)]);
+    window.__termCurves = { neocloud: neo, hyperscaler: hyp };
+  } catch (e) {
+    wrap.innerHTML = '<div class="empty">Term curves unavailable.</div>';
+    return;
+  }
+  drawTermCurves();
+}
+
+function termCurveModel() {
+  const data = window.__termCurves, segs = ['neocloud', 'hyperscaler'], pct = termCurveUnit === 'pct';
+  const keys = Object.keys(TERM_DAYS).filter(key => segs.some(s => data[s].terms.some(t => t.key === key)));
+  const maps = { neocloud: termCellMap(data.neocloud), hyperscaler: termCellMap(data.hyperscaler) };
+  return {
+    keys,
+    families: data.neocloud.families.map(f => ({
+      f,
+      series: segs.map(s => {
+        const od = maps[s][f + '|OD'];
+        const base = od && od.status === 'observed' ? od.value : null;
+        const conv = v => (pct ? (base ? (v / base - 1) * 100 : null) : v);
+        const pts = keys.map(key => {
+          const c = maps[s][f + '|' + key];
+          return c && c.status === 'observed'
+            ? { key, v: c.value, lo: c.low, hi: c.high, n: c.n_sellers, y: conv(c.value), ylo: conv(c.low), yhi: conv(c.high) } : null;
+        }).filter(p => p && p.y != null);
+        return { s, base, pts };
+      }),
+    })),
+  };
+}
+
+function termCurveSummary(fm) {
+  const parts = fm.series.map(se => {
+    const last = se.pts.filter(p => p.key !== 'OD').pop();
+    return se.base && last ? `${SEG_NAME[se.s].toLowerCase()} ${last.key} ${signedPct(last.v / se.base - 1)}` : null;
+  }).filter(Boolean);
+  const [neo, hyp] = fm.series;
+  const shared = neo.pts.filter(p => hyp.pts.some(q => q.key === p.key));
+  const hypCheaper = shared.filter(p => hyp.pts.find(q => q.key === p.key).v < p.v).map(p => p.key);
+  const tail = !shared.length ? '' : hypCheaper.length ? `hyperscaler cheaper at ${hypCheaper.join(', ')}` : 'neocloud cheaper at every shared term';
+  return [parts.length ? `vs on-demand: ${parts.join(' · ')}` : '', tail].filter(Boolean).join('<br>');
+}
+
+function drawTermCurves() {
+  const wrap = document.getElementById('termCurves');
+  if (!window.__termCurves) return;
+  const { keys, families } = termCurveModel(), pct = termCurveUnit === 'pct';
+  const X = key => Math.log1p(TERM_DAYS[key] / 30), xmax = X(keys[keys.length - 1]);
+  const W = 340, H = 214, m = { l: 46, r: 58, t: 12, b: 30 };
+  const px = key => m.l + X(key) / xmax * (W - m.l - m.r);
+  const fmt = v => (pct ? signedPct(v / 100) : money(v));
+  // % off on-demand shares one scale across families so savings compare directly.
+  let pLo = 0, pHi = 0;
+  if (pct) families.forEach(fm => fm.series.forEach(se => se.pts.forEach(p => { pLo = Math.min(pLo, p.ylo); pHi = Math.max(pHi, p.yhi); })));
+  const pStep = pHi - pLo > 120 ? 40 : 20;
+  pLo = Math.floor(pLo / pStep) * pStep; pHi = Math.ceil(pHi / pStep) * pStep;
+  const geom = {};
+  wrap.innerHTML = families.map(fm => {
+    let y0, y1, st;
+    if (pct) { y0 = pLo; y1 = pHi; st = pStep; }
+    else {
+      const hi = Math.max(1, ...fm.series.flatMap(se => se.pts.map(p => p.yhi)));
+      st = niceStep(hi); y0 = 0; y1 = Math.ceil(hi / st) * st;
+    }
+    const py = v => m.t + (1 - (v - y0) / (y1 - y0)) * (H - m.t - m.b);
+    let g = '';
+    for (let v = y0; v <= y1 + 1e-9; v += st) {
+      g += `<line class="cv-grid${pct && Math.abs(v) < 1e-9 ? ' zero' : ''}" x1="${m.l}" x2="${W - m.r}" y1="${py(v).toFixed(1)}" y2="${py(v).toFixed(1)}"/>`
+        + `<text class="cv-axis" x="${m.l - 6}" y="${(py(v) + 3.5).toFixed(1)}" text-anchor="end">${fmt(v)}</text>`;
+    }
+    keys.forEach(key => { g += `<text class="cv-axis" x="${px(key).toFixed(1)}" y="${H - m.b + 16}" text-anchor="middle">${key}</text>`; });
+    // Hyperscaler first so the neocloud series sits on top.
+    const ends = [];
+    [...fm.series].reverse().forEach(se => {
+      if (!se.pts.length) return;
+      const col = SEG_COLOR[se.s];
+      if (se.pts.length > 1) {
+        const band = [...se.pts.map(p => `${px(p.key).toFixed(1)},${py(p.yhi).toFixed(1)}`), ...[...se.pts].reverse().map(p => `${px(p.key).toFixed(1)},${py(p.ylo).toFixed(1)}`)];
+        g += `<polygon class="cv-band" fill="${col}" points="${band.join(' ')}"/>`;
+      }
+      g += `<polyline class="cv-line" stroke="${col}" points="${se.pts.map(p => `${px(p.key).toFixed(1)},${py(p.y).toFixed(1)}`).join(' ')}"/>`;
+      se.pts.forEach(p => { g += `<circle class="cv-dot" cx="${px(p.key).toFixed(1)}" cy="${py(p.y).toFixed(1)}" r="3.5" fill="${col}" data-key="${p.key}"/>`; });
+      const last = se.pts[se.pts.length - 1];
+      ends.push({ x: px(last.key) + 8, y: py(last.y) + 3.5, txt: fmt(last.y) });
+    });
+    // Keep the two end values from colliding.
+    if (ends.length === 2 && Math.abs(ends[0].x - ends[1].x) < 44 && Math.abs(ends[0].y - ends[1].y) < 12) {
+      const [a, b] = ends[0].y < ends[1].y ? ends : [ends[1], ends[0]];
+      b.y = a.y + 12;
+    }
+    ends.forEach(e => { g += `<text class="cv-end" x="${e.x.toFixed(1)}" y="${e.y.toFixed(1)}">${e.txt}</text>`; });
+    g += `<line class="cv-cross" x1="0" x2="0" y1="${m.t}" y2="${H - m.b}" style="display:none"/>`;
+    g += `<rect x="${m.l - 12}" y="${m.t}" width="${W - m.l - m.r + 24}" height="${H - m.t - m.b}" fill="transparent"/>`;
+    geom[fm.f] = fm;
+    return `<div class="curve-panel" data-fam="${fm.f}"><div class="curve-head"><b>${fm.f}</b><span>${termCurveSummary(fm)}</span></div>`
+      + `<svg class="cv" viewBox="0 0 ${W} ${H}" data-fam="${fm.f}" role="img" aria-label="${fm.f} price by commitment length">${g}</svg></div>`;
+  }).join('');
+
+  // One crosshair per panel snapping to the nearest term; one tooltip listing both segments.
+  const hud = document.getElementById('chartHudTooltip');
+  const clear = () => {
+    hud.style.display = 'none';
+    wrap.querySelectorAll('.cv-cross').forEach(c => { c.style.display = 'none'; });
+    wrap.querySelectorAll('.cv-dot.on').forEach(d => d.classList.remove('on'));
+  };
+  wrap.onpointermove = e => {
+    const svg = e.target.closest ? e.target.closest('svg.cv') : null;
+    if (!svg) { clear(); return; }
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX; pt.y = e.clientY;
+    const loc = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const key = keys.reduce((a, b) => (Math.abs(px(b) - loc.x) < Math.abs(px(a) - loc.x) ? b : a));
+    wrap.querySelectorAll('svg.cv').forEach(sv => {
+      const cross = sv.querySelector('.cv-cross'), mine = sv === svg;
+      cross.style.display = mine ? '' : 'none';
+      if (mine) { cross.setAttribute('x1', px(key)); cross.setAttribute('x2', px(key)); }
+      sv.querySelectorAll('.cv-dot').forEach(d => d.classList.toggle('on', mine && d.dataset.key === key));
+    });
+    const fm = geom[svg.dataset.fam];
+    const rows = fm.series.map(se => {
+      const p = se.pts.find(q => q.key === key);
+      const lineKey = `<i style="display:inline-block;width:12px;height:2px;border-radius:1px;background:${SEG_COLOR[se.s]};vertical-align:middle;margin-right:6px"></i>`;
+      if (!p) return `<div class="hud-row"><span>${lineKey}${SEG_NAME[se.s]}</span><b style="color:var(--muted)">not published</b></div>`;
+      const val = pct ? `${fmt(p.y)} <span style="color:var(--muted);font-weight:500">${money(p.v)}</span>` : money(p.v);
+      const spread = p.n > 1 ? `${money(p.lo)}–${money(p.hi)}, ${p.n} sellers` : '1 seller';
+      return `<div class="hud-row"><span>${lineKey}${SEG_NAME[se.s]}</span><b>${val}</b></div>`
+        + `<div class="hud-row" style="padding-left:18px"><span>${spread}</span></div>`;
+    }).join('');
+    hud.innerHTML = `<div class="hud-title">${fm.f} · ${TERM_LONG[key]}</div>${rows}`;
+    placeHud(hud, e);
+    if (termFocusFam !== fm.f) focusTermRow(fm.f);
+  };
+  wrap.onpointerleave = () => { clear(); focusTermRow(null); };
 }
 
 function renderTermSidebar(res) {
@@ -3136,6 +3472,13 @@ function initEventHandlers() {
   document.getElementById('termFillToggle').addEventListener('change', renderTermPricing);
   document.getElementById('termLedgerFamily').addEventListener('change', () => window.__termPricing && renderTermLedger(window.__termPricing));
   document.getElementById('termResetView').addEventListener('click', resetTermView);
+  document.getElementById('termOverlayToggle').addEventListener('change', renderTermPricing);
+  document.querySelectorAll('#termCamera button').forEach(b => b.addEventListener('click', () => animateTermView(TERM_CAMERAS[b.dataset.cam])));
+  document.querySelectorAll('#termCurveUnit button').forEach(b => b.addEventListener('click', () => {
+    termCurveUnit = b.dataset.unit;
+    document.querySelectorAll('#termCurveUnit button').forEach(x => x.classList.toggle('active', x === b));
+    drawTermCurves();
+  }));
   wireTermChartInteraction();
 
   document.getElementById('diffBaseSelect')?.addEventListener('change', renderSnapshotDiff);
