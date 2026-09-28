@@ -1,4 +1,4 @@
-"""Term pricing must be built from published prices only, one vote per seller,
+"""The Matrix must be built from published prices only, one vote per seller,
 never blending segments, and must say which cells are estimated."""
 
 import collections
@@ -124,8 +124,8 @@ def client():
     shutil.rmtree(temp_dir, ignore_errors=True)
 
 
-def test_api_term_pricing(client):
-    res = client.get("/api/term-pricing?segment=hyperscaler&fill=true")
+def test_api_matrix(client):
+    res = client.get("/api/matrix?segment=hyperscaler&fill=true")
     assert res.status_code == 200
     data = res.json()
     assert data["segment"] == "hyperscaler" and data["fill"] is True
@@ -134,5 +134,5 @@ def test_api_term_pricing(client):
     assert all(q["segment"] == "hyperscaler" for q in data["quotes"])
 
 
-def test_api_term_pricing_rejects_unknown_segment(client):
-    assert client.get("/api/term-pricing?segment=everyone").status_code == 422
+def test_api_matrix_rejects_unknown_segment(client):
+    assert client.get("/api/matrix?segment=everyone").status_code == 422

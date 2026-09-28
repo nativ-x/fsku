@@ -29,7 +29,7 @@ Left out on purpose, and why:
   * Prices published only in INR (Yotta).
 
 Cluster products (Lambda 1-Click Clusters, Together's H200/B200 reserved
-clusters of 256+ GPUs) are kept with their minimum size. Term pricing covers a
+clusters of 256+ GPUs) are kept with their minimum size. The Matrix prices a
 single node and excludes them, but they are the only public cluster-size
 tiers, so they stay on record.
 """
@@ -266,7 +266,7 @@ def _neocloud() -> List[Dict[str, Any]]:
 
     # Lambda 1-Click Clusters -- one price for any length from 2 weeks to 1 year,
     # tiered by cluster size. Multi-node products: kept for the record, excluded
-    # from single-node term pricing.
+    # from The Matrix, which prices a single node.
     for fam, tiers in (("H100", [(16, 6.16), (64, 5.85), (256, 5.54)]), ("B200", [(16, 9.86), (64, 9.36), (256, 8.87)])):
         for size, p in tiers:
             out.append(quote("Lambda", N, fam, f"1-Click Cluster HGX {fam}", f"1-Click Cluster, {size}+ GPUs, 2 weeks - 1 year",

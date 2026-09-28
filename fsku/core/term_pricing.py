@@ -1,4 +1,4 @@
-"""Term pricing: published $/GPU-hour by commitment length x GPU family.
+"""The Matrix: published $/GPU-hour by commitment length x GPU family.
 
 The Fix answers "what does an hour cost today?". This answers "what does it
 cost if you commit?", from prices sellers publish for reserved instances,
@@ -148,7 +148,7 @@ class TermPricingEngine:
             if q["min_gpus"] > MAX_UNIT_GPUS:
                 excluded.append({"id": q["id"], "provider": q["provider"], "family": q["family"], "option": q["option"],
                                  "per_gpu": q["per_gpu"], "source": q["source"],
-                                 "reason": f"cluster product: min {q['min_gpus']} GPUs; term pricing covers a single node"})
+                                 "reason": f"cluster product: min {q['min_gpus']} GPUs; The Matrix prices a single node"})
             else:
                 eligible.append(q)
 

@@ -56,11 +56,11 @@
    - Interactive Forward Curve explorer with configurable horizon, cadence, carry, and cash anchor.
    - Multi-column sortable and searchable market tape with CSV and JSON exports.
 
-9. **Term pricing** — what compute costs if you commit, from prices sellers publish:
-   - `fsku term-pricing` / `GET /api/term-pricing?segment=neocloud`. $/GPU-hr by commitment length (on-demand, 1M, 3M, 6M, 1Y, 2Y, 3Y, 5Y) × GPU family (A100, H100, H200, B200, B300), drawn as a rotatable 3D chart, color-coded by price band, in the **Term Pricing** view with a matrix and a quote ledger beneath it.
+9. **The Matrix** — what compute costs if you commit, from term prices sellers publish:
+   - `fsku matrix` / `GET /api/matrix?segment=neocloud`. $/GPU-hr by commitment length (on-demand, 1M, 3M, 6M, 1Y, 2Y, 3Y, 5Y) × GPU family (A100, H100, H200, B200, B300), drawn as a rotatable 3D chart, color-coded by price band, in **The Matrix** view with a price table and a quote ledger beneath it.
    - Built from a catalog of **published term prices** (`fsku/sync/term_catalog.py`, captured 2026‑09‑27): AWS EC2 Savings Plans and Capacity Blocks, Azure reservations (1/3/5 years), Google Cloud CUDs and DWS Calendar mode, and neocloud contracts from Together AI, Verda, Hyperbolic, Civo, Gcore, Jarvislabs, DigitalOcean, Paperspace, Cirrascale and Latitude.sh. Every row keeps the figure as published (a VM-hour, a whole reservation term, a discount off on-demand) and the arithmetic to $/GPU-hr, plus its source URL.
    - **One vote per seller per cell** — its lowest published per-GPU price for that term — and the cell is the median of the votes. `neocloud` and `hyperscaler` are priced separately, never blended. A quote sold for a range of lengths prices every term inside it (an AWS Capacity Block, any length 1–182 days, prices 1M, 3M and 6M).
-   - **Color = price band.** Six fixed $/GPU-hr bands (< $2, $2–3, $3–5, $5–8, $8–12, $12+) on one blue ramp, the same in both segments, so a color means the same price in either view. Each published point owns the tile around it, and the matrix below uses the same swatches. Drag, arrow keys or the chart's Reset position button (or a double-click) control the angle.
+   - **Color = price band.** Six fixed $/GPU-hr bands (< $2, $2–3, $3–5, $5–8, $8–12, $12+) on one blue ramp, the same in both segments, so a color means the same price in either view. Each published point owns the tile around it, and the price table below uses the same swatches. Drag, arrow keys or the chart's Reset position button (or a double-click) control the angle.
    - **Single node only.** Multi-node cluster products (Lambda 1-Click Clusters, Together's 256+ GPU reservations) are kept on record — they are the only public cluster-size tiers — but excluded from cells, with the reason.
    - A seller's on-demand rate is included only alongside a term price it publishes, so each seller's discount is measured against its own on-demand. Sellers that publish no term price (CoreWeave "up to 60%", Nebius "up to 35%", Crusoe, OCI) are "contact sales" and not in the catalog.
    - Empty cells stay empty unless `fill=true`. Then each is estimated from the family's nearest published term times the median **same-seller** ratio between the two terms in other families, drawn dashed and labeled with its arithmetic. On the shipped catalog the neocloud H100 1-year cell prints ~$2.98, inside SemiAnalysis's free H100 1-year contract range ($2.40–3.20, Aug 2026), which is shown beside it as a reference and never averaged in.
@@ -116,7 +116,7 @@ The platform provides a cohesive financial terminal workflow structured around t
 | **4. Historical Index View** | Time-series benchmark trajectories across quarterly snapshots with point-in-time index replay, rate deflation metrics, and SHA-256 snapshot audit checksums. |
 | **5. Forward Curve View** | Model-implied term structure calculator across future delivery horizons (Cash, 1M, 3M, 6M, 12M, 18M, 24M, 36M, 48M, 60M) with IQR confidence bands, matched-provider tech deflation ($d$), and configurable annual carry/scarcity ($c$). |
 | **6. Curve Comparison View** | Simultaneous multi-curve charting comparing H100, H200, B200, B300, and A100 forward curves side-by-side with cross-SKU tenor alignment matrix and relative value ratios (e.g. B200/H100 premium over time). |
-| **7. Term Pricing View** | Published $/GPU-hour by commitment length × GPU family as a rotatable 3D chart color-coded by price band, per seller segment, with an optional estimated fill for empty cells, a term matrix, and a ledger of every published quote with its unit math and source. |
+| **7. The Matrix** | Published $/GPU-hour by commitment length × GPU family as a rotatable 3D chart color-coded by price band, per seller segment, with an optional estimated fill for empty cells, a price table, and a ledger of every published quote with its unit math and source. |
 | **8. Provider Comparison View** | Cross-provider pricing matrix across hyperscalers (AWS, GCP, Azure), specialized clouds (CoreWeave, RunPod, Lambda Labs), and secondary marketplaces with delta vs benchmark index ($\Delta\%$). |
 | **9. Methodology Sensitivity View** | Quantitative sensitivity matrix demonstrating how 6 different aggregation formulas affect the spot index for every SKU with maximum divergence percentages. |
 | **10. Source Ablation View** | Benchmark resilience stress testing showing the exact price impact ($\Delta\$$, $\Delta\%$) when individual providers or feeds are excluded from the index calculation. |
@@ -168,7 +168,7 @@ The `fsku` CLI offers complete programmatic command capabilities:
 | `fsku fix` | The FSKU Fix for a family: neocloud headline + hyperscaler-list reading, with constituents | `python fsku_cli.py fix --family H100 --constituents` |
 | `fsku settle` | Daily settlement: sync, snapshot, verify, publish the Fix, append history | `python fsku_cli.py settle` |
 | `fsku fix-history` | Settled Fix series for a family | `python fsku_cli.py fix-history --family H100` |
-| `fsku term-pricing` | Published term prices by commitment length × family, per segment | `python fsku_cli.py term-pricing --segment hyperscaler --fill --quotes` |
+| `fsku matrix` | The Matrix: published term prices by commitment length × family, per segment | `python fsku_cli.py matrix --segment hyperscaler --fill --quotes` |
 | `fsku list` | Render sortable price observations table in terminal | `python fsku_cli.py list --gpu H100 --basis On-demand` |
 | `fsku sync` | Trigger live multi-provider feed resynchronization | `python fsku_cli.py sync --label "Weekly sync"` |
 | `fsku snapshot list`| List historical point-in-time market snapshots | `python fsku_cli.py snapshot list` |
@@ -194,7 +194,7 @@ The `fsku` CLI offers complete programmatic command capabilities:
 | `POST` | `/api/observations` | Insert custom or negotiated observation |
 | `GET` | `/api/forward-curve` | Calculate implied forward curve for specified GPU family |
 | `GET` | `/api/forward-curves/compare`| Simultaneously calculate and align multi-GPU forward curves |
-| `GET` | `/api/term-pricing` | Published term prices by commitment length × family (`?segment=neocloud\|hyperscaler&fill=false`): cells, quotes, exclusions, references |
+| `GET` | `/api/matrix` | Published term prices by commitment length × family (`?segment=neocloud\|hyperscaler&fill=false`): cells, quotes, exclusions, references |
 | `POST` | `/api/sync` | Trigger an on-demand multi-provider market feed resync |
 | `GET` | `/api/sync/history` | Audit log of previous resync operations |
 | `GET` | `/api/snapshots` | List point-in-time immutable market snapshots |
@@ -220,7 +220,7 @@ sku_futures/
 │   ├── core/                     # Core domain & calculation engines
 │   │   ├── database.py           # FSKUDb lightweight NoSQL document store
 │   │   ├── forward_curve.py      # Implied forward term structure engine
-│   │   ├── term_pricing.py       # Term pricing engine (commitment × family)
+│   │   ├── term_pricing.py       # The Matrix: term-price engine (commitment × family)
 │   │   ├── models.py             # Pydantic domain models & schemas
 │   │   └── pricing.py            # Normalization, quantiles, and dispersion
 │   ├── data/

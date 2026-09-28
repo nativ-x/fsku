@@ -407,7 +407,7 @@
     <button class="tab-btn" data-view="history">Historical Index</button>
     <button class="tab-btn" data-view="forward">Forward Curve</button>
     <button class="tab-btn" data-view="curve-compare">Curve Comparison</button>
-    <button class="tab-btn" data-view="term-pricing">Term Pricing</button>
+    <button class="tab-btn" data-view="matrix">The Matrix</button>
     <button class="tab-btn" data-view="providers">Provider Matrix</button>
     <button class="tab-btn" data-view="sensitivity">Methodology Sensitivity</button>
     <button class="tab-btn" data-view="ablation">Source Ablation</button>
@@ -961,31 +961,31 @@
     </section>
   </div>
 
-  <div class="view-pane" id="view-term-pricing">
+  <div class="view-pane" id="view-matrix">
     <section class="section">
       <div class="section-head">
         <div>
-          <div class="section-title">Term Pricing</div>
+          <div class="section-title">The Matrix</div>
           <div class="section-sub">Published $/GPU-hour by commitment length and GPU family · one vote per seller per cell · neocloud and hyperscaler never blended</div>
         </div>
         <div class="tools">
           <select class="select" id="termSegmentSelect"><option value="neocloud">Neocloud sellers</option><option value="hyperscaler">Hyperscaler list</option></select>
           <label class="toggle" title="Estimate empty cells from the same seller's term ratio in another family. Estimated cells are dashed."><input type="checkbox" id="termFillToggle"> Fill gaps (estimated)</label>
-          <button class="btn" onclick="copyTableToClipboard('#termMatrixTable')">Copy Matrix</button>
+          <button class="btn" onclick="copyTableToClipboard('#termMatrixTable')">Copy Table</button>
         </div>
       </div>
 
       <div class="grid2">
         <div class="panel">
           <div class="panel-head">
-            <div><h3 id="termPricingTitle">Neocloud term pricing</h3><p id="termPricingSub">Drag or use arrow keys to rotate · double-click to reset · hover a point for its sellers</p></div>
+            <div><h3 id="termPricingTitle">Neocloud term prices</h3><p id="termPricingSub">Drag or use arrow keys to rotate · double-click to reset · hover a point for its sellers</p></div>
             <div class="term-legend">
               <span><i style="background:rgba(57,135,229,.4);outline:1px dashed rgba(226,226,226,.6)"></i>Estimated</span>
               <span><i style="border:1px dashed rgba(145,145,145,.6)"></i>No price</span>
             </div>
           </div>
           <div class="term-chart-box">
-            <div class="term-chart-wrap" id="termPricingChart" tabindex="0" aria-label="Term pricing chart. Arrow keys rotate, R resets."></div>
+            <div class="term-chart-wrap" id="termPricingChart" tabindex="0" aria-label="The Matrix chart. Arrow keys rotate, R resets."></div>
             <button class="btn dense-btn term-reset" id="termResetView" type="button" disabled title="Return the chart to its starting angle">↺ Reset position</button>
           </div>
           <div class="term-key-title">$/GPU-hour</div>
@@ -1009,7 +1009,7 @@
       </div>
 
       <div class="section-head" style="margin-top:24px">
-        <div><div class="section-title">Term Matrix</div><div class="section-sub">Median of seller votes in $/GPU-hour · small number = sellers · ~ = estimated</div></div>
+        <div><div class="section-title">Price Table</div><div class="section-sub">Median of seller votes in $/GPU-hour · small number = sellers · ~ = estimated</div></div>
       </div>
       <div class="panel table-panel">
         <table class="table term-matrix" id="termMatrixTable"><thead></thead><tbody></tbody></table>
@@ -1251,14 +1251,14 @@
         <div class="formula">F(T) = S₀ × [(1 + c) × (1 − d)]ᵀ</div>
         <p>where $T$ represents the delivery tenor in years ($T = m / 12$). Forward curves are indicative term structure models, not executed transaction commitments.</p>
 
-        <h2>6. Term Pricing</h2>
-        <p>The forward curve above is a model. Term pricing is not: it is built only from prices sellers publish for committing to a length of time — reserved instances, savings plans, committed-use discounts, capacity blocks, calendar reservations, monthly and annual contracts. Each quote keeps the figure as published and the arithmetic to $/GPU-hour.</p>
+        <h2>6. The Matrix</h2>
+        <p>The forward curve above is a model. The Matrix is not: it is built only from prices sellers publish for committing to a length of time — reserved instances, savings plans, committed-use discounts, capacity blocks, calendar reservations, monthly and annual contracts. Each quote keeps the figure as published and the arithmetic to $/GPU-hour.</p>
         <ul>
           <li><b>One vote per seller per cell:</b> the seller's lowest published per-GPU price for that family and term; the cell is the median of the votes. A quote sold for a range of lengths (an AWS Capacity Block, 1–182 days) prices every term inside the range.</li>
           <li><b>Segments never blended:</b> neocloud and hyperscaler are priced separately, as in the Fix.</li>
           <li><b>Single node:</b> multi-node cluster products are listed and excluded, never averaged in.</li>
           <li><b>Matched on-demand:</b> a seller's on-demand rate enters only alongside a term price it publishes, so each discount is measured against the same seller's on-demand.</li>
-          <li><b>Color is the price band:</b> six fixed $/GPU-hour bands shared by both segments. Each published point owns the tile around it, so the chart and the matrix show the same color for the same cell.</li>
+          <li><b>Color is the price band:</b> six fixed $/GPU-hour bands shared by both segments. Each published point owns the tile around it, so the chart and the price table show the same color for the same cell.</li>
           <li><b>Estimates are opt-in:</b> with <code>fill</code>, an empty cell is the family's nearest published term times the median same-seller ratio between the two terms in other families. Estimated cells are dashed and carry their arithmetic.</li>
         </ul>
         <p>Cells can rise with term where the sellers differ between columns (a seller that publishes monthly blocks but no hourly rate enters the 1M column only). Every cell names its sellers so this is visible rather than smoothed away.</p>
@@ -1365,8 +1365,8 @@ function switchView(viewId, updateHash = true) {
   activeView = viewId;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.view === viewId));
   document.querySelectorAll('.view-pane').forEach(p => p.classList.toggle('active', p.id === 'view-' + viewId));
-  // The term pricing chart scales to its panel, which has no width while hidden.
-  if (viewId === 'term-pricing' && window.__termPricing) drawTermChart(window.__termPricing);
+  // The Matrix chart scales to its panel, which has no width while hidden.
+  if (viewId === 'matrix' && window.__termPricing) drawTermChart(window.__termPricing);
   if (updateHash && window.location.hash !== '#/' + viewId) {
     window.location.hash = '#/' + viewId;
   }
@@ -1474,7 +1474,7 @@ function handleHashNavigation() {
     const sku = decodeURIComponent(hash.replace('sku/', ''));
     selectSkuAndGo(sku, false);
   } else {
-    const validViews = ['overview', 'sku-detail', 'spot-index', 'history', 'forward', 'curve-compare', 'term-pricing', 'providers', 'sensitivity', 'ablation', 'tape', 'provenance', 'methodology'];
+    const validViews = ['overview', 'sku-detail', 'spot-index', 'history', 'forward', 'curve-compare', 'matrix', 'providers', 'sensitivity', 'ablation', 'tape', 'provenance', 'methodology'];
     if (validViews.includes(hash)) {
       switchView(hash, false);
     }
@@ -2470,7 +2470,7 @@ function renderSpecsCards() {
   }).join('');
 }
 
-// ---- Term pricing ----------------------------------------------------------
+// ---- The Matrix: term prices ------------------------------------------------
 // Published term prices (reserved, savings plans, CUDs, capacity blocks,
 // monthly/annual contracts) as a 3D chart: commitment length along one floor
 // axis, GPU family along the other, $/GPU-hr as height. Drawn as plain SVG with
@@ -2487,11 +2487,11 @@ async function renderTermPricing() {
   const key = `${seg}|${fill}`;
   if (!termPricingCache[key]) {
     try {
-      const r = await fetch(`/api/term-pricing?segment=${seg}&fill=${fill}`);
+      const r = await fetch(`/api/matrix?segment=${seg}&fill=${fill}`);
       if (!r.ok) throw new Error('HTTP ' + r.status);
       termPricingCache[key] = await r.json();
     } catch (e) {
-      document.getElementById('termPricingChart').innerHTML = '<div class="empty">Term pricing unavailable.</div>';
+      document.getElementById('termPricingChart').innerHTML = '<div class="empty">The Matrix is unavailable.</div>';
       return;
     }
     // The controls may have changed while this request was in flight; the
@@ -2501,7 +2501,7 @@ async function renderTermPricing() {
   const res = termPricingCache[key];
   window.__termPricing = res;
   if (!document.querySelector('#termPricingKey .band')) renderTermKey();
-  document.getElementById('termPricingTitle').textContent = `${seg === 'neocloud' ? 'Neocloud' : 'Hyperscaler'} term pricing`;
+  document.getElementById('termPricingTitle').textContent = `${seg === 'neocloud' ? 'Neocloud' : 'Hyperscaler'} term prices`;
   drawTermChart(res);
   renderTermSidebar(res);
   renderTermMatrix(res);
@@ -2693,7 +2693,7 @@ function drawTermChart(res) {
     s += `<circle class="term-hit" cx="${p.x}" cy="${p.y}" r="10" fill="transparent" data-fam="${fams[j]}" data-term="${terms[i].key}"/>`;
   }
   const pad = 14, vb = [box.x0 - pad, box.y0 - pad, box.x1 - box.x0 + 2 * pad, box.y1 - box.y0 + 2 * pad].map(v => v.toFixed(1));
-  el.innerHTML = `<svg viewBox="${vb.join(' ')}" class="${termDragging ? 'dragging' : ''}" role="img" aria-label="${res.segment} term pricing chart">${s}</svg>`;
+  el.innerHTML = `<svg viewBox="${vb.join(' ')}" class="${termDragging ? 'dragging' : ''}" role="img" aria-label="The Matrix: ${res.segment} term prices">${s}</svg>`;
   document.getElementById('termResetView').disabled = isDefaultTermView();
 }
 
@@ -2769,7 +2769,7 @@ function wireTermChartInteraction() {
   let resizeTimer = null;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => { if (activeView === 'term-pricing' && window.__termPricing) drawTermChart(window.__termPricing); }, 120);
+    resizeTimer = setTimeout(() => { if (activeView === 'matrix' && window.__termPricing) drawTermChart(window.__termPricing); }, 120);
   });
 }
 
@@ -2889,7 +2889,7 @@ const COMMAND_ACTIONS = [
   { label: 'View: Historical Index', cat: 'VIEWS', action: () => switchView('history') },
   { label: 'View: Forward Curve', cat: 'VIEWS', action: () => switchView('forward') },
   { label: 'View: Curve Comparison', cat: 'VIEWS', action: () => switchView('curve-compare') },
-  { label: 'View: Term Pricing', cat: 'VIEWS', action: () => switchView('term-pricing') },
+  { label: 'View: The Matrix', cat: 'VIEWS', action: () => switchView('matrix') },
   { label: 'View: Provider Matrix', cat: 'VIEWS', action: () => switchView('providers') },
   { label: 'View: Methodology Sensitivity', cat: 'VIEWS', action: () => switchView('sensitivity') },
   { label: 'View: Source Ablation', cat: 'VIEWS', action: () => switchView('ablation') },

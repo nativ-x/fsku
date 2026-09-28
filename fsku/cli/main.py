@@ -118,13 +118,13 @@ def fix_cmd(
                 c.add_row(rd.segment, k.provider, k.sku, k.basis, k.tier or "?", f"${k.per_gpu:.2f}", k.provenance, k.recorded_at[:10])
         console.print(c)
 
-@app.command("term-pricing")
-def term_pricing_cmd(
+@app.command("matrix")
+def matrix_cmd(
     segment: str = typer.Option("neocloud", "--segment", "-s", help="neocloud or hyperscaler (never blended)"),
     fill: bool = typer.Option(False, "--fill", help="Estimate empty cells from same-seller term ratios (shown with ~)"),
     show_quotes: bool = typer.Option(False, "--quotes", "-q", help="List every published quote behind the numbers"),
 ):
-    """Term pricing: published $/GPU-hr by commitment length x GPU family."""
+    """The Matrix: published $/GPU-hr by commitment length x GPU family."""
     from fsku.core.term_pricing import TermPricingEngine
     if segment not in ("neocloud", "hyperscaler"):
         console.print("[red]--segment must be neocloud or hyperscaler[/red]")
@@ -132,7 +132,7 @@ def term_pricing_cmd(
     res = TermPricingEngine.compute(segment=segment, fill=fill)
     cells = {(c.family, c.term): c for c in res.cells}
 
-    t = Table(title=f"{segment.title()} term pricing ($/GPU-hr, sellers in parentheses) · captured {res.captured}",
+    t = Table(title=f"The Matrix: {segment} term prices ($/GPU-hr, sellers in parentheses) · captured {res.captured}",
               show_header=True, header_style="bold cyan")
     t.add_column("Family", style="bold white")
     for term in res.terms:

@@ -286,13 +286,13 @@ def compare_forward_curves(
         horizon=horizon,
     )
 
-@router.get("/term-pricing", response_model=TermPricingResult)
-def get_term_pricing(
+@router.get("/matrix", response_model=TermPricingResult)
+def get_matrix(
     segment: Literal["neocloud", "hyperscaler"] = Query("neocloud", description="Seller segment; the two are never blended"),
     fill: bool = Query(False, description="Estimate empty cells from same-seller term ratios in other families (marked estimated)"),
     families: str = Query(",".join(TERM_FAMILIES), description="Comma-separated GPU families"),
 ):
-    """Published $/GPU-hr by commitment length x GPU family: one vote per seller per cell, median across sellers.
+    """The Matrix: published $/GPU-hr by commitment length x GPU family; one vote per seller per cell, median across sellers.
 
     Built from the term-price catalog (fsku/sync/term_catalog.py); every quote carries its source URL and unit math.
     """
