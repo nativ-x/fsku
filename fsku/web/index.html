@@ -234,10 +234,16 @@
   .term-matrix .sw{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
   .tc-drop{stroke:rgba(226,226,226,0.4);stroke-width:1;stroke-dasharray:2 3}
   .tc-ruler{stroke:rgba(145,145,145,0.45);stroke-width:1}
-  .tc-tick{fill:#919191;font-size:11px;font-family:ui-monospace,monospace}
-  .tc-corner,.tc-tick{paint-order:stroke;stroke:#181818;stroke-width:3px;stroke-linejoin:round}
-  .tc-axis-title{fill:#6f6f6f;font-size:10.5px;letter-spacing:.08em;font-family:ui-monospace,monospace}
-  .tc-corner{fill:#fff;font-size:12px;font-weight:650}
+  .tc-tick{fill:#919191;font-size:calc(11px*var(--fs,1));font-family:ui-monospace,monospace}
+  .tc-corner,.tc-tick,.tc-row{paint-order:stroke;stroke:#181818;stroke-width:calc(3px*var(--fs,1));stroke-linejoin:round}
+  .tc-axis-title{fill:#6f6f6f;font-size:calc(10.5px*var(--fs,1));letter-spacing:.08em;font-family:ui-monospace,monospace}
+  .tc-corner{fill:#fff;font-size:calc(12px*var(--fs,1));font-weight:650}
+  .tc-row{fill:#fff;font-size:calc(11.5px*var(--fs,1));font-weight:650;cursor:default;transition:opacity .15s}
+  .tc-row tspan.px{fill:#919191;font-weight:500}
+  .tc-row.dim{opacity:.3}
+  .tc-row-line{fill:none;stroke:rgba(255,255,255,0.45);stroke-width:1;stroke-linecap:round}
+  .tc-row-line.on{stroke:#fff;stroke-width:2.4}
+  .term-matrix tbody tr.focus td{background:#232323}
   .tc-corner tspan.px{fill:#919191;font-weight:500}
   .term-legend{display:flex;gap:12px;font-size:9.5px;color:var(--muted);font-family:ui-monospace,monospace;align-items:center;flex-wrap:wrap}
   .term-legend i{display:inline-block;width:14px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px}
@@ -978,7 +984,7 @@
       <div class="grid2">
         <div class="panel">
           <div class="panel-head">
-            <div><h3 id="termPricingTitle">Neocloud term prices</h3><p id="termPricingSub">Drag or use arrow keys to rotate · double-click to reset · hover a point for its sellers</p></div>
+            <div><h3 id="termPricingTitle">Neocloud term prices</h3><p id="termPricingSub">Hover a row label or point to trace a family · drag or arrow keys to rotate · double-click to reset</p></div>
             <div class="term-legend">
               <span><i style="background:rgba(57,135,229,.4);outline:1px dashed rgba(226,226,226,.6)"></i>Estimated</span>
               <span><i style="border:1px dashed rgba(145,145,145,.6)"></i>No price</span>
@@ -2567,7 +2573,7 @@ function niceStep(max, target = 4) {
   return [1, 2, 2.5, 5, 10].map(m => m * pow).find(s => s >= raw) || raw;
 }
 
-function drawTermChart(res) {
+function drawTermChart(res, k = 1) {
   const el = document.getElementById('termPricingChart');
   const terms = res.terms;
   const fams = [...res.families].reverse();          // newest family at the back
@@ -2580,14 +2586,17 @@ function drawTermChart(res) {
   const vmax = Math.ceil(Math.max(...vals) / step) * step;
 
   // Scene coordinates are unbounded; the viewBox is fitted to what gets drawn,
-  // so no rotation can push a corner or label out of the panel.
+  // so no rotation can push a corner or label out of the panel. k scales text
+  // and the gaps around it: when the panel is too narrow to draw the scene 1:1
+  // the chart is redrawn with larger type so labels stay readable.
   const wide = el.clientWidth >= 520;
   const S = Math.max(170, Math.min(480, el.clientWidth * 0.56)), HZ = S * 0.48;
   const box = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
   const grow = (x, y) => { box.x0 = Math.min(box.x0, x); box.y0 = Math.min(box.y0, y); box.x1 = Math.max(box.x1, x); box.y1 = Math.max(box.y1, y); };
   const label = (x, y, text, anchor, px = 11) => {
+    px *= k;
     const w = String(text).length * px * 0.62, x0 = anchor === 'end' ? x - w : anchor === 'middle' ? x - w / 2 : x;
-    grow(x0, y - px); grow(x0 + w, y + 3);
+    grow(x0, y - px); grow(x0 + w, y + 3 * k);
   };
   const ca = Math.cos(termView.az), sa = Math.sin(termView.az), se = Math.sin(termView.el), ce = Math.cos(termView.el);
   const gx = i => (i / (nT - 1) - 0.5) * 1.1;
@@ -2601,6 +2610,7 @@ function drawTermChart(res) {
   const F = (i, j) => P(gx(i), gy(j), 0);
   const V = (i, j) => { const c = at(i, j); return c && c.value != null ? P(gx(i), gy(j), c.value / vmax) : null; };
   const pts = arr => arr.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const est = c => (c.status === 'estimated' ? '~' : '');
 
   let s = '';
 
@@ -2617,36 +2627,29 @@ function drawTermChart(res) {
   for (let v = step; v <= vmax + 1e-9; v += step) {
     const p = P(gx(0), gy(nF - 1), v / vmax);
     const txt = `$${v % 1 ? v.toFixed(1) : v}`;
-    label(p.x - 8, p.y + 4, txt, 'end');
-    s += `<line class="tc-ruler" x1="${p.x - 4}" y1="${p.y}" x2="${p.x}" y2="${p.y}"/><text class="tc-tick" x="${p.x - 8}" y="${p.y + 4}" text-anchor="end">${txt}</text>`;
+    label(p.x - 8 * k, p.y + 4 * k, txt, 'end');
+    s += `<line class="tc-ruler" x1="${p.x - 4 * k}" y1="${p.y}" x2="${p.x}" y2="${p.y}"/><text class="tc-tick" x="${p.x - 8 * k}" y="${p.y + 4 * k}" text-anchor="end">${txt}</text>`;
   }
 
-  // Axis ticks along the two front edges.
+  // Term ticks along the front-left edge. Families are named on the chart
+  // itself, where each row ends (below).
   terms.forEach((t, i) => {
     const p = P(gx(i), gy(nF - 1) + 0.1, 0);
-    label(p.x, p.y + 10, t.key, 'middle');
-    s += `<text class="tc-tick" x="${p.x}" y="${p.y + 10}" text-anchor="middle">${t.key}</text>`;
+    label(p.x, p.y + 10 * k, t.key, 'middle');
+    s += `<text class="tc-tick" x="${p.x}" y="${p.y + 10 * k}" text-anchor="middle">${t.key}</text>`;
   });
-  fams.forEach((f, j) => {
-    const p = P(gx(nT - 1) + 0.09, gy(j), 0);
-    label(p.x + 6, p.y + 8, f, 'start');
-    s += `<text class="tc-tick" x="${p.x + 6}" y="${p.y + 8}" text-anchor="start">${f}</text>`;
-  });
-  const tt = P(gx(0) + 0.12, gy(nF - 1) + 0.24, 0), ft = P(gx(nT - 1) + 0.24, gy(0) + 0.14, 0);
-  label(tt.x, tt.y + 12, 'TERM →', 'middle');
-  label(ft.x + 10, ft.y + 12, '← GPU FAMILY', 'start');
-  s += `<text class="tc-axis-title" x="${tt.x}" y="${tt.y + 12}" text-anchor="middle">TERM →</text>`;
-  s += `<text class="tc-axis-title" x="${ft.x + 10}" y="${ft.y + 12}" text-anchor="start">← GPU FAMILY</text>`;
+  const tt = P(gx(0) + 0.12, gy(nF - 1) + 0.24, 0);
+  label(tt.x, tt.y + 12 * k, 'TERM →', 'middle', 10.5);
+  s += `<text class="tc-axis-title" x="${tt.x}" y="${tt.y + 12 * k}" text-anchor="middle">TERM →</text>`;
 
-  // Corner labels: the extreme priced vertex in each of the four directions.
+  // On-demand anchors: the dearest and cheapest on-demand corners. The row
+  // labels name the other end of every row.
   const priced = [];
   for (let i = 0; i < nT; i++) for (let j = 0; j < nF; j++) if (V(i, j)) priced.push([i, j]);
   const pick = score => priced.reduce((a, b) => (score(b) > score(a) ? b : a));
   const corners = [
     { v: pick(([i, j]) => -i - j), dx: 0, dy: -14, anchor: 'middle' },
     { v: pick(([i, j]) => -i + j), dx: 10, dy: -9, anchor: 'start', side: true },
-    { v: pick(([i, j]) => i - j), dx: -10, dy: -9, anchor: 'end', side: true },
-    { v: pick(([i, j]) => i + j), dx: -8, dy: -12, anchor: 'end' },
   ].filter(c => wide || !c.side);
   corners.forEach(({ v: [i, j] }) => {
     const top = V(i, j), bot = F(i, j);
@@ -2655,46 +2658,106 @@ function drawTermChart(res) {
 
   // Tiles back to front. Each published point owns the part of the chart
   // nearest to it -- a quarter of every quad it touches -- in its own price
-  // band, so a cell has the same color here as in the matrix below. Tile
-  // borders run along the midlines between points.
+  // band, so a cell has the same color here as in the price table below. Tile
+  // borders run along the midlines between points; a thin line runs through
+  // each family's points so a row can be followed across.
   const W3 = (i, j) => { const c = at(i, j); return c && c.value != null ? [gx(i), gy(j), c.value / vmax] : null; };
-  const mid = (...ps) => ps[0].map((_, k) => ps.reduce((a, q) => a + q[k], 0) / ps.length);
+  const mid = (...ps) => ps[0].map((_, n) => ps.reduce((a, q) => a + q[n], 0) / ps.length);
   const tiles = [];
   for (let i = 0; i < nT - 1; i++) for (let j = 0; j < nF - 1; j++) {
     const idx = [[i, j], [i + 1, j], [i + 1, j + 1], [i, j + 1]];
     const w = idx.map(([a, b]) => W3(a, b));
     if (!w.every(Boolean)) continue;
-    const ctr = mid(...w), m = [0, 1, 2, 3].map(k => mid(w[k], w[(k + 1) % 4]));
-    idx.forEach(([a, b], k) => {
-      const c = at(a, b), ring = [w[k], m[k], ctr, m[(k + 3) % 4]].map(q => P(...q));
-      tiles.push({ ring, band: termBand(c.value), est: c.status === 'estimated', d: ring.reduce((acc, q) => acc + q.d, 0) / 4 });
+    const ctr = mid(...w), m = [0, 1, 2, 3].map(n => mid(w[n], w[(n + 1) % 4]));
+    idx.forEach(([a, b], n) => {
+      const c = at(a, b), ring = [w[n], m[n], ctr, m[(n + 3) % 4]].map(q => P(...q));
+      // Corners 0-1 and 2-3 share a row, so one grid edge of every tile runs along its row.
+      const rowEdge = n % 2 === 0 ? [ring[0], ring[1]] : [ring[3], ring[0]];
+      tiles.push({ ring, rowEdge, fam: fams[b], band: termBand(c.value), est: c.status === 'estimated', d: ring.reduce((acc, q) => acc + q.d, 0) / 4 });
     });
   }
   tiles.sort((a, b) => a.d - b.d).forEach(t => {
     const col = TERM_BANDS[t.band].color, op = t.est ? 0.4 : 1;
-    s += `<g data-band="${t.band}"><polygon points="${pts(t.ring)}" fill="${col}" fill-opacity="${op}" stroke="${col}" stroke-opacity="${op}" stroke-width="0.6"/>`
-      + `<polyline class="tc-edge${t.est ? ' est' : ''}" points="${pts(t.ring.slice(1))}" fill="none"/></g>`;
+    s += `<g data-band="${t.band}" data-fam="${t.fam}"><polygon points="${pts(t.ring)}" fill="${col}" fill-opacity="${op}" stroke="${col}" stroke-opacity="${op}" stroke-width="0.6"/>`
+      + `<polyline class="tc-edge${t.est ? ' est' : ''}" points="${pts(t.ring.slice(1))}" fill="none"/>`
+      + `<polyline class="tc-row-line" points="${pts(t.rowEdge)}"/></g>`;
   });
   const used = new Set(res.cells.filter(c => c.value != null).map(c => termBand(c.value)));
   document.querySelectorAll('#termPricingKey .band').forEach(b => b.classList.toggle('unused', !used.has(Number(b.dataset.band))));
 
+  // A published point with no complete quad around it (a lone 5-year price,
+  // say) is still drawn: joined to its row by a line and stood on the floor.
+  const quadOK = (i, j) => i >= 0 && j >= 0 && i < nT - 1 && j < nF - 1 && [V(i, j), V(i + 1, j), V(i + 1, j + 1), V(i, j + 1)].every(Boolean);
+  for (let j = 0; j < nF; j++) {
+    let g = '';
+    for (let i = 0; i < nT - 1; i++) {
+      if (V(i, j) && V(i + 1, j) && !quadOK(i, j - 1) && !quadOK(i, j)) g += `<polyline class="tc-row-line" points="${pts([V(i, j), V(i + 1, j)])}"/>`;
+    }
+    for (let i = 0; i < nT; i++) {
+      const p = V(i, j);
+      if (p && !quadOK(i - 1, j - 1) && !quadOK(i, j - 1) && !quadOK(i - 1, j) && !quadOK(i, j)) {
+        const f = F(i, j);
+        g += `<line class="tc-drop" x1="${p.x}" y1="${p.y}" x2="${f.x}" y2="${f.y}"/>`
+          + `<circle cx="${p.x}" cy="${p.y}" r="${3.2 * k}" fill="${TERM_BANDS[termBand(at(i, j).value)].color}" stroke="#fff" stroke-width="${1.2 * k}"/>`;
+      }
+    }
+    if (g) s += `<g data-fam="${fams[j]}">${g}</g>`;
+  }
+
+  // Row labels: every family named where its row ends, at the height of its
+  // last price, nudged apart where rows end close together.
+  const lh = 14 * k;
+  const rows = fams.map((f, j) => {
+    let i = nT - 1;
+    while (i >= 0 && !V(i, j)) i--;
+    if (i < 0) return null;
+    const p = V(i, j);
+    return { f, i, j, p, c: at(i, j), lx: p.x + 11 * k, ly: p.y + 4 * k };
+  }).filter(Boolean).sort((a, b) => a.ly - b.ly);
+  for (let n = 1; n < rows.length; n++) rows[n].ly = Math.max(rows[n].ly, rows[n - 1].ly + lh);
+  // When rows end at different terms, say which term each label's price is for.
+  const mixed = new Set(rows.map(r => r.i)).size > 1;
+  rows.forEach(r => {
+    const term = mixed ? `${terms[r.i].key} ` : '';
+    const txt = `${r.f} ${term}${est(r.c)}${money(r.c.value)}`;
+    label(r.lx, r.ly, txt, 'start', 11.5);
+    if (Math.abs(r.ly - (r.p.y + 4 * k)) > 2) s += `<line class="tc-drop" x1="${r.p.x}" y1="${r.p.y}" x2="${r.lx - 3 * k}" y2="${r.ly - 4 * k}"/>`;
+    s += `<text class="tc-row" data-fam="${r.f}" x="${r.lx}" y="${r.ly}">${r.f} <tspan class="px">${term}${est(r.c)}${money(r.c.value)}</tspan></text>`;
+  });
+
   // Corner labels on top.
   corners.forEach(({ v: [i, j], dx, dy, anchor }) => {
     const p = V(i, j), c = at(i, j);
-    const txt = `${terms[i].key} · ${fams[j]} ${c.status === 'estimated' ? '~' : ''}${money(c.value)}`;
-    label(p.x + dx, p.y + dy, txt, anchor, 12);
-    s += `<circle cx="${p.x}" cy="${p.y}" r="3.6" fill="#fff" stroke="#181818" stroke-width="2"/>`;
-    s += `<text class="tc-corner" x="${p.x + dx}" y="${p.y + dy}" text-anchor="${anchor}">${terms[i].key} · ${fams[j]} <tspan class="px">${c.status === 'estimated' ? '~' : ''}${money(c.value)}</tspan></text>`;
+    label(p.x + dx * k, p.y + dy * k, `${terms[i].key} · ${fams[j]} ${est(c)}${money(c.value)}`, anchor, 12);
+    s += `<circle cx="${p.x}" cy="${p.y}" r="${3.6 * k}" fill="#fff" stroke="#181818" stroke-width="${2 * k}"/>`;
+    s += `<text class="tc-corner" x="${p.x + dx * k}" y="${p.y + dy * k}" text-anchor="${anchor}">${terms[i].key} · ${fams[j]} <tspan class="px">${est(c)}${money(c.value)}</tspan></text>`;
   });
 
   // Invisible hover targets for every grid point, priced or not.
   for (let i = 0; i < nT; i++) for (let j = 0; j < nF; j++) {
     const p = V(i, j) || F(i, j);
-    s += `<circle class="term-hit" cx="${p.x}" cy="${p.y}" r="10" fill="transparent" data-fam="${fams[j]}" data-term="${terms[i].key}"/>`;
+    s += `<circle class="term-hit" cx="${p.x}" cy="${p.y}" r="${10 * k}" fill="transparent" data-fam="${fams[j]}" data-term="${terms[i].key}"/>`;
   }
-  const pad = 14, vb = [box.x0 - pad, box.y0 - pad, box.x1 - box.x0 + 2 * pad, box.y1 - box.y0 + 2 * pad].map(v => v.toFixed(1));
-  el.innerHTML = `<svg viewBox="${vb.join(' ')}" class="${termDragging ? 'dragging' : ''}" role="img" aria-label="The Matrix: ${res.segment} term prices">${s}</svg>`;
+  const pad = 14 * k, vbW = box.x1 - box.x0 + 2 * pad, vbH = box.y1 - box.y0 + 2 * pad;
+  const availW = el.clientWidth - 20, availH = el.clientHeight - 14;
+  const shrink = availW > 0 && availH > 0 ? Math.max(vbW / availW, vbH / availH) : 1;
+  if (k === 1 && shrink > 1.1) return drawTermChart(res, Math.min(shrink, 2.4));
+  const vb = [box.x0 - pad, box.y0 - pad, vbW, vbH].map(v => v.toFixed(1));
+  el.innerHTML = `<svg viewBox="${vb.join(' ')}" style="--fs:${k.toFixed(3)}" class="${termDragging ? 'dragging' : ''}" role="img" aria-label="The Matrix: ${res.segment} term prices">${s}</svg>`;
   document.getElementById('termResetView').disabled = isDefaultTermView();
+  if (termFocusFam) focusTermRow(termFocusFam);
+}
+
+let termFocusFam = null;
+function focusTermRow(fam) {
+  termFocusFam = fam || null;
+  const svg = document.querySelector('#termPricingChart svg');
+  if (svg) {
+    svg.querySelectorAll('g[data-fam]').forEach(g => { g.style.opacity = !fam || g.dataset.fam === fam ? '' : '0.3'; });
+    svg.querySelectorAll('.tc-row-line').forEach(l => l.classList.toggle('on', !!fam && l.parentNode.dataset.fam === fam));
+    svg.querySelectorAll('.tc-row').forEach(t => t.classList.toggle('dim', !!fam && t.dataset.fam !== fam));
+  }
+  document.querySelectorAll('#termMatrixTable tbody tr').forEach(tr => tr.classList.toggle('focus', !!fam && tr.dataset.fam === fam));
 }
 
 function termHudHtml(res, fam, term) {
@@ -2736,6 +2799,9 @@ function wireTermChartInteraction() {
       return;
     }
     const t = e.target;
+    const rowEl = t && t.closest ? t.closest('.term-hit, .tc-row') : null;
+    const fam = rowEl ? rowEl.dataset.fam : null;
+    if (fam !== termFocusFam) focusTermRow(fam);
     const html = t && t.classList && t.classList.contains('term-hit') && window.__termPricing
       ? termHudHtml(window.__termPricing, t.dataset.fam, t.dataset.term) : null;
     if (!html) { hud.style.display = 'none'; return; }
@@ -2765,7 +2831,7 @@ function wireTermChartInteraction() {
       resetTermView();
     }
   });
-  el.addEventListener('mouseleave', () => { hud.style.display = 'none'; });
+  el.addEventListener('mouseleave', () => { hud.style.display = 'none'; focusTermRow(null); });
   let resizeTimer = null;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
@@ -2807,13 +2873,17 @@ function renderTermMatrix(res) {
   const cells = termCellMap(res);
   const table = document.getElementById('termMatrixTable');
   table.querySelector('thead').innerHTML = '<tr><th>Family</th>' + res.terms.map(t => `<th class="num">${t.label}</th>`).join('') + '</tr>';
-  table.querySelector('tbody').innerHTML = res.families.map(f => '<tr><td><b>' + f + '</b></td>' + res.terms.map(t => {
+  table.querySelector('tbody').innerHTML = res.families.map(f => '<tr data-fam="' + f + '"><td><b>' + f + '</b></td>' + res.terms.map(t => {
     const c = cells[f + '|' + t.key];
     const sw = c.value != null ? `<i class="sw" style="background:${TERM_BANDS[termBand(c.value)].color}${c.status === 'estimated' ? ';opacity:.45' : ''}"></i>` : '';
     if (c.status === 'observed') return `<td class="num" title="${c.sellers.join(', ')}">${sw}${money(c.value)}<span class="n">${c.n_sellers}</span></td>`;
     if (c.status === 'estimated') return `<td class="num est" title="${c.estimate}">${sw}~${money(c.value)}</td>`;
     return '<td class="num none">—</td>';
   }).join('') + '</tr>').join('');
+  table.querySelectorAll('tbody tr').forEach(tr => {
+    tr.addEventListener('mouseenter', () => focusTermRow(tr.dataset.fam));
+    tr.addEventListener('mouseleave', () => focusTermRow(null));
+  });
 }
 
 function termDaysLabel(q) {
