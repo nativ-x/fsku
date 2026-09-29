@@ -1610,7 +1610,7 @@
     "id": "fix_2026-09-29_h100",
     "date": "2026-09-29",
     "family": "H100",
-    "settled_at": "2026-09-29T00:02:56.630246+00:00",
+    "settled_at": "2026-09-29T23:16:28.182357+00:00",
     "neocloud": 3.67,
     "neocloud_n": 10,
     "neocloud_providers": [
@@ -1633,9 +1633,9 @@
       "obs_together_h100_sxm_hgx_8x_reserved",
       "obs_lambda_h100_sxm_hgx_8x_8x_h100_sxm"
     ],
-    "as_of": "2026-09-29T00:02:56.726100+00:00",
-    "snapshot_id": "snap_20260929_000257_0b40d0",
-    "checksum": "0b40d0c196c521f4",
+    "as_of": "2026-09-29T23:16:28.268916+00:00",
+    "snapshot_id": "snap_20260929_231628_0543d8",
+    "checksum": "0543d8ff85cdab51",
     "verified": true,
     "constituent_ids": {
       "neocloud": [
@@ -1666,7 +1666,7 @@
     "id": "fix_2026-09-29_h200",
     "date": "2026-09-29",
     "family": "H200",
-    "settled_at": "2026-09-29T00:02:56.630246+00:00",
+    "settled_at": "2026-09-29T23:16:28.182357+00:00",
     "neocloud": 4.545,
     "neocloud_n": 8,
     "neocloud_providers": [
@@ -1684,12 +1684,12 @@
       "obs_nebius_h200_sxm_hgx_8x_spot",
       "obs_cw_h200_sxm_hgx_8x_spot",
       "obs_runpod_h200_sxm_1x_community",
-      "obs_vast_h200_sxm_1x",
-      "obs_together_h200_sxm_hgx_8x_reserved"
+      "obs_together_h200_sxm_hgx_8x_reserved",
+      "obs_vast_h200_sxm_1x"
     ],
-    "as_of": "2026-09-29T00:02:56.726100+00:00",
-    "snapshot_id": "snap_20260929_000257_0b40d0",
-    "checksum": "0b40d0c196c521f4",
+    "as_of": "2026-09-29T23:16:28.268916+00:00",
+    "snapshot_id": "snap_20260929_231628_0543d8",
+    "checksum": "0543d8ff85cdab51",
     "verified": true,
     "constituent_ids": {
       "neocloud": [
@@ -1717,39 +1717,36 @@
     "id": "fix_2026-09-29_b200",
     "date": "2026-09-29",
     "family": "B200",
-    "settled_at": "2026-09-29T00:02:56.630246+00:00",
-    "neocloud": 6.74,
-    "neocloud_n": 10,
+    "settled_at": "2026-09-29T23:16:28.182357+00:00",
+    "neocloud": 6.79,
+    "neocloud_n": 9,
     "neocloud_providers": [
       "CoreWeave",
       "Lambda Labs",
       "Nebius",
       "RunPod",
-      "Together AI",
-      "Vast.ai"
+      "Together AI"
     ],
     "hyperscaler": null,
     "hyperscaler_n": 0,
-    "standardized": 6.1161,
-    "standardized_n": 6,
+    "standardized": 5.98,
+    "standardized_n": 5,
     "standardized_ids": [
       "obs_nebius_b200_sxm_hgx_8x_spot",
       "obs_cw_b200_sxm_hgx_8x_spot",
       "obs_runpod_b200_sxm_1x_community",
-      "obs_vast_b200_sxm_1x",
       "obs_lambda_b200_sxm_hgx_8x_8x_b200_sxm6",
       "obs_together_b200_sxm_hgx_8x_reserved"
     ],
-    "as_of": "2026-09-29T00:02:56.726100+00:00",
-    "snapshot_id": "snap_20260929_000257_0b40d0",
-    "checksum": "0b40d0c196c521f4",
+    "as_of": "2026-09-29T23:16:28.250348+00:00",
+    "snapshot_id": "snap_20260929_231628_0543d8",
+    "checksum": "0543d8ff85cdab51",
     "verified": true,
     "constituent_ids": {
       "neocloud": [
         "obs_nebius_b200_sxm_hgx_8x_spot",
         "obs_cw_b200_sxm_hgx_8x_spot",
         "obs_runpod_b200_sxm_1x_community",
-        "obs_vast_b200_sxm_1x",
         "obs_lambda_b200_sxm_hgx_8x_8x_b200_sxm6",
         "obs_runpod_b200_sxm_1x_secure",
         "obs_lambda_b200_sxm_1x_1x_b200_sxm6",
@@ -1769,7 +1766,7 @@
     "id": "fix_2026-09-29_a100",
     "date": "2026-09-29",
     "family": "A100",
-    "settled_at": "2026-09-29T00:02:56.630246+00:00",
+    "settled_at": "2026-09-29T23:16:28.182357+00:00",
     "neocloud": 1.59,
     "neocloud_n": 5,
     "neocloud_providers": [
@@ -1786,9 +1783,9 @@
       "obs_runpod_a100_sxm_1x_community",
       "obs_lambda_a100_sxm_hgx_8x_8x_a100_sxm4_80gb"
     ],
-    "as_of": "2026-09-29T00:02:56.706954+00:00",
-    "snapshot_id": "snap_20260929_000257_0b40d0",
-    "checksum": "0b40d0c196c521f4",
+    "as_of": "2026-09-29T23:16:28.250348+00:00",
+    "snapshot_id": "snap_20260929_231628_0543d8",
+    "checksum": "0543d8ff85cdab51",
     "verified": true,
     "constituent_ids": {
       "neocloud": [
