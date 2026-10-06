@@ -2822,7 +2822,7 @@
     "id": "fix_2026-10-06_h100",
     "date": "2026-10-06",
     "family": "H100",
-    "settled_at": "2026-10-06T01:01:56.113149+00:00",
+    "settled_at": "2026-10-06T23:26:58.973741+00:00",
     "neocloud": 3.85,
     "neocloud_n": 9,
     "neocloud_providers": [
@@ -2843,9 +2843,9 @@
       "obs_together_h100_sxm_hgx_8x_reserved",
       "obs_lambda_h100_sxm_hgx_8x_8x_h100_sxm"
     ],
-    "as_of": "2026-10-06T01:01:56.174414+00:00",
-    "snapshot_id": "snap_20261006_010157_387191",
-    "checksum": "387191b910de4159",
+    "as_of": "2026-10-06T23:26:59.036567+00:00",
+    "snapshot_id": "snap_20261006_232700_87e345",
+    "checksum": "87e345a5e55e2e4e",
     "verified": true,
     "constituent_ids": {
       "neocloud": [
@@ -2867,7 +2867,7 @@
     },
     "method": "listed-price; SXM/OAM rows, both topologies, per-GPU; spot bases only; segmented by seller tier; 10/90 winsorized median; unweighted",
     "sync_status": "partial",
-    "sync_live": 25,
+    "sync_live": 23,
     "sync_fallback": 2,
     "sync_catalog": 36
   },
@@ -2875,37 +2875,34 @@
     "id": "fix_2026-10-06_h200",
     "date": "2026-10-06",
     "family": "H200",
-    "settled_at": "2026-10-06T01:01:56.113149+00:00",
-    "neocloud": 4.1885,
-    "neocloud_n": 8,
+    "settled_at": "2026-10-06T23:26:58.973741+00:00",
+    "neocloud": 4.5,
+    "neocloud_n": 7,
     "neocloud_providers": [
       "CoreWeave",
       "Nebius",
       "RunPod",
-      "Together AI",
-      "Vast.ai"
+      "Together AI"
     ],
     "hyperscaler": 11.8317,
     "hyperscaler_n": 2,
-    "standardized": 3.59,
-    "standardized_n": 5,
+    "standardized": 3.1031,
+    "standardized_n": 4,
     "standardized_ids": [
       "obs_nebius_h200_sxm_hgx_8x_spot",
       "obs_cw_h200_sxm_hgx_8x_spot",
       "obs_runpod_h200_sxm_1x_community",
-      "obs_vast_h200_sxm_1x",
       "obs_together_h200_sxm_hgx_8x_reserved"
     ],
-    "as_of": "2026-10-06T01:01:56.193094+00:00",
-    "snapshot_id": "snap_20261006_010157_387191",
-    "checksum": "387191b910de4159",
+    "as_of": "2026-10-06T23:26:59.036567+00:00",
+    "snapshot_id": "snap_20261006_232700_87e345",
+    "checksum": "87e345a5e55e2e4e",
     "verified": true,
     "constituent_ids": {
       "neocloud": [
         "obs_nebius_h200_sxm_hgx_8x_spot",
         "obs_cw_h200_sxm_hgx_8x_spot",
         "obs_runpod_h200_sxm_1x_community",
-        "obs_vast_h200_sxm_1x",
         "obs_nebius_h200_sxm_hgx_8x_on-demand",
         "obs_runpod_h200_sxm_1x_secure",
         "obs_together_h200_sxm_hgx_8x_on-demand",
@@ -2918,7 +2915,7 @@
     },
     "method": "listed-price; SXM/OAM rows, both topologies, per-GPU; spot bases only; segmented by seller tier; 10/90 winsorized median; unweighted",
     "sync_status": "partial",
-    "sync_live": 25,
+    "sync_live": 23,
     "sync_fallback": 2,
     "sync_catalog": 36
   },
@@ -2926,7 +2923,7 @@
     "id": "fix_2026-10-06_b200",
     "date": "2026-10-06",
     "family": "B200",
-    "settled_at": "2026-10-06T01:01:56.113149+00:00",
+    "settled_at": "2026-10-06T23:26:58.973741+00:00",
     "neocloud": 6.74,
     "neocloud_n": 10,
     "neocloud_providers": [
@@ -2949,9 +2946,9 @@
       "obs_lambda_b200_sxm_hgx_8x_8x_b200_sxm6",
       "obs_together_b200_sxm_hgx_8x_reserved"
     ],
-    "as_of": "2026-10-06T01:01:56.193094+00:00",
-    "snapshot_id": "snap_20261006_010157_387191",
-    "checksum": "387191b910de4159",
+    "as_of": "2026-10-06T23:26:59.052808+00:00",
+    "snapshot_id": "snap_20261006_232700_87e345",
+    "checksum": "87e345a5e55e2e4e",
     "verified": true,
     "constituent_ids": {
       "neocloud": [
@@ -2970,7 +2967,7 @@
     },
     "method": "listed-price; SXM/OAM rows, both topologies, per-GPU; spot bases only; segmented by seller tier; 10/90 winsorized median; unweighted",
     "sync_status": "partial",
-    "sync_live": 25,
+    "sync_live": 23,
     "sync_fallback": 2,
     "sync_catalog": 36
   },
@@ -2978,7 +2975,7 @@
     "id": "fix_2026-10-06_a100",
     "date": "2026-10-06",
     "family": "A100",
-    "settled_at": "2026-10-06T01:01:56.113149+00:00",
+    "settled_at": "2026-10-06T23:26:58.973741+00:00",
     "neocloud": 1.59,
     "neocloud_n": 5,
     "neocloud_providers": [
@@ -2995,9 +2992,9 @@
       "obs_runpod_a100_sxm_1x_community",
       "obs_lambda_a100_sxm_hgx_8x_8x_a100_sxm4_80gb"
     ],
-    "as_of": "2026-10-06T01:01:56.174414+00:00",
-    "snapshot_id": "snap_20261006_010157_387191",
-    "checksum": "387191b910de4159",
+    "as_of": "2026-10-06T23:26:59.036567+00:00",
+    "snapshot_id": "snap_20261006_232700_87e345",
+    "checksum": "87e345a5e55e2e4e",
     "verified": true,
     "constituent_ids": {
       "neocloud": [
@@ -3013,7 +3010,7 @@
     },
     "method": "listed-price; SXM/OAM rows, both topologies, per-GPU; spot bases only; segmented by seller tier; 10/90 winsorized median; unweighted",
     "sync_status": "partial",
-    "sync_live": 25,
+    "sync_live": 23,
     "sync_fallback": 2,
     "sync_catalog": 36
   }
