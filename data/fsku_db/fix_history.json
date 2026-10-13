@@ -3805,7 +3805,7 @@
     "id": "fix_2026-10-13_h100",
     "date": "2026-10-13",
     "family": "H100",
-    "settled_at": "2026-10-13T01:43:24.269931+00:00",
+    "settled_at": "2026-10-13T23:30:30.474011+00:00",
     "neocloud": 3.99,
     "neocloud_n": 9,
     "neocloud_providers": [
@@ -3826,9 +3826,9 @@
       "obs_together_h100_sxm_hgx_8x_reserved",
       "obs_lambda_h100_sxm_hgx_8x_8x_h100_sxm"
     ],
-    "as_of": "2026-10-13T01:43:24.324061+00:00",
-    "snapshot_id": "snap_20261013_014325_3e703f",
-    "checksum": "3e703f9d8e6e6284",
+    "as_of": "2026-10-13T23:30:30.538814+00:00",
+    "snapshot_id": "snap_20261013_233031_eed737",
+    "checksum": "eed737df1c1da1f1",
     "verified": true,
     "constituent_ids": {
       "neocloud": [
@@ -3850,7 +3850,7 @@
     },
     "method": "listed-price; SXM/OAM rows, both topologies, per-GPU; spot bases only; segmented by seller tier; 10/90 winsorized median; unweighted",
     "sync_status": "partial",
-    "sync_live": 25,
+    "sync_live": 24,
     "sync_fallback": 2,
     "sync_catalog": 36
   },
@@ -3858,7 +3858,7 @@
     "id": "fix_2026-10-13_h200",
     "date": "2026-10-13",
     "family": "H200",
-    "settled_at": "2026-10-13T01:43:24.269931+00:00",
+    "settled_at": "2026-10-13T23:30:30.474011+00:00",
     "neocloud": 4.5,
     "neocloud_n": 7,
     "neocloud_providers": [
@@ -3877,9 +3877,9 @@
       "obs_runpod_h200_sxm_1x_community",
       "obs_together_h200_sxm_hgx_8x_reserved"
     ],
-    "as_of": "2026-10-13T01:43:24.324061+00:00",
-    "snapshot_id": "snap_20261013_014325_3e703f",
-    "checksum": "3e703f9d8e6e6284",
+    "as_of": "2026-10-13T23:30:30.538814+00:00",
+    "snapshot_id": "snap_20261013_233031_eed737",
+    "checksum": "eed737df1c1da1f1",
     "verified": true,
     "constituent_ids": {
       "neocloud": [
@@ -3898,7 +3898,7 @@
     },
     "method": "listed-price; SXM/OAM rows, both topologies, per-GPU; spot bases only; segmented by seller tier; 10/90 winsorized median; unweighted",
     "sync_status": "partial",
-    "sync_live": 25,
+    "sync_live": 24,
     "sync_fallback": 2,
     "sync_catalog": 36
   },
@@ -3906,7 +3906,7 @@
     "id": "fix_2026-10-13_b200",
     "date": "2026-10-13",
     "family": "B200",
-    "settled_at": "2026-10-13T01:43:24.269931+00:00",
+    "settled_at": "2026-10-13T23:30:30.474011+00:00",
     "neocloud": 6.84,
     "neocloud_n": 10,
     "neocloud_providers": [
@@ -3929,9 +3929,9 @@
       "obs_lambda_b200_sxm_hgx_8x_8x_b200_sxm6",
       "obs_together_b200_sxm_hgx_8x_reserved"
     ],
-    "as_of": "2026-10-13T01:43:24.338177+00:00",
-    "snapshot_id": "snap_20261013_014325_3e703f",
-    "checksum": "3e703f9d8e6e6284",
+    "as_of": "2026-10-13T23:30:30.553520+00:00",
+    "snapshot_id": "snap_20261013_233031_eed737",
+    "checksum": "eed737df1c1da1f1",
     "verified": true,
     "constituent_ids": {
       "neocloud": [
@@ -3950,7 +3950,7 @@
     },
     "method": "listed-price; SXM/OAM rows, both topologies, per-GPU; spot bases only; segmented by seller tier; 10/90 winsorized median; unweighted",
     "sync_status": "partial",
-    "sync_live": 25,
+    "sync_live": 24,
     "sync_fallback": 2,
     "sync_catalog": 36
   },
@@ -3958,7 +3958,7 @@
     "id": "fix_2026-10-13_a100",
     "date": "2026-10-13",
     "family": "A100",
-    "settled_at": "2026-10-13T01:43:24.269931+00:00",
+    "settled_at": "2026-10-13T23:30:30.474011+00:00",
     "neocloud": 1.59,
     "neocloud_n": 6,
     "neocloud_providers": [
@@ -3977,9 +3977,9 @@
       "obs_runpod_a100_sxm_1x_community",
       "obs_lambda_a100_sxm_hgx_8x_8x_a100_sxm4_80gb"
     ],
-    "as_of": "2026-10-13T01:43:24.338177+00:00",
-    "snapshot_id": "snap_20261013_014325_3e703f",
-    "checksum": "3e703f9d8e6e6284",
+    "as_of": "2026-10-13T23:30:30.553520+00:00",
+    "snapshot_id": "snap_20261013_233031_eed737",
+    "checksum": "eed737df1c1da1f1",
     "verified": true,
     "constituent_ids": {
       "neocloud": [
@@ -3996,7 +3996,7 @@
     },
     "method": "listed-price; SXM/OAM rows, both topologies, per-GPU; spot bases only; segmented by seller tier; 10/90 winsorized median; unweighted",
     "sync_status": "partial",
-    "sync_live": 25,
+    "sync_live": 24,
     "sync_fallback": 2,
     "sync_catalog": 36
   }
