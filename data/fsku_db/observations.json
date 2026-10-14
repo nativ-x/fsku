@@ -35,7 +35,7 @@
     "form_factor": "SXM5",
     "interconnect": "NVLink 4 (900 GB/s)",
     "topology": "HGX 8x Clustered (3.2 Tbps InfiniBand)",
-    "recorded_at": "2026-10-13T23:30:30.474144+00:00",
+    "recorded_at": "2026-10-14T22:50:09.274668+00:00",
     "snapshot_id": null,
     "metadata": {
       "armSkuName": "Standard_ND96isr_H100_v5"
@@ -58,7 +58,7 @@
     "form_factor": "PCIe Gen4",
     "interconnect": "PCIe Bus (32 GB/s)",
     "topology": "1x Standalone Pod",
-    "recorded_at": "2026-10-13T23:30:30.474144+00:00",
+    "recorded_at": "2026-10-14T22:50:09.274668+00:00",
     "snapshot_id": null,
     "metadata": {
       "armSkuName": "Standard_NC48ads_A100_v4"
@@ -420,7 +420,7 @@
     "form_factor": "SXM5",
     "interconnect": "NVLink / Sliced",
     "topology": "1x Standalone Pod",
-    "recorded_at": "2026-10-13T23:30:30.538814+00:00",
+    "recorded_at": "2026-10-14T22:50:09.331368+00:00",
     "snapshot_id": null,
     "metadata": {
       "runpodId": "NVIDIA H100 80GB HBM3",
@@ -444,7 +444,7 @@
     "form_factor": "SXM5",
     "interconnect": "NVLink / Sliced",
     "topology": "1x Standalone Pod",
-    "recorded_at": "2026-10-13T23:30:30.538814+00:00",
+    "recorded_at": "2026-10-14T22:50:09.331368+00:00",
     "snapshot_id": null,
     "metadata": {
       "runpodId": "NVIDIA H100 80GB HBM3",
@@ -468,7 +468,7 @@
     "form_factor": "PCIe Gen5",
     "interconnect": "PCIe Bus (64 GB/s)",
     "topology": "Standard PCIe Server",
-    "recorded_at": "2026-10-13T23:30:30.538814+00:00",
+    "recorded_at": "2026-10-14T22:50:09.331368+00:00",
     "snapshot_id": null,
     "metadata": {
       "runpodId": "NVIDIA H100 PCIe",
@@ -492,7 +492,7 @@
     "form_factor": "PCIe Gen5",
     "interconnect": "PCIe Bus (64 GB/s)",
     "topology": "Standard PCIe Server",
-    "recorded_at": "2026-10-13T23:30:30.538814+00:00",
+    "recorded_at": "2026-10-14T22:50:09.331368+00:00",
     "snapshot_id": null,
     "metadata": {
       "runpodId": "NVIDIA H100 PCIe",
@@ -516,7 +516,7 @@
     "form_factor": "NVL Dual",
     "interconnect": "NVLink (600 GB/s)",
     "topology": "Dual-GPU Inference Module",
-    "recorded_at": "2026-10-13T23:30:30.538814+00:00",
+    "recorded_at": "2026-10-14T22:50:09.331368+00:00",
     "snapshot_id": null,
     "metadata": {
       "runpodId": "NVIDIA H100 NVL",
@@ -540,7 +540,7 @@
     "form_factor": "NVL Dual",
     "interconnect": "NVLink (600 GB/s)",
     "topology": "Dual-GPU Inference Module",
-    "recorded_at": "2026-10-13T23:30:30.538814+00:00",
+    "recorded_at": "2026-10-14T22:50:09.331368+00:00",
     "snapshot_id": null,
     "metadata": {
       "runpodId": "NVIDIA H100 NVL",
@@ -564,7 +564,7 @@
     "form_factor": "SXM5",
     "interconnect": "NVLink / Sliced",
     "topology": "1x Standalone Pod",
-    "recorded_at": "2026-10-13T23:30:30.538814+00:00",
+    "recorded_at": "2026-10-14T22:50:09.331368+00:00",
     "snapshot_id": null,
     "metadata": {
       "runpodId": "NVIDIA H200",
@@ -588,7 +588,7 @@
     "form_factor": "SXM5",
     "interconnect": "NVLink / Sliced",
     "topology": "1x Standalone Pod",
-    "recorded_at": "2026-10-13T23:30:30.538814+00:00",
+    "recorded_at": "2026-10-14T22:50:09.331368+00:00",
     "snapshot_id": null,
     "metadata": {
       "runpodId": "NVIDIA H200",
@@ -612,7 +612,7 @@
     "form_factor": "SXM6",
     "interconnect": "NVLink 5 / Sliced",
     "topology": "1x Standalone Pod",
-    "recorded_at": "2026-10-13T23:30:30.538814+00:00",
+    "recorded_at": "2026-10-14T22:50:09.331368+00:00",
     "snapshot_id": null,
     "metadata": {
       "runpodId": "NVIDIA B200",
@@ -636,7 +636,7 @@
     "form_factor": "SXM6",
     "interconnect": "NVLink 5 / Sliced",
     "topology": "1x Standalone Pod",
-    "recorded_at": "2026-10-13T23:30:30.538814+00:00",
+    "recorded_at": "2026-10-14T22:50:09.331368+00:00",
     "snapshot_id": null,
     "metadata": {
       "runpodId": "NVIDIA B200",
@@ -660,7 +660,7 @@
     "form_factor": "PCIe Gen4",
     "interconnect": "PCIe Bus (32 GB/s)",
     "topology": "Standard PCIe Server",
-    "recorded_at": "2026-10-13T23:30:30.538814+00:00",
+    "recorded_at": "2026-10-14T22:50:09.331368+00:00",
     "snapshot_id": null,
     "metadata": {
       "runpodId": "NVIDIA A100 80GB PCIe",
@@ -684,7 +684,7 @@
     "form_factor": "PCIe Gen4",
     "interconnect": "PCIe Bus (32 GB/s)",
     "topology": "Standard PCIe Server",
-    "recorded_at": "2026-10-13T23:30:30.538814+00:00",
+    "recorded_at": "2026-10-14T22:50:09.331368+00:00",
     "snapshot_id": null,
     "metadata": {
       "runpodId": "NVIDIA A100 80GB PCIe",
@@ -708,7 +708,7 @@
     "form_factor": "SXM4",
     "interconnect": "NVLink / Sliced",
     "topology": "1x Standalone Pod",
-    "recorded_at": "2026-10-13T23:30:30.538814+00:00",
+    "recorded_at": "2026-10-14T22:50:09.331368+00:00",
     "snapshot_id": null,
     "metadata": {
       "runpodId": "NVIDIA A100-SXM4-80GB",
@@ -732,7 +732,7 @@
     "form_factor": "SXM4",
     "interconnect": "NVLink / Sliced",
     "topology": "1x Standalone Pod",
-    "recorded_at": "2026-10-13T23:30:30.538814+00:00",
+    "recorded_at": "2026-10-14T22:50:09.331368+00:00",
     "snapshot_id": null,
     "metadata": {
       "runpodId": "NVIDIA A100-SXM4-80GB",
@@ -756,7 +756,7 @@
     "form_factor": "PCIe Gen4",
     "interconnect": "PCIe Bus (32 GB/s)",
     "topology": "Enterprise Inference Server",
-    "recorded_at": "2026-10-13T23:30:30.538814+00:00",
+    "recorded_at": "2026-10-14T22:50:09.331368+00:00",
     "snapshot_id": null,
     "metadata": {
       "runpodId": "NVIDIA L40S",
@@ -780,7 +780,7 @@
     "form_factor": "PCIe Gen4",
     "interconnect": "PCIe Bus (32 GB/s)",
     "topology": "Enterprise Inference Server",
-    "recorded_at": "2026-10-13T23:30:30.538814+00:00",
+    "recorded_at": "2026-10-14T22:50:09.331368+00:00",
     "snapshot_id": null,
     "metadata": {
       "runpodId": "NVIDIA L40S",
@@ -804,7 +804,7 @@
     "form_factor": "PCIe Gen4",
     "interconnect": "PCIe Bus (32 GB/s)",
     "topology": "Workstation / Bare Metal",
-    "recorded_at": "2026-10-13T23:30:30.538814+00:00",
+    "recorded_at": "2026-10-14T22:50:09.331368+00:00",
     "snapshot_id": null,
     "metadata": {
       "runpodId": "NVIDIA GeForce RTX 4090",
@@ -828,7 +828,7 @@
     "form_factor": "PCIe Gen4",
     "interconnect": "PCIe Bus (32 GB/s)",
     "topology": "Workstation / Bare Metal",
-    "recorded_at": "2026-10-13T23:30:30.538814+00:00",
+    "recorded_at": "2026-10-14T22:50:09.331368+00:00",
     "snapshot_id": null,
     "metadata": {
       "runpodId": "NVIDIA GeForce RTX 4090",
@@ -865,28 +865,27 @@
     "basis": "On-demand",
     "tier": "Community",
     "gpuCount": 1,
-    "total": 0.4689,
-    "perGpu": 0.4689,
+    "total": 0.4756,
+    "perGpu": 0.4756,
     "vram": 24,
     "source": "vast",
     "region": "Global",
     "form_factor": "PCIe Gen4",
     "interconnect": "PCIe Bus (32 GB/s)",
     "topology": "Workstation / Bare Metal",
-    "recorded_at": "2026-10-13T23:30:30.553520+00:00",
+    "recorded_at": "2026-10-14T22:50:09.344085+00:00",
     "snapshot_id": null,
     "metadata": {
       "vast_gpu_name": "RTX 4090",
-      "n": 7,
-      "n_verified": 3,
-      "median": 0.4689,
-      "p10": 0.4149,
-      "p90": 0.4711,
-      "min": 0.4143,
+      "n": 3,
+      "n_verified": 2,
+      "median": 0.4756,
+      "p10": 0.4702,
+      "p90": 0.5781,
+      "min": 0.4689,
       "gpus_per_offer": [
         1,
-        2,
-        4
+        2
       ]
     },
     "provenance": "live"
@@ -1319,26 +1318,28 @@
     "basis": "On-demand",
     "tier": "Community",
     "gpuCount": 1,
-    "total": 6.2521,
-    "perGpu": 6.2521,
+    "total": 6.251,
+    "perGpu": 6.251,
     "vram": 180,
     "source": "vast",
     "region": "Global",
     "form_factor": "SXM6",
     "interconnect": "NVLink 5 / Sliced",
     "topology": "1x Standalone Pod",
-    "recorded_at": "2026-10-13T23:30:30.553520+00:00",
+    "recorded_at": "2026-10-14T22:50:09.344085+00:00",
     "snapshot_id": null,
     "metadata": {
       "vast_gpu_name": "B200",
-      "n": 1,
-      "n_verified": 1,
-      "median": 6.2521,
-      "p10": 6.2521,
-      "p90": 6.2521,
-      "min": 6.2521,
+      "n": 3,
+      "n_verified": 3,
+      "median": 6.251,
+      "p10": 6.2506,
+      "p90": 6.2519,
+      "min": 6.2505,
       "gpus_per_offer": [
-        1
+        1,
+        2,
+        4
       ]
     },
     "provenance": "live"
@@ -1351,24 +1352,57 @@
     "basis": "On-demand",
     "tier": "Community",
     "gpuCount": 1,
-    "total": 1.0022,
-    "perGpu": 1.0022,
+    "total": 0.9356,
+    "perGpu": 0.9356,
     "vram": 80,
     "source": "vast",
     "region": "Global",
     "form_factor": "PCIe Gen4",
     "interconnect": "PCIe Bus (32 GB/s)",
     "topology": "Standard PCIe Server",
-    "recorded_at": "2026-10-13T23:30:30.553520+00:00",
+    "recorded_at": "2026-10-14T22:50:09.344085+00:00",
     "snapshot_id": null,
     "metadata": {
       "vast_gpu_name": "A100 PCIE",
-      "n": 3,
+      "n": 5,
+      "n_verified": 3,
+      "median": 0.9356,
+      "p10": 0.476,
+      "p90": 1.0018,
+      "min": 0.3997,
+      "gpus_per_offer": [
+        1,
+        2
+      ]
+    },
+    "provenance": "live"
+  },
+  {
+    "id": "obs_vast_h100_nvl",
+    "provider": "Vast.ai",
+    "gpu": "H100 NVL",
+    "instance": "marketplace median ask",
+    "basis": "On-demand",
+    "tier": "Community",
+    "gpuCount": 1,
+    "total": 3.0289,
+    "perGpu": 3.0289,
+    "vram": 94,
+    "source": "vast",
+    "region": "Global",
+    "form_factor": "NVL Dual",
+    "interconnect": "NVLink (600 GB/s)",
+    "topology": "Dual-GPU Inference Module",
+    "recorded_at": "2026-10-14T22:50:09.344085+00:00",
+    "snapshot_id": null,
+    "metadata": {
+      "vast_gpu_name": "H100 NVL",
+      "n": 1,
       "n_verified": 1,
-      "median": 1.0022,
-      "p10": 0.5074,
-      "p90": 1.0591,
-      "min": 0.3837,
+      "median": 3.0289,
+      "p10": 3.0289,
+      "p90": 3.0289,
+      "min": 3.0289,
       "gpus_per_offer": [
         1
       ]
@@ -1376,31 +1410,31 @@
     "provenance": "live"
   },
   {
-    "id": "obs_vast_a100_sxm_1x",
+    "id": "obs_vast_h200_sxm_1x",
     "provider": "Vast.ai",
-    "gpu": "A100 SXM (1x)",
+    "gpu": "H200 SXM (1x)",
     "instance": "marketplace median ask",
     "basis": "On-demand",
     "tier": "Community",
     "gpuCount": 1,
-    "total": 0.403,
-    "perGpu": 0.403,
-    "vram": 80,
+    "total": 4.0011,
+    "perGpu": 4.0011,
+    "vram": 141,
     "source": "vast",
     "region": "Global",
-    "form_factor": "SXM4",
+    "form_factor": "SXM5",
     "interconnect": "NVLink / Sliced",
     "topology": "1x Standalone Pod",
-    "recorded_at": "2026-10-13T23:30:30.553520+00:00",
+    "recorded_at": "2026-10-14T22:50:09.344085+00:00",
     "snapshot_id": null,
     "metadata": {
-      "vast_gpu_name": "A100 SXM4",
+      "vast_gpu_name": "H200",
       "n": 1,
       "n_verified": 0,
-      "median": 0.403,
-      "p10": 0.403,
-      "p90": 0.403,
-      "min": 0.403,
+      "median": 4.0011,
+      "p10": 4.0011,
+      "p90": 4.0011,
+      "min": 4.0011,
       "gpus_per_offer": [
         1
       ]
